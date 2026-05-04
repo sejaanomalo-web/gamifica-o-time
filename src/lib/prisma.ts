@@ -4,10 +4,12 @@ import { PrismaPg } from "@prisma/adapter-pg";
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 function makeClient() {
-  const url = process.env.DATABASE_URL;
-  if (!url) {
-    throw new Error("DATABASE_URL is not set. Copy .env.example to .env.local and fill it in.");
-  }
+  // Falls back to a placeholder when DATABASE_URL is missing so the client
+  // constructs cleanly during build / static generation. Real queries will
+  // fail at request time with a clear connection error, which is correct.
+  const url =
+    process.env.DATABASE_URL ??
+    "postgresql://placeholder:placeholder@localhost:5432/placeholder";
   const adapter = new PrismaPg({ connectionString: url });
   return new PrismaClient({
     adapter,
