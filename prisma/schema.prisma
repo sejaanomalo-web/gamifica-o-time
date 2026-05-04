@@ -1,0 +1,383 @@
+// Anômalo Meta — full schema
+// Money values in CENTS (Int) only, never Float.
+// MoodEntry.userId exists ONLY for weekly dedupe + LOW_MOOD individual alert.
+// Admin queries MUST aggregate and never expose userId beside the answer.
+// Commission month closures freeze tier + weights snapshots — past months never recalculate.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  COLABORADOR
+  ADMIN
+}
+
+enum GoalStatus {
+  ATIVA
+  CONCLUIDA
+  NAO_BATIDA
+  AGUARDANDO_VALIDACAO
+  REJEITADA
+}
+
+enum RedeemStatus {
+  PENDENTE
+  APROVADO
+  ENTREGUE
+  REJEITADO
+}
+
+enum DeliveryCategoryGroup {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum CommissionStatus {
+  CALCULADO
+  PAGO
+}
+
+enum CommissionTierReached {
+  BASE
+  META_1
+  META_2
+  EXCELENCIA
+}
+
+enum AlertType {
+  NO_LOGIN
+  NO_GOAL
+  LOW_MOOD
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum AlertStatus {
+  ACTIVE
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  name          String
+  avatarUrl     String?
+  area          String?
+  role          Role     @default(COLABORADOR)
+  createdAt     DateTime @default(now())
+  lastLoginAt   DateTime?
+
+  goals             Goal[]
+  evidences         Evidence[]
+  badges            UserBadge[]
+  redeems           Redeem[]
+  events            MuralEvent[]
+  xpEvents          XpEvent[]
+  pushSubs          PushSubscription[]
+  notifications     Notification[]
+  alerts            AdminAlert[]      @relation("AlertTarget")
+  moodEntries       MoodEntry[]
+  wrappedSnapshots  WrappedSnapshot[]
+  commissionTier    CommissionTier?
+  deliveries        Delivery[]
+  adjustments       Adjustment[]
+  commissionMonths  CommissionMonth[]
+}
+
+model Season {
+  id        String   @id @default(uuid())
+  number    Int      @unique
+  startsAt  DateTime
+  endsAt    DateTime
+  isActive  Boolean  @default(false)
+
+  goals             Goal[]
+  xpEvents          XpEvent[]
+  wrappedSnapshots  WrappedSnapshot[]
+}
+
+model Goal {
+  id            String     @id @default(uuid())
+  title         String
+  description   String?
+  kpi           String
+  target        Float
+  current       Float      @default(0)
+  xpReward      Int
+  deadline      DateTime
+  status        GoalStatus @default(ATIVA)
+  needsEvidence Boolean    @default(false)
+  ownerId       String
+  owner         User       @relation(fields: [ownerId], references: [id])
+  seasonId      String
+  season        Season     @relation(fields: [seasonId], references: [id])
+  evidences     Evidence[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([ownerId, status])
+  @@index([seasonId])
+}
+
+model Evidence {
+  id         String    @id @default(uuid())
+  goalId     String
+  goal       Goal      @relation(fields: [goalId], references: [id])
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+  fileUrl    String
+  approved   Boolean?
+  approvedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([goalId])
+}
+
+model Badge {
+  id          String      @id @default(uuid())
+  name        String
+  description String
+  iconUrl     String
+  criterion   String
+  isAuto      Boolean     @default(false)
+  users       UserBadge[]
+}
+
+model UserBadge {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  badgeId    String
+  badge      Badge    @relation(fields: [badgeId], references: [id])
+  unlockedAt DateTime @default(now())
+
+  @@unique([userId, badgeId])
+}
+
+model ShopItem {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  imageUrl    String?
+  costXp      Int
+  stock       Int      @default(-1)
+  active      Boolean  @default(true)
+  redeems     Redeem[]
+}
+
+model Redeem {
+  id         String       @id @default(uuid())
+  userId     String
+  user       User         @relation(fields: [userId], references: [id])
+  itemId     String
+  item       ShopItem     @relation(fields: [itemId], references: [id])
+  status     RedeemStatus @default(PENDENTE)
+  costXp     Int
+  createdAt  DateTime     @default(now())
+  resolvedAt DateTime?
+
+  @@index([userId])
+  @@index([status])
+}
+
+model XpEvent {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  seasonId  String
+  season    Season   @relation(fields: [seasonId], references: [id])
+  amount    Int
+  source    String   // "goal" | "badge" | "manual" | "delivery" | "redeem"
+  refId     String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, seasonId])
+}
+
+model MuralEvent {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String   // "goal_done" | "badge_unlocked" | "level_up"
+  payload   Json
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model Notification {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  type      String
+  title     String
+  body      String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, readAt])
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model MoodEntry {
+  id        String   @id @default(uuid())
+  userId    String   // never exposed in admin UI; only for dedupe + LOW_MOOD alert trigger
+  user      User     @relation(fields: [userId], references: [id])
+  weekISO   String
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, weekISO])
+  @@index([weekISO])
+  @@index([rating])
+}
+
+model AdminAlert {
+  id             String        @id @default(uuid())
+  targetUserId   String
+  targetUser     User          @relation("AlertTarget", fields: [targetUserId], references: [id])
+  type           AlertType
+  severity       AlertSeverity @default(LOW)
+  status         AlertStatus   @default(ACTIVE)
+  message        String
+  payload        Json?
+  createdAt      DateTime      @default(now())
+  acknowledgedAt DateTime?
+  resolvedAt     DateTime?
+  resolvedById   String?
+
+  @@index([targetUserId])
+  @@index([status])
+  @@index([type])
+}
+
+model WrappedSnapshot {
+  id                String    @id @default(uuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id])
+  seasonId          String
+  season            Season    @relation(fields: [seasonId], references: [id])
+  goalsBeaten       Int
+  totalXp           Int
+  peakDay           DateTime?
+  peakDayXp         Int       @default(0)
+  rareBadgeId       String?
+  rareBadgePercent  Float?
+  comparisonXpDelta Float?
+  finalRank         Int?
+  closingPhrase     String?
+  createdAt         DateTime  @default(now())
+
+  @@unique([userId, seasonId])
+  @@index([seasonId])
+}
+
+model DeliveryWeight {
+  id         String                @id @default(uuid())
+  category   String                @unique
+  group      DeliveryCategoryGroup
+  weight     Float
+  active     Boolean               @default(true)
+  createdAt  DateTime              @default(now())
+  updatedAt  DateTime              @updatedAt
+  deliveries Delivery[]
+}
+
+model CommissionTier {
+  id                   String   @id @default(uuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id])
+  baseSalary           Int      @default(0) // cents
+  baseMin              Int      @default(0)
+  baseMax              Int
+  m1Min                Int
+  m1Max                Int
+  m2Min                Int
+  m2Max                Int
+  excellenceMin        Int
+  m1BonusPer20         Int
+  m2BonusPer20         Int
+  excellenceFixedBonus Int
+  excellenceBonusPer10 Int
+  excellenceBonusStep  Int      @default(10)
+  notes                String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model Delivery {
+  id             String         @id @default(uuid())
+  userId         String
+  user           User           @relation(fields: [userId], references: [id])
+  weightId       String
+  weight         DeliveryWeight @relation(fields: [weightId], references: [id])
+  count          Int            @default(1)
+  pointsApplied  Float
+  deliveredAt    DateTime
+  registeredById String
+  notes          String?
+  createdAt      DateTime       @default(now())
+  adjustments    Adjustment[]
+
+  @@index([userId, deliveredAt])
+}
+
+model Adjustment {
+  id             String    @id @default(uuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id])
+  deliveryId     String?
+  delivery       Delivery? @relation(fields: [deliveryId], references: [id])
+  pointsDeducted Float     @default(5.0)
+  reason         String
+  registeredById String
+  createdAt      DateTime  @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model CommissionMonth {
+  id               String                @id @default(uuid())
+  userId           String
+  user             User                  @relation(fields: [userId], references: [id])
+  monthISO         String
+  grossPoints      Float
+  adjustmentsTotal Float                 @default(0)
+  netPoints        Float
+  tierReached      CommissionTierReached
+  bonusValue       Int
+  status           CommissionStatus      @default(CALCULADO)
+  closedAt         DateTime              @default(now())
+  paidAt           DateTime?
+  paidById         String?
+  tierSnapshot     Json
+  weightsSnapshot  Json
+
+  @@unique([userId, monthISO])
+  @@index([monthISO])
+  @@index([status])
+}

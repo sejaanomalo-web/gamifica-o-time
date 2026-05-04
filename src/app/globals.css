@@ -1,26 +1,174 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@custom-variant dark (&:is(.dark *));
+
+/* Anômalo Hub — design tokens (Tailwind v4 @theme syntax) */
+@theme {
+  /* Brand palette */
+  --color-anomalo-black: #000000;
+  --color-anomalo-surface: #0A0A0A;
+  --color-anomalo-white: #FFFFFF;
+  --color-anomalo-gold: #C9953A;
+  --color-anomalo-gold-bright: #E0B25A;
+  --color-anomalo-sand: #8A7850;
+  --color-anomalo-muted: #5A4A2A;
+  --color-anomalo-gold-hair: rgba(201, 149, 58, 0.32);
+  --color-anomalo-gold-ghost: rgba(201, 149, 58, 0.14);
+
+  /* Typography */
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+
+  /* Type scale */
+  --text-display: 5.625rem;
+  --text-display--line-height: 1.05;
+  --text-display--font-weight: 900;
+  --text-display--letter-spacing: -0.02em;
+  --text-h2: 2.25rem;
+  --text-h2--line-height: 1.15;
+  --text-h2--font-weight: 800;
+  --text-h2--letter-spacing: -0.01em;
+  --text-h3: 1.5rem;
+  --text-h3--line-height: 1.3;
+  --text-h3--font-weight: 700;
+  --text-body-md: 1rem;
+  --text-body-md--line-height: 1.55;
+  --text-body-sm: 0.875rem;
+  --text-body-sm--line-height: 1.5;
+  --text-label: 0.75rem;
+  --text-label--line-height: 1;
+  --text-label--font-weight: 600;
+  --text-label--letter-spacing: 0.16em;
+
+  /* Cantos vivos sempre — zero radius across the system */
+  --radius: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
+
+  /* Spacing extras */
+  --spacing-xxl: 4rem;
+
+  /* Easings */
+  --ease-anomalo: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-anomalo-in: cubic-bezier(0.6, 0, 0.8, 0.4);
 }
 
+/* shadcn semantic mapping (forced dark, all rounded zeroed) */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root,
+.dark {
+  --background: #000000;
+  --foreground: #FFFFFF;
+  --card: #0A0A0A;
+  --card-foreground: #FFFFFF;
+  --popover: #0A0A0A;
+  --popover-foreground: #FFFFFF;
+  --primary: #C9953A;
+  --primary-foreground: #000000;
+  --secondary: #0A0A0A;
+  --secondary-foreground: #FFFFFF;
+  --muted: #0A0A0A;
+  --muted-foreground: #8A7850;
+  --accent: #C9953A;
+  --accent-foreground: #000000;
+  --destructive: #E26B4A;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.10);
+  --ring: #C9953A;
+}
+
+@layer base {
+  * { box-sizing: border-box; }
+  *::selection { background: #C9953A; color: #000; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #000;
+    color: #FFF;
+    color-scheme: dark;
+  }
+  html { font-family: var(--font-sans); }
+  /* prevent horizontal scroll on iOS Safari with sticky elements */
+  body { overflow-x: clip; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+}
+
+@layer utilities {
+  .text-display { font-weight: 900; letter-spacing: -0.02em; line-height: 1.05; }
+  .text-respiro { font-weight: 300; font-style: italic; }
+  .label-caps {
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+  }
+  .ano-card {
+    background: #0A0A0A;
+    border: 1px solid rgba(201, 149, 58, 0.32);
+  }
+  .ano-card-flat {
+    background: #0A0A0A;
+  }
+  .ano-divider-gold {
+    height: 1px;
+    background: rgba(201, 149, 58, 0.32);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Keyframes */
+@keyframes anoLambdaPulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50%      { opacity: 0.6; transform: scale(1.04); }
+}
+@keyframes anoOrb1 {
+  0%, 100% { transform: translate(0,0) scale(1); }
+  50%      { transform: translate(-20px, 20px) scale(1.08); }
+}
+@keyframes anoOrb2 {
+  0%, 100% { transform: translate(0,0) scale(1); }
+  50%      { transform: translate(30px, -16px) scale(1.05); }
+}
+@keyframes anoOrb3 {
+  0%, 100% { transform: translate(0,0) scale(1); }
+  50%      { transform: translate(-10px,-22px) scale(1.1); }
+}
+@keyframes anoToast {
+  0%   { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes anoPageEnter {
+  0%   { opacity: 0; transform: translateY(8px) scale(0.99); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
