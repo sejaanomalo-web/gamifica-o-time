@@ -15,37 +15,75 @@ function greetByHour() {
   return "Boa noite";
 }
 
+// Helper: run a query and return a fallback if the table/relation doesn't
+// exist yet (e.g. partial migration apply). Logs but doesn't crash the page.
+async function safe<T>(label: string, q: () => Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await q();
+  } catch (err) {
+    console.error(`[dashboard] ${label} failed:`, err);
+    return fallback;
+  }
+}
+
 export default async function DashboardPage() {
   const user = await requireAppUser();
 
-  const season = await prisma.season.findFirst({ where: { isActive: true } });
+  const season = await safe(
+    "season.findFirst",
+    () => prisma.season.findFirst({ where: { isActive: true } }),
+    null,
+  );
+
   const xpAgg = season
-    ? await prisma.xpEvent.aggregate({
-        where: { userId: user.id, seasonId: season.id },
-        _sum: { amount: true },
-      })
+    ? await safe(
+        "xpEvent.aggregate",
+        () =>
+          prisma.xpEvent.aggregate({
+            where: { userId: user.id, seasonId: season.id },
+            _sum: { amount: true },
+          }),
+        { _sum: { amount: 0 } },
+      )
     : { _sum: { amount: 0 } };
   const xp = xpAgg._sum.amount ?? 0;
   const prog = xpProgress(xp);
 
-  const metaMes = await prisma.goal.findFirst({
-    where: { ownerId: user.id, status: "ATIVA" },
-    orderBy: { deadline: "asc" },
-  });
+  const metaMes = await safe(
+    "goal.findFirst",
+    () =>
+      prisma.goal.findFirst({
+        where: { ownerId: user.id, status: "ATIVA" },
+        orderBy: { deadline: "asc" },
+      }),
+    null,
+  );
 
-  const recent = await prisma.muralEvent.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: "desc" },
-    take: 3,
-  });
+  const recent = await safe(
+    "muralEvent.findMany",
+    () =>
+      prisma.muralEvent.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: "desc" },
+        take: 3,
+      }),
+    [] as Awaited<ReturnType<typeof prisma.muralEvent.findMany>>,
+  );
 
-  const ranking = season
-    ? await prisma.xpEvent.groupBy({
-        by: ["userId"],
-        where: { seasonId: season.id },
-        _sum: { amount: true },
-        orderBy: { _sum: { amount: "desc" } },
-      })
+  const ranking: Array<{ userId: string }> = season
+    ? await safe<Array<{ userId: string }>>(
+        "xpEvent.groupBy",
+        async () => {
+          const rows = await prisma.xpEvent.groupBy({
+            by: ["userId"],
+            where: { seasonId: season.id },
+            _sum: { amount: true },
+            orderBy: { _sum: { amount: "desc" } },
+          });
+          return rows.map((r) => ({ userId: r.userId }));
+        },
+        [],
+      )
     : [];
   const myPos = ranking.findIndex((r) => r.userId === user.id) + 1;
 
