@@ -77,36 +77,65 @@ export default async function ComissionamentoPage() {
   };
 
   return (
-    <div className="px-5 md:px-8 py-6 md:py-10 max-w-3xl mx-auto w-full">
+    <div className="px-5 md:px-8 py-8 md:py-12 max-w-3xl mx-auto w-full">
       <Reveal>
-        <Link href="/perfil" className="label-caps text-anomalo-sand hover:text-anomalo-gold">
+        <Link
+          href="/perfil"
+          className="label-caps label-caps-muted hover:text-[#C9953A] inline-block transition-colors"
+        >
           ← Perfil
         </Link>
-        <h1 className="mt-4 text-h2 uppercase text-anomalo-white" style={{ letterSpacing: "-0.01em" }}>
-          Comissionamento.
+        <h1
+          className="mt-5 text-white"
+          style={{
+            fontWeight: 900,
+            fontSize: "clamp(2.25rem, 7vw, 3rem)",
+            lineHeight: 0.95,
+            letterSpacing: "-0.03em",
+            textTransform: "uppercase",
+          }}
+        >
+          Sua<br />
+          <span
+            className="text-[#C9953A]"
+            style={{
+              fontWeight: 300,
+              fontStyle: "italic",
+              textTransform: "lowercase",
+              letterSpacing: "-0.02em",
+            }}
+          >
+            comissão.
+          </span>
         </h1>
-        <p className="mt-3 text-anomalo-sand text-sm">
+        <p className="mt-4 text-mid text-sm">
           {monthLabel(monthIso)} · Em curso.
         </p>
       </Reveal>
 
       <Reveal delay={200}>
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-px bg-anomalo-gold-hair border border-anomalo-gold-hair">
-          <div className="bg-anomalo-black p-5">
-            <span className="label-caps text-anomalo-sand block mb-2">Pontos do mês</span>
-            <span className="font-black text-anomalo-white text-3xl tabular-nums">
+        <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="ano-card-flat p-6">
+            <span className="label-caps label-caps-muted block mb-3">Pontos do mês</span>
+            <span
+              className="text-mono text-white"
+              style={{ fontSize: 30, fontWeight: 700, letterSpacing: "-0.02em" }}
+            >
               <CountUp value={Math.round(netPoints * 10) / 10} decimals={1} />
             </span>
           </div>
-          <div className="bg-anomalo-black p-5">
-            <span className="label-caps text-anomalo-sand block mb-2">Tier atual</span>
-            <span className="label-caps text-anomalo-gold text-base">
+          <div className="ano-card-flat p-6">
+            <span className="label-caps label-caps-muted block mb-3">Tier atual</span>
+            <span className="label-caps text-base" style={{ fontSize: 14, color: "#C9953A" }}>
               {TIER_LABEL[result.tierReached]}
             </span>
           </div>
-          <div className="bg-anomalo-black p-5">
-            <span className="label-caps text-anomalo-sand block mb-2">Bônus estimado</span>
-            <span className="font-black text-anomalo-gold text-3xl tabular-nums">
+          <div className="ano-card-flat p-6">
+            <span className="label-caps label-caps-muted block mb-3">Bônus estimado</span>
+            <span
+              className="text-mono text-[#C9953A]"
+              style={{ fontSize: 30, fontWeight: 700, letterSpacing: "-0.02em" }}
+            >
               {formatCents(result.bonusValueCents)}
             </span>
           </div>
@@ -114,15 +143,15 @@ export default async function ComissionamentoPage() {
       </Reveal>
 
       <Reveal delay={350}>
-        <div className="mt-8">
+        <div className="mt-8 ano-card-flat p-6">
           <CommissionTierTrack tier={tier} netPoints={netPoints} />
           {next.nextMarker !== null && (
-            <p className="mt-4 text-sm text-anomalo-sand">
+            <p className="mt-5 text-sm text-mid">
               Faltam{" "}
-              <span className="text-anomalo-gold font-bold tabular-nums">
+              <span className="text-mono text-[#C9953A]" style={{ fontWeight: 700 }}>
                 {Math.max(0, Math.ceil(next.nextMarker - netPoints))}
               </span>{" "}
-              pontos pra <span className="text-anomalo-gold">{next.nextLabel}</span>.
+              pontos pra <span className="text-[#C9953A] font-semibold">{next.nextLabel}</span>.
             </p>
           )}
         </div>
@@ -130,44 +159,52 @@ export default async function ComissionamentoPage() {
 
       <Reveal delay={500}>
         <section className="mt-10">
-          <h2 className="label-caps text-anomalo-sand mb-3">
+          <h2 className="label-caps label-caps-muted mb-3">
             Suas entregas em {monthLabel(monthIso)}
           </h2>
-          <div className="border border-anomalo-gold-hair">
+          <div className="ano-card-flat overflow-hidden">
             {deliveries.length === 0 ? (
-              <p className="text-anomalo-muted text-sm py-6 text-center">
+              <p className="text-faint text-sm py-10 text-center">
                 Sem entregas registradas esse mês.
               </p>
             ) : (
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-anomalo-gold-hair">
-                    <th className="text-left px-4 py-2.5 label-caps text-anomalo-sand text-[10px]">Data</th>
-                    <th className="text-left px-4 py-2.5 label-caps text-anomalo-sand text-[10px]">Categoria</th>
-                    <th className="text-right px-4 py-2.5 label-caps text-anomalo-sand text-[10px]">Qtd</th>
-                    <th className="text-right px-4 py-2.5 label-caps text-anomalo-sand text-[10px]">Peso</th>
-                    <th className="text-right px-4 py-2.5 label-caps text-anomalo-sand text-[10px]">Pts</th>
+                  <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+                    <th className="text-left px-5 py-3 label-caps label-caps-muted">Data</th>
+                    <th className="text-left px-5 py-3 label-caps label-caps-muted">Categoria</th>
+                    <th className="text-right px-5 py-3 label-caps label-caps-muted">Qtd</th>
+                    <th className="text-right px-5 py-3 label-caps label-caps-muted">Peso</th>
+                    <th className="text-right px-5 py-3 label-caps label-caps-muted">Pts</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {deliveries.map((d) => (
-                    <tr key={d.id} className="border-b border-white/5 last:border-0">
-                      <td className="px-4 py-2.5 text-anomalo-sand tabular-nums">
+                  {deliveries.map((d, i) => (
+                    <tr
+                      key={d.id}
+                      className={i < deliveries.length - 1 ? "" : ""}
+                      style={{
+                        borderBottom: i < deliveries.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
+                      }}
+                    >
+                      <td className="px-5 py-3 text-mid text-mono">
                         {d.deliveredAt.toLocaleDateString("pt-BR")}
                       </td>
-                      <td className="px-4 py-2.5 text-anomalo-white">{d.weight.category}</td>
-                      <td className="px-4 py-2.5 text-right text-anomalo-white tabular-nums">{d.count}</td>
-                      <td className="px-4 py-2.5 text-right text-anomalo-sand tabular-nums">{d.weight.weight.toFixed(1)}×</td>
-                      <td className="px-4 py-2.5 text-right text-anomalo-gold tabular-nums font-bold">
+                      <td className="px-5 py-3 text-white">{d.weight.category}</td>
+                      <td className="px-5 py-3 text-right text-white text-mono">{d.count}</td>
+                      <td className="px-5 py-3 text-right text-mid text-mono">
+                        {d.weight.weight.toFixed(1)}×
+                      </td>
+                      <td className="px-5 py-3 text-right text-[#C9953A] text-mono font-bold">
                         {d.pointsApplied.toFixed(1)}
                       </td>
                     </tr>
                   ))}
-                  <tr className="bg-anomalo-surface">
-                    <td colSpan={4} className="px-4 py-2.5 label-caps text-anomalo-sand">
+                  <tr style={{ background: "rgba(201,149,58,0.04)" }}>
+                    <td colSpan={4} className="px-5 py-3 label-caps">
                       Total bruto
                     </td>
-                    <td className="px-4 py-2.5 text-right text-anomalo-gold tabular-nums font-bold">
+                    <td className="px-5 py-3 text-right text-[#C9953A] text-mono font-bold">
                       {grossPoints.toFixed(1)}
                     </td>
                   </tr>
@@ -179,26 +216,29 @@ export default async function ComissionamentoPage() {
       </Reveal>
 
       <Reveal delay={650}>
-        <section className="mt-10">
-          <h2 className="label-caps text-anomalo-sand mb-3">Ajustes registrados</h2>
-          <div className="border border-anomalo-gold-hair">
+        <section className="mt-8">
+          <h2 className="label-caps label-caps-muted mb-3">Ajustes registrados</h2>
+          <div className="ano-card-flat overflow-hidden">
             {adjustments.length === 0 ? (
-              <p className="text-anomalo-muted text-sm py-6 text-center">
+              <p className="text-faint text-sm py-10 text-center">
                 Sem ajustes esse mês. Mantém assim.
               </p>
             ) : (
-              adjustments.map((a) => (
+              adjustments.map((a, i) => (
                 <div
                   key={a.id}
-                  className="border-b border-white/5 last:border-0 px-4 py-3 flex items-center justify-between"
+                  className="px-5 py-4 flex items-center justify-between"
+                  style={{
+                    borderBottom: i < adjustments.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
+                  }}
                 >
                   <div>
-                    <div className="text-anomalo-white text-sm">{a.reason}</div>
-                    <span className="label-caps text-anomalo-muted text-[10px]">
+                    <div className="text-white text-sm">{a.reason}</div>
+                    <span className="label-caps label-caps-muted text-[10px] mt-1 block">
                       {a.createdAt.toLocaleDateString("pt-BR")}
                     </span>
                   </div>
-                  <span className="text-red-400 tabular-nums font-bold text-sm">
+                  <span className="text-[#fb2c36] text-mono font-bold text-sm">
                     −{a.pointsDeducted.toFixed(1)} pts
                   </span>
                 </div>
@@ -209,27 +249,35 @@ export default async function ComissionamentoPage() {
       </Reveal>
 
       <Reveal delay={800}>
-        <details className="mt-10 border border-anomalo-gold-hair p-4">
-          <summary className="label-caps text-anomalo-gold cursor-pointer">
+        <details
+          className="mt-8 ano-card-flat p-5"
+          style={{ boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.08)" }}
+        >
+          <summary className="label-caps cursor-pointer select-none">
             Como funciona o cálculo?
           </summary>
           <table className="w-full mt-4 text-sm">
             <thead>
               <tr>
-                <th className="text-left label-caps text-anomalo-sand py-2">Categoria</th>
-                <th className="text-right label-caps text-anomalo-sand py-2">Peso</th>
+                <th className="text-left label-caps label-caps-muted py-2">Categoria</th>
+                <th className="text-right label-caps label-caps-muted py-2">Peso</th>
               </tr>
             </thead>
             <tbody>
-              {weights.map((w) => (
-                <tr key={w.id} className="border-b border-white/5 last:border-0">
-                  <td className="text-anomalo-white py-2">{w.category}</td>
-                  <td className="text-right text-anomalo-gold tabular-nums">{w.weight.toFixed(1)}×</td>
+              {weights.map((w, i) => (
+                <tr
+                  key={w.id}
+                  style={{
+                    borderBottom: i < weights.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
+                  }}
+                >
+                  <td className="text-white py-2.5">{w.category}</td>
+                  <td className="text-right text-[#C9953A] text-mono py-2.5">{w.weight.toFixed(1)}×</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <p className="mt-3 text-xs text-anomalo-muted">
+          <p className="mt-3 text-xs text-faint">
             Pontos da entrega = quantidade × peso. Cada ajuste deduz 5 pts.
           </p>
         </details>
@@ -237,22 +285,25 @@ export default async function ComissionamentoPage() {
 
       <Reveal delay={950}>
         <section className="mt-10">
-          <h2 className="label-caps text-anomalo-sand mb-3">Meses anteriores</h2>
+          <h2 className="label-caps label-caps-muted mb-3">Meses anteriores</h2>
           {history.length === 0 ? (
-            <p className="text-anomalo-muted text-sm py-6 text-center border border-anomalo-gold-hair">
+            <p className="text-faint text-sm py-10 text-center ano-card-flat">
               Nenhum mês fechado ainda.
             </p>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {history.map((m) => (
-                <div key={m.id} className="border border-anomalo-gold-hair p-4">
-                  <span className="label-caps text-anomalo-sand block mb-1">
+                <div key={m.id} className="ano-card p-5">
+                  <span className="label-caps label-caps-muted block mb-1">
                     {monthLabel(m.monthISO)}
                   </span>
-                  <span className="label-caps text-anomalo-gold block text-[10px] mb-2">
+                  <span className="label-caps block text-[10px] mb-3">
                     {TIER_LABEL[m.tierReached]}
                   </span>
-                  <span className="font-bold text-anomalo-white text-base tabular-nums">
+                  <span
+                    className="text-mono text-white block"
+                    style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.01em" }}
+                  >
                     {formatCents(m.bonusValue)}
                   </span>
                 </div>
