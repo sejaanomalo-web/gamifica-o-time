@@ -7,10 +7,11 @@ import { motion } from "framer-motion";
 interface TopBarProps {
   userName: string;
   userInitials: string;
+  avatarUrl?: string | null;
   unreadCount?: number;
 }
 
-export function TopBar({ userName, userInitials, unreadCount = 0 }: TopBarProps) {
+export function TopBar({ userName, userInitials, avatarUrl, unreadCount = 0 }: TopBarProps) {
   return (
     <header
       className="sticky top-0 z-30 flex items-center justify-between px-5 py-3"
@@ -70,14 +71,19 @@ export function TopBar({ userName, userInitials, unreadCount = 0 }: TopBarProps)
         <Link
           href="/perfil"
           aria-label="Perfil"
-          className="w-9 h-9 flex items-center justify-center font-bold text-sm rounded-full transition-all"
+          className="w-9 h-9 flex items-center justify-center font-bold text-sm rounded-full transition-all overflow-hidden"
           style={{
             background: "rgba(201,149,58,0.10)",
             boxShadow: "inset 0 0 0 1px rgba(201,149,58,0.40), 0 0 12px rgba(201,149,58,0.15)",
             color: "#C9953A",
           }}
         >
-          {userInitials}
+          {avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={avatarUrl} alt={userName} className="w-full h-full object-cover" />
+          ) : (
+            userInitials
+          )}
         </Link>
       </div>
     </header>

@@ -12,12 +12,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!user) redirect("/login");
 
   // best-effort lookup; if Prisma isn't reachable yet, fall back to auth user
-  let dbUser: { name: string; role: string } | null = null;
+  let dbUser: { name: string; role: string; avatarUrl: string | null } | null = null;
   let unread = 0;
   try {
     const found = await prisma.user.findUnique({
       where: { email: user.email! },
-      select: { name: true, role: true },
+      select: { name: true, role: true, avatarUrl: true },
     });
     dbUser = found;
     if (found) {
@@ -39,10 +39,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const isAdmin = dbUser?.role === "ADMIN";
 
   return (
-    <div className="flex flex-1 min-h-screen bg-anomalo-black">
+    <div className="flex flex-1 min-h-screen bg-[#070709]">
       <SideNav isAdmin={isAdmin} />
       <div className="flex-1 flex flex-col min-w-0">
-        <TopBar userName={name} userInitials={initials} unreadCount={unread} />
+        <TopBar
+          userName={name}
+          userInitials={initials}
+          avatarUrl={dbUser?.avatarUrl ?? null}
+          unreadCount={unread}
+        />
         <main className="flex-1 pb-24 md:pb-8 overflow-y-auto">
           <PageTransition>{children}</PageTransition>
         </main>

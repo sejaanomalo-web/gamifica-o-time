@@ -74,7 +74,7 @@ export default async function PerfilPage() {
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-5">
             <div
-              className="w-20 h-20 flex items-center justify-center text-2xl font-black rounded-full"
+              className="w-20 h-20 flex items-center justify-center text-2xl font-black rounded-full overflow-hidden"
               style={{
                 background: "rgba(201, 149, 58, 0.10)",
                 color: "#C9953A",
@@ -82,7 +82,16 @@ export default async function PerfilPage() {
                   "inset 0 0 0 1.5px #C9953A, 0 0 24px rgba(201,149,58,0.30), 0 8px 32px -16px rgba(0,0,0,0.6)",
               }}
             >
-              {initials}
+              {user.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={user.avatarUrl}
+                  alt={user.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                initials
+              )}
             </div>
             <div>
               <h1
