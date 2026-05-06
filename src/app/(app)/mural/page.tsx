@@ -5,10 +5,10 @@ import { formatDistanceToNowStrict } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const KIND_LABEL: Record<string, { tag: string; color: string }> = {
-  goal_done:      { tag: "Meta",  color: "#c9b298" },
+  goal_done:      { tag: "Meta",  color: "#C9953A" },
   badge_unlocked: { tag: "Badge", color: "#FFFFFF" },
-  level_up:       { tag: "Nível", color: "#c9b298" },
-  shop_redeem:    { tag: "Loja",  color: "#8d7556" },
+  level_up:       { tag: "Nível", color: "#C9953A" },
+  shop_redeem:    { tag: "Loja",  color: "#8A7850" },
 };
 
 export default async function MuralPage() {
@@ -24,11 +24,11 @@ export default async function MuralPage() {
       <Reveal>
         <span className="label-caps mb-3 block">Anômalo · Mural</span>
         <h1
-          className="display-serif text-[#edebe6]"
+          className="display-bold text-white"
           style={{ fontSize: "clamp(2.75rem, 9vw, 4.5rem)", lineHeight: 0.96 }}
         >
           Cada<br />
-          <span className="display-serif-italic text-[#c9b298]">entrega.</span>
+          <span className="display-italic text-[#C9953A]">entrega.</span>
         </h1>
         <p className="mt-4 text-mid text-sm max-w-md">
           Tudo que o time entregou nos últimos dias. Em ordem de chegada.
@@ -49,7 +49,7 @@ export default async function MuralPage() {
                 <div className="border-b border-white/5 last:border-0 px-4 py-4 flex items-start gap-3">
                   <div
                     className="w-9 h-9 flex items-center justify-center font-bold text-xs flex-shrink-0 border border-anomalo-gold-hair"
-                    style={{ background: "rgba(201,178,152,0.06)", color: "#c9b298" }}
+                    style={{ background: "rgba(201,149,58,0.06)", color: "#C9953A" }}
                   >
                     {(ev.user.name ?? "—")
                       .split(" ")

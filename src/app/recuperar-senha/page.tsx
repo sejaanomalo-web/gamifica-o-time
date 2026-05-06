@@ -34,26 +34,26 @@ export default function RecuperarSenhaPage() {
       <div className="relative z-10 w-full max-w-md">
         <Reveal delay={120}>
           <div className="flex justify-center mb-12">
-            <span className="text-[#c9b298] text-5xl font-light leading-none">Λ</span>
+            <span className="text-[#C9953A] text-5xl font-light leading-none">Λ</span>
           </div>
         </Reveal>
 
         <Reveal delay={220}>
-          <h1 className="text-center display-serif mb-3" style={{ fontSize: "2.5rem" }}>
-            <span className="display-serif-italic">recuperar</span> senha.
+          <h1 className="text-center display-bold mb-3 text-white" style={{ fontSize: "2.5rem" }}>
+            <span className="display-italic text-[#C9953A]">recuperar</span><br />senha.
           </h1>
         </Reveal>
 
         {sent ? (
           <Reveal delay={320}>
             <div className="ano-card-flat p-8 text-center" style={{ boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.08)" }}>
-              <p className="text-[#edebe6] mb-2">Link enviado.</p>
+              <p className="text-white mb-2">Link enviado.</p>
               <p className="text-mid text-sm">
-                Confere o email <span className="text-[#c9b298]">{email}</span>.
+                Confere o email <span className="text-[#C9953A]">{email}</span>.
               </p>
               <Link
                 href="/login"
-                className="inline-block mt-6 label-caps text-[#c9b298] hover:underline"
+                className="inline-block mt-6 label-caps text-[#C9953A] hover:underline"
               >
                 Voltar pro login
               </Link>
@@ -90,7 +90,7 @@ export default function RecuperarSenhaPage() {
                 <div className="text-center pt-1">
                   <Link
                     href="/login"
-                    className="text-mid text-sm hover:text-[#c9b298] transition-colors"
+                    className="text-mid text-sm hover:text-[#C9953A] transition-colors"
                   >
                     Voltar pro login
                   </Link>

@@ -32,7 +32,7 @@ export default async function ValidacoesPage() {
                 </span>
               </div>
               <div className="flex gap-2">
-                <button className="label-caps px-4 py-2.5" style={{ background: "#c9b298", color: "#000" }}>
+                <button className="label-caps px-4 py-2.5" style={{ background: "#C9953A", color: "#000" }}>
                   Aprovar
                 </button>
                 <button className="label-caps px-4 py-2.5 border border-anomalo-gold-hair text-anomalo-sand">

@@ -1,6 +1,6 @@
 import confetti from "canvas-confetti";
 
-const GOLD = ["#c9b298", "#e4d8ca", "#FFFFFF"];
+const GOLD = ["#C9953A", "#E0B25A", "#FFFFFF"];
 
 export function fireGoldConfetti(intensity: "low" | "mid" | "high" = "mid") {
   const duration = intensity === "high" ? 2200 : intensity === "mid" ? 1600 : 900;

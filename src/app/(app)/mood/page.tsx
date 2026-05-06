@@ -47,7 +47,7 @@ export default function MoodPage() {
         <PulsingLambda size={28} />
         <button
           onClick={() => router.push("/dashboard")}
-          className="label-caps text-mid hover:text-[#c9b298]"
+          className="label-caps text-mid hover:text-[#C9953A]"
         >
           Pular
         </button>
@@ -62,11 +62,11 @@ export default function MoodPage() {
 
         <Reveal delay={150}>
           <h1
-            className="display-serif text-[#edebe6]"
+            className="display-bold text-white"
             style={{ fontSize: "clamp(2.5rem, 8vw, 4rem)", lineHeight: 1 }}
           >
             Como foi<br />
-            <span className="display-serif-italic text-[#c9b298]">a semana?</span>
+            <span className="display-italic text-[#C9953A]">a semana?</span>
           </h1>
         </Reveal>
 
@@ -85,11 +85,11 @@ export default function MoodPage() {
                   whileTap={{ scale: 1.08 }}
                   className="flex-1 aspect-square flex flex-col items-center justify-center transition-all rounded-full"
                   style={{
-                    background: sel ? "#c9b298" : "rgba(255,255,255,0.04)",
+                    background: sel ? "#C9953A" : "rgba(255,255,255,0.04)",
                     boxShadow: sel
-                      ? "0 0 24px rgba(201,178,152,0.45), inset 0 0 0 1px rgba(255,255,255,0.18)"
+                      ? "0 0 24px rgba(201,149,58,0.45), inset 0 0 0 1px rgba(255,255,255,0.18)"
                       : "inset 0 0 0 1px rgba(255,255,255,0.10)",
-                    color: sel ? "#1a1712" : "#edebe6",
+                    color: sel ? "#1a1410" : "#edebe6",
                   }}
                   aria-label={`Nota ${s.n}: ${s.label}`}
                 >

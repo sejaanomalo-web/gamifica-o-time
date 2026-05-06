@@ -55,11 +55,11 @@ export default async function RankingPage() {
       <Reveal>
         <span className="label-caps mb-3 block">Anômalo · Time</span>
         <h1
-          className="display-serif text-[#edebe6]"
+          className="display-bold text-white"
           style={{ fontSize: "clamp(2.75rem, 9vw, 4.5rem)", lineHeight: 0.96 }}
         >
           O time<br />
-          <span className="display-serif-italic text-[#c9b298]">esta semana.</span>
+          <span className="display-italic text-[#C9953A]">esta semana.</span>
         </h1>
         <p className="mt-4 text-mid text-sm max-w-md">
           Sem pódio. Sem último colocado. Só XP da semana e quem está perto de você.
@@ -125,11 +125,11 @@ function RankRow({
       <div
         className="w-9 h-9 flex items-center justify-center font-bold text-xs flex-shrink-0 rounded-full"
         style={{
-          background: you ? "rgba(201,178,152,0.10)" : "rgba(255,255,255,0.04)",
+          background: you ? "rgba(201,149,58,0.10)" : "rgba(255,255,255,0.04)",
           boxShadow: you
-            ? "inset 0 0 0 1px #c9b298, 0 0 12px rgba(201,178,152,0.25)"
+            ? "inset 0 0 0 1px #C9953A, 0 0 12px rgba(201,149,58,0.25)"
             : "inset 0 0 0 1px rgba(255,255,255,0.10)",
-          color: you ? "#c9b298" : "#edebe6",
+          color: you ? "#C9953A" : "#edebe6",
         }}
       >
         {initials}
@@ -138,8 +138,8 @@ function RankRow({
         <div
           className="text-sm flex items-center gap-2"
           style={{
-            color: you ? "#c9b298" : "#edebe6",
-            fontFamily: you ? "var(--font-instrument-serif)" : "var(--font-inter-tight)",
+            color: you ? "#C9953A" : "#edebe6",
+            fontFamily: you ? "var(--font-inter)" : "var(--font-inter-tight)",
             fontStyle: you ? "italic" : "normal",
             fontSize: you ? 16 : 14,
             fontWeight: you ? 400 : 600,
@@ -150,9 +150,9 @@ function RankRow({
             <span
               className="label-caps px-2.5 py-0.5 rounded-full text-[9px]"
               style={{
-                background: "rgba(201,178,152,0.12)",
-                color: "#e4d8ca",
-                boxShadow: "inset 0 0 0 1px rgba(201,178,152,0.35)",
+                background: "rgba(201,149,58,0.12)",
+                color: "#E0B25A",
+                boxShadow: "inset 0 0 0 1px rgba(201,149,58,0.35)",
               }}
             >
               Você
@@ -166,10 +166,10 @@ function RankRow({
         )}
       </div>
       <div className="text-right flex-shrink-0">
-        <div className="text-mono text-[#edebe6] tabular-nums" style={{ fontSize: 16, fontWeight: 500 }}>
+        <div className="text-mono text-white tabular-nums" style={{ fontSize: 16, fontWeight: 500 }}>
           {r.xp.toLocaleString("pt-BR")}
         </div>
-        <div className="text-mono text-[#c9b298] text-xs tabular-nums">
+        <div className="text-mono text-[#C9953A] text-xs tabular-nums">
           +{r.delta} sem
         </div>
       </div>

@@ -43,14 +43,14 @@ export default function LoginPage() {
       <div className="relative z-10 w-full max-w-md">
         <Reveal delay={120}>
           <div className="flex justify-center mb-12">
-            <span className="text-[#c9b298] text-5xl font-light leading-none">Λ</span>
+            <span className="text-[#C9953A] text-5xl font-light leading-none">Λ</span>
           </div>
         </Reveal>
 
         <Reveal delay={220} y={28}>
-          <h1 className="text-center mb-3 display-serif text-[#edebe6]" style={{ fontSize: "3.25rem" }}>
+          <h1 className="text-center mb-3 display-bold text-white" style={{ fontSize: "3.25rem" }}>
             Anômalo<br />
-            <span className="display-serif-italic">meta.</span>
+            <span className="display-italic text-[#C9953A]">meta.</span>
           </h1>
         </Reveal>
 
@@ -111,7 +111,7 @@ export default function LoginPage() {
               <div className="text-center pt-1">
                 <Link
                   href="/recuperar-senha"
-                  className="text-mid text-sm hover:text-[#c9b298] transition-colors"
+                  className="text-mid text-sm hover:text-[#C9953A] transition-colors"
                 >
                   Esqueceu a senha?
                 </Link>

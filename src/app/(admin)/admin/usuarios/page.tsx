@@ -7,7 +7,7 @@ export default async function UsuariosPage() {
     <div className="px-5 md:px-8 py-6 md:py-10 max-w-5xl mx-auto w-full">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-h2 uppercase text-anomalo-white">Usuários.</h1>
-        <button className="label-caps px-4 py-2.5" style={{ background: "#c9b298", color: "#000" }}>
+        <button className="label-caps px-4 py-2.5" style={{ background: "#C9953A", color: "#000" }}>
           Convidar usuário
         </button>
       </div>

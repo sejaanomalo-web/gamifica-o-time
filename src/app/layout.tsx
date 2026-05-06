@@ -1,28 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Inter_Tight, Instrument_Serif, JetBrains_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 
-const interTight = Inter_Tight({
+// Inter primary — todos os pesos pra cobrir Light 300 / Regular / Medium /
+// Semi / Bold / Black 900. Helvetica Neue / Arial entram no fallback CSS.
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-inter-tight",
-  weight: ["300", "400", "500", "600", "700"],
-  style: ["normal"],
-  display: "swap",
-});
-
-const instrumentSerif = Instrument_Serif({
-  subsets: ["latin"],
-  variable: "--font-instrument-serif",
-  weight: ["400"],
+  variable: "--font-inter",
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
   style: ["normal", "italic"],
-  display: "swap",
-});
-
-const jetBrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains-mono",
-  weight: ["500"],
   display: "swap",
 });
 
@@ -50,11 +37,8 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="pt-BR"
-      className={`${interTight.variable} ${instrumentSerif.variable} ${jetBrainsMono.variable} dark h-full antialiased`}
-    >
-      <body className="bg-[#070709] text-[#edebe6] font-sans min-h-full flex flex-col">
+    <html lang="pt-BR" className={`${inter.variable} dark h-full antialiased`}>
+      <body className="bg-[#070709] text-white font-sans min-h-full flex flex-col">
         {children}
         <Toaster
           theme="dark"
@@ -62,8 +46,8 @@ export default function RootLayout({
           toastOptions={{
             style: {
               background: "#111115",
-              border: "1px solid rgba(255,255,255,0.14)",
-              color: "#edebe6",
+              border: "1px solid rgba(255,255,255,0.10)",
+              color: "#FFFFFF",
               borderRadius: 20,
             },
           }}

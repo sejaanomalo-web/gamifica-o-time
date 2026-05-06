@@ -34,15 +34,15 @@ export default function MetasPage() {
       <Reveal>
         <span className="label-caps mb-3 block">Anômalo · Metas</span>
         <h1
-          className="display-serif text-[#edebe6]"
+          className="display-bold text-white"
           style={{ fontSize: "clamp(2.75rem, 9vw, 4.5rem)", lineHeight: 0.96 }}
         >
           Suas<br />
-          <span className="display-serif-italic text-[#c9b298]">metas.</span>
+          <span className="display-italic text-[#C9953A]">metas.</span>
         </h1>
         <p className="mt-4 text-mid text-sm max-w-md">
           {goals.ativas.length} ativas. {goals.historico.length} batidas no ano.{" "}
-          <span className="display-serif-italic text-[#c9b298]">Constância</span> em construção.
+          <span className="display-italic text-[#C9953A]">Constância</span> em construção.
         </p>
       </Reveal>
 
@@ -69,9 +69,9 @@ export default function MetasPage() {
                 onClick={() => setTab(id)}
                 className="px-5 py-2 label-caps rounded-full transition-all"
                 style={{
-                  background: on ? "#c9b298" : "transparent",
-                  color: on ? "#1a1712" : "rgba(237,235,230,0.65)",
-                  boxShadow: on ? "0 0 16px rgba(201,178,152,0.30)" : "none",
+                  background: on ? "#C9953A" : "transparent",
+                  color: on ? "#1a1410" : "rgba(237,235,230,0.65)",
+                  boxShadow: on ? "0 0 16px rgba(201,149,58,0.30)" : "none",
                 }}
               >
                 {label}

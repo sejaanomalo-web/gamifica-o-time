@@ -95,11 +95,11 @@ export default async function DashboardPage() {
               {greetByHour()}, {user.name.split(" ")[0]}.
             </span>
             <h1
-              className="display-serif text-[#edebe6]"
+              className="display-bold text-white"
               style={{ fontSize: "clamp(2.75rem, 9vw, 4.5rem)", lineHeight: 0.96 }}
             >
               Hoje<br />
-              <span className="display-serif-italic text-[#c9b298]">continua.</span>
+              <span className="display-italic text-[#C9953A]">continua.</span>
             </h1>
           </div>
           <PulsingLambda size={48} />
@@ -113,7 +113,7 @@ export default async function DashboardPage() {
             <div>
               <span className="label-caps label-caps-muted mb-2 block">XP da temporada</span>
               <div
-                className="text-mono text-[#edebe6]"
+                className="text-mono text-white"
                 style={{ fontSize: "clamp(2.5rem, 7vw, 3.75rem)", lineHeight: 1, letterSpacing: "-0.02em", fontWeight: 500 }}
               >
                 <CountUp value={xp} duration={1.7} />
@@ -165,19 +165,19 @@ export default async function DashboardPage() {
         <div className="mt-12 grid grid-cols-3 gap-3">
           <div className="ano-card p-5 text-center">
             <span className="label-caps label-caps-muted block mb-2">Nível</span>
-            <span className="text-mono text-[#edebe6] text-3xl">
+            <span className="text-mono text-white text-3xl">
               <CountUp value={prog.level} duration={0.9} />
             </span>
           </div>
           <div className="ano-card p-5 text-center">
             <span className="label-caps label-caps-muted block mb-2">Posição</span>
-            <span className="text-mono text-[#edebe6] text-3xl">
+            <span className="text-mono text-white text-3xl">
               {myPos > 0 ? <>#<CountUp value={myPos} duration={0.9} /></> : "—"}
             </span>
           </div>
           <Link href="/badges" className="ano-card p-5 text-center hover:bg-[#1a1a1f] transition-colors">
             <span className="label-caps label-caps-muted block mb-2">Badges</span>
-            <span className="text-mono text-[#edebe6] text-3xl">
+            <span className="text-mono text-white text-3xl">
               <CountUp value={0} duration={1.2} />
             </span>
           </Link>
@@ -191,7 +191,7 @@ export default async function DashboardPage() {
             <span className="label-caps label-caps-muted">Suas últimas ações</span>
             <Link
               href="/mural"
-              className="label-caps text-[#c9b298] hover:text-[#e4d8ca] transition-colors"
+              className="label-caps text-[#C9953A] hover:text-[#E0B25A] transition-colors"
             >
               Ver mural →
             </Link>
@@ -208,7 +208,7 @@ export default async function DashboardPage() {
                   className="px-5 py-4 text-sm border-b last:border-0"
                   style={{ borderColor: "rgba(255,255,255,0.06)" }}
                 >
-                  <span className="text-[#edebe6]">
+                  <span className="text-white">
                     {(ev.payload as { text?: string })?.text ?? ev.type}
                   </span>
                   <span className="text-faint ml-2 text-xs">

@@ -38,9 +38,9 @@ export function SideNav({ isAdmin = false }: { isAdmin?: boolean }) {
       style={{ borderRight: "1px solid rgba(255,255,255,0.08)" }}
     >
       <div className="px-6 py-7 flex items-center gap-3">
-        <span className="text-[#c9b298] text-2xl font-light leading-none">Λ</span>
-        <span className="display-serif-italic text-[#edebe6]" style={{ fontSize: 18 }}>
-          anômalo<span className="text-[#c9b298]"> meta</span>
+        <span className="text-[#C9953A] text-2xl font-light leading-none">Λ</span>
+        <span className="display-italic text-white" style={{ fontSize: 18 }}>
+          anômalo<span className="text-[#C9953A]"> meta</span>
         </span>
       </div>
       <ul className="flex-1 flex flex-col gap-1 px-3">
@@ -53,9 +53,9 @@ export function SideNav({ isAdmin = false }: { isAdmin?: boolean }) {
                 href={it.href}
                 className="group flex items-center gap-3 px-4 py-2.5 transition-all relative rounded-full"
                 style={{
-                  color: active ? "#c9b298" : "rgba(237,235,230,0.65)",
-                  background: active ? "rgba(201,178,152,0.08)" : "transparent",
-                  boxShadow: active ? "inset 0 0 0 1px rgba(201,178,152,0.20)" : "none",
+                  color: active ? "#C9953A" : "rgba(237,235,230,0.65)",
+                  background: active ? "rgba(201,149,58,0.08)" : "transparent",
+                  boxShadow: active ? "inset 0 0 0 1px rgba(201,149,58,0.20)" : "none",
                 }}
               >
                 <Icon size={17} strokeWidth={1.6} />

@@ -35,7 +35,7 @@ export default async function NotificacoesPage() {
                 <span
                   aria-hidden
                   className="w-1.5 h-1.5 mt-2 flex-shrink-0"
-                  style={{ background: "#c9b298" }}
+                  style={{ background: "#C9953A" }}
                 />
               )}
               <div className="flex-1 min-w-0">

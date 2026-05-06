@@ -23,12 +23,12 @@ export function TopBar({ userName, userInitials, unreadCount = 0 }: TopBarProps)
       }}
     >
       <Link href="/dashboard" className="flex items-center gap-2.5 md:hidden">
-        <span className="text-[#c9b298] text-2xl font-light leading-none">Λ</span>
+        <span className="text-[#C9953A] text-2xl font-light leading-none">Λ</span>
       </Link>
       <Link href="/dashboard" className="hidden md:flex items-center gap-3">
-        <span className="display-serif-italic text-[#edebe6]" style={{ fontSize: 16 }}>
+        <span className="display-italic text-white" style={{ fontSize: 16 }}>
           {greetByHour()},{" "}
-          <span className="text-[#c9b298]">{userName.split(" ")[0]}</span>.
+          <span className="text-[#C9953A]">{userName.split(" ")[0]}</span>.
         </span>
       </Link>
 
@@ -51,16 +51,16 @@ export function TopBar({ userName, userInitials, unreadCount = 0 }: TopBarProps)
             }}
             className="inline-flex"
           >
-            <Bell size={20} strokeWidth={1.6} className="text-[#edebe6]/80" />
+            <Bell size={20} strokeWidth={1.6} className="text-white/80" />
           </motion.span>
           {unreadCount > 0 && (
             <span
               aria-label={`${unreadCount} novas`}
               className="absolute top-0.5 right-0.5 min-w-4 h-4 px-1 text-[10px] font-bold flex items-center justify-center rounded-full"
               style={{
-                background: "#c9b298",
-                color: "#1a1712",
-                boxShadow: "0 0 10px rgba(201,178,152,0.6)",
+                background: "#C9953A",
+                color: "#1a1410",
+                boxShadow: "0 0 10px rgba(201,149,58,0.6)",
               }}
             >
               {unreadCount > 9 ? "9+" : unreadCount}
@@ -72,9 +72,9 @@ export function TopBar({ userName, userInitials, unreadCount = 0 }: TopBarProps)
           aria-label="Perfil"
           className="w-9 h-9 flex items-center justify-center font-bold text-sm rounded-full transition-all"
           style={{
-            background: "rgba(201,178,152,0.10)",
-            boxShadow: "inset 0 0 0 1px rgba(201,178,152,0.40), 0 0 12px rgba(201,178,152,0.15)",
-            color: "#c9b298",
+            background: "rgba(201,149,58,0.10)",
+            boxShadow: "inset 0 0 0 1px rgba(201,149,58,0.40), 0 0 12px rgba(201,149,58,0.15)",
+            color: "#C9953A",
           }}
         >
           {userInitials}

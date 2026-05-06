@@ -69,7 +69,7 @@ export function WrappedCarousel({ snapshot }: { snapshot: WrappedSnapshotData })
             <span
               key={idx}
               className="w-2 h-2"
-              style={{ background: idx === i ? "#c9b298" : "rgba(255,255,255,0.18)" }}
+              style={{ background: idx === i ? "#C9953A" : "rgba(255,255,255,0.18)" }}
             />
           ))}
         </div>
@@ -182,7 +182,7 @@ function Comparison({ snapshot }: { snapshot: WrappedSnapshotData }) {
         className="font-black tabular-nums"
         style={{
           fontSize: "clamp(3rem, 10vw, 6rem)",
-          color: up ? "#c9b298" : "#E26B4A",
+          color: up ? "#C9953A" : "#E26B4A",
           letterSpacing: "-0.04em",
         }}
       >
@@ -227,7 +227,7 @@ function Closing({ snapshot }: { snapshot: WrappedSnapshotData }) {
       <div className="mt-12 flex flex-col gap-3 max-w-xs mx-auto">
         <button
           className="py-3.5 label-caps"
-          style={{ background: "#c9b298", color: "#000" }}
+          style={{ background: "#C9953A", color: "#000" }}
           onClick={() => alert("Em breve: gerar card 1080x1920 e disparar Web Share API.")}
         >
           Compartilhar story

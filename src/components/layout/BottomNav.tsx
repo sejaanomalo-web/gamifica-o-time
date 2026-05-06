@@ -40,8 +40,8 @@ export function BottomNav() {
               href={it.href}
               className="flex-1 flex flex-col items-center gap-1 py-2 px-1 rounded-full transition-colors relative"
               style={{
-                color: active ? "#c9b298" : "rgba(237,235,230,0.55)",
-                background: active ? "rgba(201,178,152,0.10)" : "transparent",
+                color: active ? "#C9953A" : "rgba(237,235,230,0.55)",
+                background: active ? "rgba(201,149,58,0.10)" : "transparent",
               }}
             >
               <motion.span

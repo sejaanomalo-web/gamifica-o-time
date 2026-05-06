@@ -77,9 +77,9 @@ export default async function LojaPage() {
                         disabled={!enough}
                         className="label-caps px-5 py-2.5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                         style={{
-                          background: enough ? "#c9b298" : "transparent",
-                          color: enough ? "#000" : "#5a4a34",
-                          border: enough ? "none" : "1px solid #5a4a34",
+                          background: enough ? "#C9953A" : "transparent",
+                          color: enough ? "#000" : "#5A4A2A",
+                          border: enough ? "none" : "1px solid #5A4A2A",
                         }}
                       >
                         {enough ? "Resgatar" : `Faltam ${it.costXp - balance} XP`}

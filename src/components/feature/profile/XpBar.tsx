@@ -32,8 +32,8 @@ export function XpBar({ currentXp, nextLevelXp, level, levelFloor = 0 }: XpBarPr
           transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
           className="h-full rounded-full"
           style={{
-            background: "linear-gradient(90deg, #c9b298 0%, #e4d8ca 100%)",
-            boxShadow: "0 0 10px rgba(201,178,152,0.55)",
+            background: "linear-gradient(90deg, #C9953A 0%, #E0B25A 100%)",
+            boxShadow: "0 0 10px rgba(201,149,58,0.55)",
           }}
         />
       </div>

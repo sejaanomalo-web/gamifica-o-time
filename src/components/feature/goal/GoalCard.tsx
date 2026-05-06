@@ -30,18 +30,18 @@ export function GoalCard({ goal, primary }: { goal: GoalCardData; primary?: bool
           <div className="flex-1 min-w-0">
             <span
               className="label-caps mb-3 inline-block"
-              style={{ color: isLate ? "#fb2c36" : "#8d7556" }}
+              style={{ color: isLate ? "#fb2c36" : "#8A7850" }}
             >
               {goal.area ?? "Geral"}
               {isLate ? " · atenção" : ""}
             </span>
             <h3
-              className="text-[#edebe6] leading-tight"
+              className="text-white leading-tight"
               style={{
                 fontSize: primary ? 22 : 17,
                 fontWeight: primary ? 500 : 600,
                 fontFamily: primary
-                  ? "var(--font-instrument-serif)"
+                  ? "var(--font-inter)"
                   : "var(--font-inter-tight)",
                 fontStyle: primary ? "italic" : "normal",
                 letterSpacing: primary ? "-0.01em" : 0,
@@ -59,8 +59,8 @@ export function GoalCard({ goal, primary }: { goal: GoalCardData; primary?: bool
                 transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
                 className="h-full rounded-full"
                 style={{
-                  background: "linear-gradient(90deg, #c9b298 0%, #e4d8ca 100%)",
-                  boxShadow: "0 0 10px rgba(201,178,152,0.55)",
+                  background: "linear-gradient(90deg, #C9953A 0%, #E0B25A 100%)",
+                  boxShadow: "0 0 10px rgba(201,149,58,0.55)",
                 }}
               />
             </div>

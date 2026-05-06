@@ -14,7 +14,7 @@ export default async function AdminMetasPage() {
         <h1 className="text-h2 uppercase text-anomalo-white">Metas.</h1>
         <button
           className="flex items-center gap-2 label-caps px-4 py-2.5"
-          style={{ background: "#c9b298", color: "#000" }}
+          style={{ background: "#C9953A", color: "#000" }}
         >
           <Plus size={14} />
           Nova meta

@@ -138,7 +138,7 @@ export function LogProgressSheet({ open, onOpenChange }: LogProgressSheetProps) 
                 disabled={!valid || submitting}
                 onClick={onSubmit}
                 className="w-full py-4 label-caps disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
-                style={{ background: "#c9b298", color: "#000" }}
+                style={{ background: "#C9953A", color: "#000" }}
               >
                 {submitting ? "Registrando…" : "Registrar entrega"}
               </button>
@@ -166,7 +166,7 @@ function LogRowInput({
     <div
       className="border p-3.5 transition-colors"
       style={{
-        borderColor: row.material ? "#c9b298" : "rgba(201,178,152,0.32)",
+        borderColor: row.material ? "#C9953A" : "rgba(201,149,58,0.32)",
         background: row.material ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.015)",
       }}
     >
@@ -189,7 +189,7 @@ function LogRowInput({
             onClick={() => setOpen((o) => !o)}
             className="w-full h-11 px-3.5 text-sm text-left flex items-center justify-between border outline-none transition-colors"
             style={{
-              borderColor: open ? "#c9b298" : "rgba(255,255,255,0.10)",
+              borderColor: open ? "#C9953A" : "rgba(255,255,255,0.10)",
               color: row.material ? "#FFF" : "rgba(255,255,255,0.4)",
               background: "rgba(255,255,255,0.03)",
             }}
@@ -216,9 +216,9 @@ function LogRowInput({
                     }}
                     className="w-full text-left px-3.5 py-3 text-sm flex items-center justify-between border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors"
                     style={{
-                      color: sel ? "#e4d8ca" : "#FFF",
+                      color: sel ? "#E0B25A" : "#FFF",
                       fontWeight: sel ? 700 : 500,
-                      background: sel ? "rgba(201,178,152,0.10)" : "transparent",
+                      background: sel ? "rgba(201,149,58,0.10)" : "transparent",
                     }}
                   >
                     {opt}
@@ -232,7 +232,7 @@ function LogRowInput({
         <div
           className="w-24 h-11 flex items-center border overflow-hidden flex-shrink-0"
           style={{
-            borderColor: Number(row.qty) > 0 ? "#c9b298" : "rgba(255,255,255,0.10)",
+            borderColor: Number(row.qty) > 0 ? "#C9953A" : "rgba(255,255,255,0.10)",
             background: "rgba(255,255,255,0.03)",
           }}
         >

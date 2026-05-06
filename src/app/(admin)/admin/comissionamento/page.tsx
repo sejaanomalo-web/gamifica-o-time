@@ -131,7 +131,7 @@ export default async function AdminComissionamentoPage() {
                     <td className="px-4 py-3 text-right text-anomalo-white tabular-nums">{m.netPoints.toFixed(1)}</td>
                     <td className="px-4 py-3 label-caps text-anomalo-gold text-[10px]">{m.tierReached}</td>
                     <td className="px-4 py-3 text-right text-anomalo-gold tabular-nums font-bold">{formatCents(m.bonusValue)}</td>
-                    <td className="px-4 py-3 label-caps text-[10px]" style={{ color: m.status === "PAGO" ? "#c9b298" : "#8d7556" }}>
+                    <td className="px-4 py-3 label-caps text-[10px]" style={{ color: m.status === "PAGO" ? "#C9953A" : "#8A7850" }}>
                       {m.status}
                     </td>
                   </tr>

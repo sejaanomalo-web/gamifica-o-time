@@ -23,7 +23,7 @@ export function PulsingLambda({
         display: "inline-block",
         fontSize: size,
         fontWeight: 300,
-        color: "#c9b298",
+        color: "#C9953A",
         lineHeight: 1,
         userSelect: "none",
       }}
