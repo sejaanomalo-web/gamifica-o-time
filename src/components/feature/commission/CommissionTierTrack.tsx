@@ -16,10 +16,10 @@ export function CommissionTierTrack({
   const cur = pct(netPoints);
 
   const segments = [
-    { from: 0, to: tier.baseMax, label: "Base", color: "#5A4A2A" },
-    { from: tier.m1Min, to: tier.m1Max, label: "Meta 1", color: "#8A7850" },
-    { from: tier.m2Min, to: tier.m2Max, label: "Meta 2", color: "#C9953A" },
-    { from: tier.excellenceMin, to: max, label: "Excelência", color: "#E0B25A" },
+    { from: 0, to: tier.baseMax, label: "Base", color: "#5a4a34" },
+    { from: tier.m1Min, to: tier.m1Max, label: "Meta 1", color: "#8d7556" },
+    { from: tier.m2Min, to: tier.m2Max, label: "Meta 2", color: "#c9b298" },
+    { from: tier.excellenceMin, to: max, label: "Excelência", color: "#e4d8ca" },
   ];
 
   return (
@@ -43,8 +43,8 @@ export function CommissionTierTrack({
           transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
           className="absolute top-0 bottom-0 left-0"
           style={{
-            background: "linear-gradient(90deg, #C9953A 0%, #E0B25A 100%)",
-            boxShadow: "0 0 12px rgba(201,149,58,0.6)",
+            background: "linear-gradient(90deg, #c9b298 0%, #e4d8ca 100%)",
+            boxShadow: "0 0 12px rgba(201,178,152,0.6)",
           }}
         />
         <motion.div
@@ -62,7 +62,7 @@ export function CommissionTierTrack({
           <div key={s.label}>
             <span
               className="label-caps block text-[10px]"
-              style={{ color: netPoints >= s.from ? s.color : "#5A4A2A" }}
+              style={{ color: netPoints >= s.from ? s.color : "#5a4a34" }}
             >
               {s.label}
             </span>

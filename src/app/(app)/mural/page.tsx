@@ -5,10 +5,10 @@ import { formatDistanceToNowStrict } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const KIND_LABEL: Record<string, { tag: string; color: string }> = {
-  goal_done:      { tag: "Meta",  color: "#C9953A" },
+  goal_done:      { tag: "Meta",  color: "#c9b298" },
   badge_unlocked: { tag: "Badge", color: "#FFFFFF" },
-  level_up:       { tag: "Nível", color: "#C9953A" },
-  shop_redeem:    { tag: "Loja",  color: "#8A7850" },
+  level_up:       { tag: "Nível", color: "#c9b298" },
+  shop_redeem:    { tag: "Loja",  color: "#8d7556" },
 };
 
 export default async function MuralPage() {
@@ -20,32 +20,24 @@ export default async function MuralPage() {
   });
 
   return (
-    <div className="px-5 md:px-8 py-6 md:py-10 max-w-3xl mx-auto w-full">
+    <div className="px-5 md:px-8 py-8 md:py-12 max-w-3xl mx-auto w-full">
       <Reveal>
-        <span className="label-caps text-anomalo-gold mb-3 block">Anômalo · Mural</span>
+        <span className="label-caps mb-3 block">Anômalo · Mural</span>
         <h1
-          className="text-anomalo-white"
-          style={{
-            fontWeight: 900,
-            fontSize: "clamp(2.5rem, 8vw, 4rem)",
-            lineHeight: 0.95,
-            letterSpacing: "-0.03em",
-            textTransform: "uppercase",
-          }}
+          className="display-serif text-[#edebe6]"
+          style={{ fontSize: "clamp(2.75rem, 9vw, 4.5rem)", lineHeight: 0.96 }}
         >
           Cada<br />
-          <span className="text-respiro" style={{ textTransform: "lowercase" }}>
-            entrega.
-          </span>
+          <span className="display-serif-italic text-[#c9b298]">entrega.</span>
         </h1>
-        <p className="mt-4 text-anomalo-sand text-sm max-w-md">
+        <p className="mt-4 text-mid text-sm max-w-md">
           Tudo que o time entregou nos últimos dias. Em ordem de chegada.
         </p>
       </Reveal>
 
-      <div className="mt-10 border border-anomalo-gold-hair">
+      <div className="mt-10 ano-card-flat overflow-hidden">
         {events.length === 0 ? (
-          <p className="text-anomalo-muted text-sm py-12 text-center">
+          <p className="text-faint text-sm py-12 text-center">
             Nada no mural ainda. Vai ter logo.
           </p>
         ) : (
@@ -57,7 +49,7 @@ export default async function MuralPage() {
                 <div className="border-b border-white/5 last:border-0 px-4 py-4 flex items-start gap-3">
                   <div
                     className="w-9 h-9 flex items-center justify-center font-bold text-xs flex-shrink-0 border border-anomalo-gold-hair"
-                    style={{ background: "rgba(201,149,58,0.06)", color: "#C9953A" }}
+                    style={{ background: "rgba(201,178,152,0.06)", color: "#c9b298" }}
                   >
                     {(ev.user.name ?? "—")
                       .split(" ")

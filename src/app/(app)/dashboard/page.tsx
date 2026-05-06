@@ -15,8 +15,6 @@ function greetByHour() {
   return "Boa noite";
 }
 
-// Helper: run a query and return a fallback if the table/relation doesn't
-// exist yet (e.g. partial migration apply). Logs but doesn't crash the page.
 async function safe<T>(label: string, q: () => Promise<T>, fallback: T): Promise<T> {
   try {
     return await q();
@@ -88,28 +86,20 @@ export default async function DashboardPage() {
   const myPos = ranking.findIndex((r) => r.userId === user.id) + 1;
 
   return (
-    <div className="px-5 md:px-8 py-6 md:py-10 max-w-5xl mx-auto w-full">
+    <div className="px-5 md:px-8 py-8 md:py-12 max-w-5xl mx-auto w-full">
       {/* HERO */}
       <Reveal>
         <div className="flex items-end justify-between gap-6">
           <div className="flex-1">
-            <span className="label-caps text-anomalo-gold mb-3 block">
+            <span className="label-caps mb-3 block">
               {greetByHour()}, {user.name.split(" ")[0]}.
             </span>
             <h1
-              className="text-anomalo-white"
-              style={{
-                fontWeight: 900,
-                fontSize: "clamp(2.5rem, 8vw, 4.5rem)",
-                lineHeight: 0.92,
-                letterSpacing: "-0.03em",
-                textTransform: "uppercase",
-              }}
+              className="display-serif text-[#edebe6]"
+              style={{ fontSize: "clamp(2.75rem, 9vw, 4.5rem)", lineHeight: 0.96 }}
             >
               Hoje<br />
-              <span className="text-respiro" style={{ textTransform: "lowercase" }}>
-                continua.
-              </span>
+              <span className="display-serif-italic text-[#c9b298]">continua.</span>
             </h1>
           </div>
           <PulsingLambda size={48} />
@@ -118,20 +108,20 @@ export default async function DashboardPage() {
 
       {/* XP / LEVEL */}
       <Reveal delay={200}>
-        <div className="mt-10">
+        <div className="mt-12">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <span className="label-caps text-anomalo-sand mb-2 block">XP da temporada</span>
+              <span className="label-caps label-caps-muted mb-2 block">XP da temporada</span>
               <div
-                className="font-black text-anomalo-white tabular-nums"
-                style={{ fontSize: "clamp(2.25rem, 7vw, 3.5rem)", lineHeight: 1, letterSpacing: "-0.02em" }}
+                className="text-mono text-[#edebe6]"
+                style={{ fontSize: "clamp(2.5rem, 7vw, 3.75rem)", lineHeight: 1, letterSpacing: "-0.02em", fontWeight: 500 }}
               >
                 <CountUp value={xp} duration={1.7} />
               </div>
             </div>
             <div className="text-right">
-              <span className="label-caps text-anomalo-sand mb-2 block">Próx · {prog.toNext}</span>
-              <p className="text-anomalo-sand text-sm">até nível {prog.level + 1}</p>
+              <span className="label-caps label-caps-muted mb-2 block">Próx · {prog.toNext}</span>
+              <p className="text-mid text-sm">até nível {prog.level + 1}</p>
             </div>
           </div>
           <div className="mt-4">
@@ -148,8 +138,8 @@ export default async function DashboardPage() {
       {/* META DO MÊS */}
       {metaMes && (
         <Reveal delay={400}>
-          <div className="mt-10">
-            <span className="label-caps text-anomalo-sand mb-3 block">Sua meta do mês</span>
+          <div className="mt-12">
+            <span className="label-caps label-caps-muted mb-3 block">Sua meta do mês</span>
             <GoalCard
               primary
               goal={{
@@ -172,26 +162,23 @@ export default async function DashboardPage() {
 
       {/* STATS GRID */}
       <Reveal delay={600}>
-        <div className="mt-10 grid grid-cols-3 gap-px bg-anomalo-gold-hair border border-anomalo-gold-hair">
-          <div className="bg-anomalo-black p-5 text-center">
-            <span className="label-caps text-anomalo-sand block mb-2">Nível</span>
-            <span className="font-black text-anomalo-white text-3xl tabular-nums">
+        <div className="mt-12 grid grid-cols-3 gap-3">
+          <div className="ano-card p-5 text-center">
+            <span className="label-caps label-caps-muted block mb-2">Nível</span>
+            <span className="text-mono text-[#edebe6] text-3xl">
               <CountUp value={prog.level} duration={0.9} />
             </span>
           </div>
-          <div className="bg-anomalo-black p-5 text-center">
-            <span className="label-caps text-anomalo-sand block mb-2">Posição</span>
-            <span className="font-black text-anomalo-white text-3xl tabular-nums">
+          <div className="ano-card p-5 text-center">
+            <span className="label-caps label-caps-muted block mb-2">Posição</span>
+            <span className="text-mono text-[#edebe6] text-3xl">
               {myPos > 0 ? <>#<CountUp value={myPos} duration={0.9} /></> : "—"}
             </span>
           </div>
-          <Link
-            href="/badges"
-            className="bg-anomalo-black p-5 text-center hover:bg-anomalo-surface transition-colors"
-          >
-            <span className="label-caps text-anomalo-sand block mb-2">Badges</span>
-            <span className="font-black text-anomalo-white text-3xl tabular-nums">
-              <CountUp value={user ? 0 : 0} duration={1.2} />
+          <Link href="/badges" className="ano-card p-5 text-center hover:bg-[#1a1a1f] transition-colors">
+            <span className="label-caps label-caps-muted block mb-2">Badges</span>
+            <span className="text-mono text-[#edebe6] text-3xl">
+              <CountUp value={0} duration={1.2} />
             </span>
           </Link>
         </div>
@@ -199,26 +186,32 @@ export default async function DashboardPage() {
 
       {/* RECENT FEED */}
       <Reveal delay={800}>
-        <div className="mt-10">
+        <div className="mt-12">
           <div className="flex items-baseline justify-between mb-4">
-            <span className="label-caps text-anomalo-sand">Suas últimas ações</span>
+            <span className="label-caps label-caps-muted">Suas últimas ações</span>
             <Link
               href="/mural"
-              className="label-caps text-anomalo-gold hover:underline"
+              className="label-caps text-[#c9b298] hover:text-[#e4d8ca] transition-colors"
             >
               Ver mural →
             </Link>
           </div>
           {recent.length === 0 ? (
-            <p className="text-anomalo-muted text-sm py-6 text-center border border-anomalo-gold-hair">
+            <p className="text-faint text-sm py-8 text-center ano-card-flat">
               Nenhuma ação ainda. Bata sua primeira meta pra começar.
             </p>
           ) : (
-            <ul className="border border-anomalo-gold-hair">
+            <ul className="ano-card-flat overflow-hidden">
               {recent.map((ev) => (
-                <li key={ev.id} className="border-b border-anomalo-gold-hair last:border-0 px-4 py-3 text-sm">
-                  <span className="text-anomalo-white">{(ev.payload as { text?: string })?.text ?? ev.type}</span>
-                  <span className="text-anomalo-muted ml-2 text-xs">
+                <li
+                  key={ev.id}
+                  className="px-5 py-4 text-sm border-b last:border-0"
+                  style={{ borderColor: "rgba(255,255,255,0.06)" }}
+                >
+                  <span className="text-[#edebe6]">
+                    {(ev.payload as { text?: string })?.text ?? ev.type}
+                  </span>
+                  <span className="text-faint ml-2 text-xs">
                     {new Date(ev.createdAt).toLocaleDateString("pt-BR")}
                   </span>
                 </li>

@@ -6,11 +6,11 @@ import { motion } from "framer-motion";
 import { Home, Target, Users, Newspaper, User } from "lucide-react";
 
 const items = [
-  { href: "/dashboard",     label: "Hoje",   icon: Home },
-  { href: "/metas",         label: "Metas",  icon: Target },
-  { href: "/ranking",       label: "Time",   icon: Users },
-  { href: "/mural",         label: "Mural",  icon: Newspaper },
-  { href: "/perfil",        label: "Perfil", icon: User },
+  { href: "/dashboard", label: "Hoje",   icon: Home },
+  { href: "/metas",     label: "Metas",  icon: Target },
+  { href: "/ranking",   label: "Time",   icon: Users },
+  { href: "/mural",     label: "Mural",  icon: Newspaper },
+  { href: "/perfil",    label: "Perfil", icon: User },
 ];
 
 export function BottomNav() {
@@ -18,44 +18,48 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Navegação principal"
-      className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-anomalo-gold-hair bg-anomalo-black/95 backdrop-blur"
+      className="md:hidden fixed bottom-3 left-3 right-3 z-40 flex justify-center"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >
-      <ul className="flex">
+      <div
+        className="flex items-center w-full max-w-md backdrop-blur-md"
+        style={{
+          background: "rgba(17, 17, 21, 0.85)",
+          borderRadius: 9999,
+          padding: "6px",
+          boxShadow:
+            "inset 0 0 0 1px rgba(255,255,255,0.08), 0 10px 40px rgba(0,0,0,0.6), 0 4px 20px rgba(201, 178, 152, 0.15)",
+        }}
+      >
         {items.map((it) => {
           const active = pathname === it.href || pathname.startsWith(it.href + "/");
           const Icon = it.icon;
           return (
-            <li key={it.href} className="flex-1">
-              <Link
-                href={it.href}
-                className="flex flex-col items-center gap-1 py-3 px-1 relative"
-                style={{ color: active ? "#C9953A" : "rgba(255,255,255,0.55)" }}
+            <Link
+              key={it.href}
+              href={it.href}
+              className="flex-1 flex flex-col items-center gap-1 py-2 px-1 rounded-full transition-colors relative"
+              style={{
+                color: active ? "#c9b298" : "rgba(237,235,230,0.55)",
+                background: active ? "rgba(201,178,152,0.10)" : "transparent",
+              }}
+            >
+              <motion.span
+                animate={{ scale: active ? 1.08 : 1 }}
+                transition={{ type: "spring", stiffness: 360, damping: 24 }}
               >
-                {active && (
-                  <motion.span
-                    layoutId="bottomnav-active"
-                    className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-px bg-anomalo-gold"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
-                )}
-                <motion.span
-                  animate={{ scale: active ? 1.1 : 1 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 22 }}
-                >
-                  <Icon size={22} strokeWidth={1.6} />
-                </motion.span>
-                <span
-                  className="font-medium"
-                  style={{ fontSize: 10, letterSpacing: "0.04em" }}
-                >
-                  {it.label}
-                </span>
-              </Link>
-            </li>
+                <Icon size={20} strokeWidth={1.6} />
+              </motion.span>
+              <span
+                className="font-medium"
+                style={{ fontSize: 9.5, letterSpacing: "0.05em" }}
+              >
+                {it.label}
+              </span>
+            </Link>
           );
         })}
-      </ul>
+      </div>
     </nav>
   );
 }

@@ -1,13 +1,28 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter_Tight, Instrument_Serif, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 
-const inter = Inter({
+const interTight = Inter_Tight({
   subsets: ["latin"],
-  variable: "--font-inter",
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-inter-tight",
+  weight: ["300", "400", "500", "600", "700"],
+  style: ["normal"],
+  display: "swap",
+});
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  variable: "--font-instrument-serif",
+  weight: ["400"],
   style: ["normal", "italic"],
+  display: "swap",
+});
+
+const jetBrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains-mono",
+  weight: ["500"],
   display: "swap",
 });
 
@@ -24,7 +39,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#000000",
+  themeColor: "#070709",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -35,18 +50,21 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="pt-BR" className={`${inter.variable} dark h-full antialiased`}>
-      <body className="bg-anomalo-black text-anomalo-white font-sans min-h-full flex flex-col">
+    <html
+      lang="pt-BR"
+      className={`${interTight.variable} ${instrumentSerif.variable} ${jetBrainsMono.variable} dark h-full antialiased`}
+    >
+      <body className="bg-[#070709] text-[#edebe6] font-sans min-h-full flex flex-col">
         {children}
         <Toaster
           theme="dark"
           position="bottom-center"
           toastOptions={{
             style: {
-              background: "#0A0A0A",
-              border: "1px solid rgba(201,149,58,0.32)",
-              color: "#FFF",
-              borderRadius: 0,
+              background: "#111115",
+              border: "1px solid rgba(255,255,255,0.14)",
+              color: "#edebe6",
+              borderRadius: 20,
             },
           }}
         />

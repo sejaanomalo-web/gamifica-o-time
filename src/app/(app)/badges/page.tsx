@@ -49,7 +49,7 @@ export default async function BadgesPage() {
                 >
                   <span
                     className="text-4xl font-light leading-none mb-3"
-                    style={{ color: got ? "#C9953A" : "#5A4A2A" }}
+                    style={{ color: got ? "#c9b298" : "#5a4a34" }}
                   >
                     Λ
                   </span>
@@ -57,7 +57,7 @@ export default async function BadgesPage() {
                   <p className="text-anomalo-muted text-xs leading-relaxed">{b.criterion}</p>
                   <span
                     className="label-caps mt-3"
-                    style={{ color: got ? "#C9953A" : "#5A4A2A", fontSize: 10 }}
+                    style={{ color: got ? "#c9b298" : "#5a4a34", fontSize: 10 }}
                   >
                     {got ? "Desbloqueado." : "Bloqueado."}
                   </span>

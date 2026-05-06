@@ -3,8 +3,8 @@ import { formatDistanceToNowStrict } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const SEV_LABEL: Record<string, { text: string; color: string }> = {
-  LOW: { text: "Atenção", color: "#8A7850" },
-  MEDIUM: { text: "Importante", color: "#C9953A" },
+  LOW: { text: "Atenção", color: "#8d7556" },
+  MEDIUM: { text: "Importante", color: "#c9b298" },
   HIGH: { text: "Urgente", color: "#E26B4A" },
 };
 
@@ -52,7 +52,7 @@ export default async function AlertasPage() {
                   <button className="label-caps px-3 py-2 border border-anomalo-gold-hair text-anomalo-sand">
                     Visto
                   </button>
-                  <button className="label-caps px-3 py-2" style={{ background: "#C9953A", color: "#000" }}>
+                  <button className="label-caps px-3 py-2" style={{ background: "#c9b298", color: "#000" }}>
                     Tratado
                   </button>
                 </div>

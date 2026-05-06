@@ -40,7 +40,7 @@ export default async function PerfilPage() {
           <div className="flex items-center gap-5">
             <div
               className="w-20 h-20 flex items-center justify-center text-2xl font-bold border border-anomalo-gold"
-              style={{ background: "rgba(201,149,58,0.06)", color: "#C9953A" }}
+              style={{ background: "rgba(201,178,152,0.06)", color: "#c9b298" }}
             >
               {initials}
             </div>

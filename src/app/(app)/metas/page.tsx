@@ -30,29 +30,31 @@ export default function MetasPage() {
     tab === "ativas" ? goals.ativas : tab === "historico" ? goals.historico : goals.naoBatidas;
 
   return (
-    <div className="px-5 md:px-8 py-6 md:py-10 max-w-5xl mx-auto w-full">
+    <div className="px-5 md:px-8 py-8 md:py-12 max-w-5xl mx-auto w-full">
       <Reveal>
-        <span className="label-caps text-anomalo-gold mb-3 block">Anômalo · Metas</span>
+        <span className="label-caps mb-3 block">Anômalo · Metas</span>
         <h1
-          className="text-anomalo-white"
-          style={{
-            fontWeight: 900,
-            fontSize: "clamp(2.5rem, 8vw, 4rem)",
-            lineHeight: 0.95,
-            letterSpacing: "-0.03em",
-            textTransform: "uppercase",
-          }}
+          className="display-serif text-[#edebe6]"
+          style={{ fontSize: "clamp(2.75rem, 9vw, 4.5rem)", lineHeight: 0.96 }}
         >
-          Suas<br />metas.
+          Suas<br />
+          <span className="display-serif-italic text-[#c9b298]">metas.</span>
         </h1>
-        <p className="mt-4 text-anomalo-sand text-sm max-w-md">
-          {goals.ativas.length} ativas. {goals.historico.length} batidas no ano. Constância em
-          construção.
+        <p className="mt-4 text-mid text-sm max-w-md">
+          {goals.ativas.length} ativas. {goals.historico.length} batidas no ano.{" "}
+          <span className="display-serif-italic text-[#c9b298]">Constância</span> em construção.
         </p>
       </Reveal>
 
       <Reveal delay={200}>
-        <div className="mt-8 flex gap-px border border-anomalo-gold-hair">
+        <div
+          className="mt-10 inline-flex p-1 gap-1"
+          style={{
+            borderRadius: 9999,
+            background: "rgba(17,17,21,0.6)",
+            boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.08)",
+          }}
+        >
           {(
             [
               ["ativas", `Ativas · ${goals.ativas.length}`],
@@ -65,10 +67,11 @@ export default function MetasPage() {
               <button
                 key={id}
                 onClick={() => setTab(id)}
-                className="flex-1 py-3 label-caps transition-colors"
+                className="px-5 py-2 label-caps rounded-full transition-all"
                 style={{
-                  background: on ? "#C9953A" : "transparent",
-                  color: on ? "#000" : "#8A7850",
+                  background: on ? "#c9b298" : "transparent",
+                  color: on ? "#1a1712" : "rgba(237,235,230,0.65)",
+                  boxShadow: on ? "0 0 16px rgba(201,178,152,0.30)" : "none",
                 }}
               >
                 {label}
@@ -82,23 +85,20 @@ export default function MetasPage() {
         <Reveal delay={320}>
           <button
             onClick={() => setLogOpen(true)}
-            className="mt-6 w-full border border-anomalo-gold flex items-center justify-between px-5 py-4 label-caps text-anomalo-gold hover:bg-anomalo-gold-ghost transition-colors"
+            className="btn-pill btn-primary mt-8 w-full md:w-auto md:px-10"
           >
-            <span className="flex items-center gap-3">
-              <Plus size={16} />
-              Adicionar progresso de hoje
-            </span>
-            <span>→</span>
+            <Plus size={16} />
+            Adicionar progresso de hoje
           </button>
         </Reveal>
       )}
 
-      <div className="mt-4 flex flex-col gap-3">
+      <div className="mt-6 flex flex-col gap-4">
         {loading && (
-          <p className="text-anomalo-muted text-sm py-8 text-center">Carregando…</p>
+          <p className="text-faint text-sm py-8 text-center">Carregando…</p>
         )}
         {!loading && list.length === 0 && (
-          <p className="text-anomalo-muted text-sm py-8 text-center border border-anomalo-gold-hair">
+          <p className="text-faint text-sm py-10 text-center ano-card-flat">
             {tab === "ativas"
               ? "Você ainda não tem metas ativas."
               : tab === "historico"

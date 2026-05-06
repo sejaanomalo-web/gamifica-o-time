@@ -50,7 +50,7 @@ export function ConstellationBg({ density = "medium", opacity = 0.5 }: Constella
             top: `${p.y}%`,
             transform: `translate(-50%, -50%) rotate(${p.rot}deg)`,
             fontSize: p.size,
-            color: "#C9953A",
+            color: "#c9b298",
             fontFamily: "var(--font-inter), Inter, sans-serif",
             fontWeight: 300,
             lineHeight: 1,

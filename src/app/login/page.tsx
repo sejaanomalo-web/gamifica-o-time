@@ -22,7 +22,11 @@ export default function LoginPage() {
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
     if (error) {
-      setError(error.message === "Invalid login credentials" ? "Email ou senha inválidos." : error.message);
+      setError(
+        error.message === "Invalid login credentials"
+          ? "Email ou senha inválidos."
+          : error.message,
+      );
       return;
     }
     startTransition(() => {
@@ -33,61 +37,54 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-anomalo-black overflow-hidden px-6">
-      <ConstellationBg density="medium" opacity={0.4} />
+    <div className="relative min-h-screen flex items-center justify-center bg-[#070709] overflow-hidden px-6">
+      <ConstellationBg density="medium" opacity={0.35} />
 
       <div className="relative z-10 w-full max-w-md">
         <Reveal delay={120}>
           <div className="flex justify-center mb-12">
-            <span className="text-anomalo-gold text-5xl font-light">Λ</span>
+            <span className="text-[#c9b298] text-5xl font-light leading-none">Λ</span>
           </div>
         </Reveal>
 
         <Reveal delay={220} y={28}>
-          <h1
-            className="text-center mb-3"
-            style={{
-              fontWeight: 900,
-              fontSize: "3.5rem",
-              lineHeight: 0.95,
-              letterSpacing: "-0.03em",
-              textTransform: "uppercase",
-            }}
-          >
+          <h1 className="text-center mb-3 display-serif text-[#edebe6]" style={{ fontSize: "3.25rem" }}>
             Anômalo<br />
-            <span className="text-respiro" style={{ textTransform: "lowercase" }}>
-              meta.
-            </span>
+            <span className="display-serif-italic">meta.</span>
           </h1>
         </Reveal>
 
         <Reveal delay={420}>
-          <p className="text-center text-anomalo-sand text-sm leading-relaxed mb-10">
-            Construção em formato de jogo.
+          <p className="text-center text-mid text-sm leading-relaxed mb-10 max-w-sm mx-auto">
+            Construção em formato de jogo. Entre pra continuar.
           </p>
         </Reveal>
 
         <Reveal delay={620}>
-          <form onSubmit={onSubmit} className="ano-card-flat p-8 border border-anomalo-gold-hair">
-            <div className="space-y-5">
+          <form
+            onSubmit={onSubmit}
+            className="ano-card-flat p-8"
+            style={{ boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.08), 0 8px 32px -16px rgba(0,0,0,0.6)" }}
+          >
+            <div className="space-y-6">
               <div>
-                <label className="label-caps text-anomalo-sand block mb-2">Email</label>
+                <label className="label-caps label-caps-muted block mb-3">Email</label>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-transparent border border-anomalo-gold-hair text-white px-4 py-3 outline-none focus:border-anomalo-gold transition-colors"
+                  className="input-square"
                 />
               </div>
               <div>
-                <label className="label-caps text-anomalo-sand block mb-2">Senha</label>
+                <label className="label-caps label-caps-muted block mb-3">Senha</label>
                 <input
                   type="password"
                   required
                   value={pw}
                   onChange={(e) => setPw(e.target.value)}
-                  className="w-full bg-transparent border border-anomalo-gold-hair text-white px-4 py-3 outline-none focus:border-anomalo-gold transition-colors"
+                  className="input-square"
                 />
               </div>
 
@@ -96,7 +93,7 @@ export default function LoginPage() {
                   initial={{ opacity: 0, x: 0 }}
                   animate={{ opacity: 1, x: [0, -6, 6, -4, 4, 0] }}
                   transition={{ duration: 0.4 }}
-                  className="text-sm text-red-400 border-l-2 border-red-400 pl-3 py-1"
+                  className="text-sm text-[#fb2c36] border-l-2 border-[#fb2c36] pl-3 py-1"
                 >
                   {error}
                 </motion.div>
@@ -106,15 +103,15 @@ export default function LoginPage() {
                 type="submit"
                 disabled={pending}
                 whileTap={{ scale: 0.99 }}
-                className="w-full bg-anomalo-gold text-anomalo-black py-4 label-caps disabled:opacity-50 transition-opacity"
+                className="btn-pill btn-primary w-full disabled:opacity-50"
               >
                 {pending ? "Entrando…" : "Entrar"}
               </motion.button>
 
-              <div className="text-center pt-2">
+              <div className="text-center pt-1">
                 <Link
                   href="/recuperar-senha"
-                  className="text-anomalo-sand text-sm hover:text-anomalo-gold transition-colors"
+                  className="text-mid text-sm hover:text-[#c9b298] transition-colors"
                 >
                   Esqueceu a senha?
                 </Link>
@@ -124,7 +121,7 @@ export default function LoginPage() {
         </Reveal>
 
         <Reveal delay={820}>
-          <p className="text-center text-anomalo-muted label-caps mt-10">
+          <p className="text-center label-caps label-caps-muted mt-10">
             Anômalo Hub · Uso interno
           </p>
         </Reveal>

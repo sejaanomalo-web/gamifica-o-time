@@ -3,62 +3,81 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Anômalo Hub — design tokens (Tailwind v4 @theme syntax) */
+/* ════════════════════════════════════════════════════════════════════
+   Anômalo Meta · Academia Lendária design system
+   Black canvas + warm gold + cream + Instrument Serif italics + pills.
+   ════════════════════════════════════════════════════════════════════ */
+
 @theme {
-  /* Brand palette */
-  --color-anomalo-black: #000000;
-  --color-anomalo-surface: #0A0A0A;
-  --color-anomalo-white: #FFFFFF;
-  --color-anomalo-gold: #C9953A;
-  --color-anomalo-gold-bright: #E0B25A;
-  --color-anomalo-sand: #8A7850;
-  --color-anomalo-muted: #5A4A2A;
-  --color-anomalo-gold-hair: rgba(201, 149, 58, 0.32);
-  --color-anomalo-gold-ghost: rgba(201, 149, 58, 0.14);
+  /* ── Palette ───────────────────────────────────────────────────── */
+  /* Dark canvas / surfaces */
+  --color-bg-deep:        #000000;
+  --color-surface:        #070709;
+  --color-neutral:        #111115;
 
-  /* Typography */
-  --font-sans: var(--font-inter), system-ui, sans-serif;
+  /* Cream typography */
+  --color-cream:          #f3eee6;
+  --color-cream-ink:      #1a1712;
+  --color-text:           #edebe6;
 
-  /* Type scale */
-  --text-display: 5.625rem;
-  --text-display--line-height: 1.05;
-  --text-display--font-weight: 900;
-  --text-display--letter-spacing: -0.02em;
+  /* Warm gold (the only accent) */
+  --color-gold:           #c9b298;
+  --color-gold-bright:    #e4d8ca;
+  --color-gold-deep:      #8d7556;
+
+  /* Semantics (alias for shadcn / utility usage) */
+  --color-anomalo-black:        var(--color-bg-deep);
+  --color-anomalo-surface:      var(--color-neutral);
+  --color-anomalo-white:        var(--color-text);
+  --color-anomalo-gold:         var(--color-gold);
+  --color-anomalo-gold-bright:  var(--color-gold-bright);
+  --color-anomalo-sand:         var(--color-gold-deep);
+  --color-anomalo-muted:        var(--color-gold-deep);
+  --color-anomalo-gold-hair:    rgba(255, 255, 255, 0.14);
+  --color-anomalo-gold-ghost:   rgba(201, 178, 152, 0.10);
+
+  /* ── Typography ───────────────────────────────────────────────── */
+  --font-sans:   var(--font-inter-tight), -apple-system, system-ui, sans-serif;
+  --font-serif:  var(--font-instrument-serif), "Times New Roman", serif;
+  --font-mono:   var(--font-jetbrains-mono), "SF Mono", Consolas, monospace;
+
+  /* Type scale (Academia Lendária ramp) */
+  --text-h1: 3rem;
+  --text-h1--line-height: 1.0;
+  --text-h1--font-weight: 400;
+  --text-h1--letter-spacing: -0.02em;
   --text-h2: 2.25rem;
-  --text-h2--line-height: 1.15;
-  --text-h2--font-weight: 800;
+  --text-h2--line-height: 1.111;
+  --text-h2--font-weight: 400;
   --text-h2--letter-spacing: -0.01em;
-  --text-h3: 1.5rem;
-  --text-h3--line-height: 1.3;
-  --text-h3--font-weight: 700;
+  --text-h3: 1.25rem;
+  --text-h3--line-height: 1.4;
+  --text-h3--font-weight: 600;
+  --text-h4: 1.125rem;
+  --text-h4--line-height: 1.555;
+  --text-h4--font-weight: 500;
+  --text-body-lg: 1.125rem;
+  --text-body-lg--line-height: 1.555;
   --text-body-md: 1rem;
-  --text-body-md--line-height: 1.55;
+  --text-body-md--line-height: 1.5;
   --text-body-sm: 0.875rem;
-  --text-body-sm--line-height: 1.5;
-  --text-label: 0.75rem;
-  --text-label--line-height: 1;
-  --text-label--font-weight: 600;
-  --text-label--letter-spacing: 0.16em;
+  --text-body-sm--line-height: 1.428;
+  --text-label: 0.625rem;
+  --text-label--line-height: 1.4;
+  --text-label--font-weight: 500;
+  --text-label--letter-spacing: 0.05em;
 
-  /* Cantos vivos sempre — zero radius across the system */
-  --radius: 0px;
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
-  --radius-2xl: 0px;
-  --radius-3xl: 0px;
-  --radius-4xl: 0px;
+  /* ── Radius (split: pill action / 20px card / 0 input) ────────── */
+  --radius-input: 0px;
+  --radius-card:  20px;
+  --radius-pill:  9999px;
 
-  /* Spacing extras */
-  --spacing-xxl: 4rem;
-
-  /* Easings */
-  --ease-anomalo: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-anomalo-in: cubic-bezier(0.6, 0, 0.8, 0.4);
+  /* ── Easing ───────────────────────────────────────────────────── */
+  --ease-academia:    cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-academia-io: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* shadcn semantic mapping (forced dark, all rounded zeroed) */
+/* ── shadcn semantic mapping (forced dark) ───────────────────────── */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -82,68 +101,214 @@
 
 :root,
 .dark {
-  --background: #000000;
-  --foreground: #FFFFFF;
-  --card: #0A0A0A;
-  --card-foreground: #FFFFFF;
-  --popover: #0A0A0A;
-  --popover-foreground: #FFFFFF;
-  --primary: #C9953A;
-  --primary-foreground: #000000;
-  --secondary: #0A0A0A;
-  --secondary-foreground: #FFFFFF;
-  --muted: #0A0A0A;
-  --muted-foreground: #8A7850;
-  --accent: #C9953A;
-  --accent-foreground: #000000;
-  --destructive: #E26B4A;
-  --border: rgba(255, 255, 255, 0.08);
-  --input: rgba(255, 255, 255, 0.10);
-  --ring: #C9953A;
+  --background: #070709;            /* surface */
+  --foreground: #edebe6;            /* cream text */
+  --card: #111115;                  /* neutral elevated */
+  --card-foreground: #edebe6;
+  --popover: #111115;
+  --popover-foreground: #edebe6;
+  --primary: #c9b298;
+  --primary-foreground: #1a1712;    /* cream-ink */
+  --secondary: #111115;
+  --secondary-foreground: #edebe6;
+  --muted: #111115;
+  --muted-foreground: #8d7556;
+  --accent: #c9b298;
+  --accent-foreground: #1a1712;
+  --destructive: #fb2c36;
+  --border: rgba(255, 255, 255, 0.14);
+  --input: rgba(255, 255, 255, 0.18);
+  --ring: #c9b298;
 }
 
+/* ── Base ────────────────────────────────────────────────────────── */
 @layer base {
   * { box-sizing: border-box; }
-  *::selection { background: #C9953A; color: #000; }
+  *::selection { background: #c9b298; color: #1a1712; }
   html, body {
     margin: 0;
     padding: 0;
-    background: #000;
-    color: #FFF;
+    background: #070709;
+    color: #edebe6;
     color-scheme: dark;
   }
   html { font-family: var(--font-sans); }
-  /* prevent horizontal scroll on iOS Safari with sticky elements */
-  body { overflow-x: clip; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  body {
+    overflow-x: clip;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  /* Hero serifs */
+  h1, h2, .font-serif-italic {
+    font-family: var(--font-serif);
+  }
 }
 
+/* ── Utilities ───────────────────────────────────────────────────── */
 @layer utilities {
-  .text-display { font-weight: 900; letter-spacing: -0.02em; line-height: 1.05; }
-  .text-respiro { font-weight: 300; font-style: italic; }
-  .label-caps {
-    text-transform: uppercase;
-    letter-spacing: 0.16em;
-    font-size: 0.75rem;
-    font-weight: 600;
-    line-height: 1;
+  /* Editorial hero text */
+  .display-serif {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.0;
   }
+  .display-serif-italic {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-style: italic;
+    letter-spacing: -0.02em;
+  }
+  .text-respiro {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-style: italic;
+  }
+
+  /* Eyebrow / micro labels */
+  .label-caps {
+    font-family: var(--font-sans);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.625rem;
+    font-weight: 500;
+    line-height: 1.4;
+    color: #c9b298;
+  }
+  .label-caps-muted { color: #8d7556; }
+
+  /* Cream alpha tiers (the brand's body hierarchy) */
+  .text-mid    { color: rgba(237, 235, 230, 0.68); }
+  .text-dim    { color: rgba(237, 235, 230, 0.42); }
+  .text-faint  { color: rgba(237, 235, 230, 0.22); }
+
+  /* Stat/metric numerics — JetBrains Mono */
+  .text-mono   { font-family: var(--font-mono); font-weight: 500; }
+
+  /* ── Surfaces ─────────────────────────────────────────────────── */
   .ano-card {
-    background: #0A0A0A;
-    border: 1px solid rgba(201, 149, 58, 0.32);
+    background: #111115;
+    border-radius: 20px;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+      0 8px 32px -16px rgba(0, 0, 0, 0.6);
+    transition: box-shadow .35s var(--ease-academia), transform .35s var(--ease-academia);
+  }
+  .ano-card:hover {
+    box-shadow:
+      inset 0 0 0 1px rgba(201, 178, 152, 0.20),
+      0 20px 60px -20px rgba(201, 178, 152, 0.18);
   }
   .ano-card-flat {
-    background: #0A0A0A;
+    background: #111115;
+    border-radius: 20px;
   }
-  .ano-divider-gold {
+  .ano-glass {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.10),
+      0 4px 20px rgba(0, 0, 0, 0.5);
+  }
+  .ano-divider {
     height: 1px;
-    background: rgba(201, 149, 58, 0.32);
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  /* ── Buttons & CTAs (pill geometry) ───────────────────────────── */
+  .btn-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    padding: 0 26px;
+    height: 48px;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0;
+    cursor: pointer;
+    transition:
+      transform .35s var(--ease-academia),
+      box-shadow .35s var(--ease-academia),
+      color .35s var(--ease-academia),
+      background .35s var(--ease-academia);
+  }
+  /* Primary on dark surfaces — glass pill with gold glow */
+  .btn-primary {
+    background: transparent;
+    color: #edebe6;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+      0 10px 40px rgba(201, 178, 152, 0.25);
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    color: #e4d8ca;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.20),
+      0 16px 50px rgba(201, 178, 152, 0.40);
+  }
+  /* Solid gold (used over cream sections or for high-emphasis CTAs) */
+  .btn-gold {
+    background: #c9b298;
+    color: #1a1712;
+    box-shadow: 0 10px 40px rgba(201, 178, 152, 0.30);
+  }
+  .btn-gold:hover {
+    transform: translateY(-2px);
+    background: #e4d8ca;
+    box-shadow: 0 16px 50px rgba(201, 178, 152, 0.45);
+  }
+  /* Ghost (secondary outline) */
+  .btn-ghost {
+    background: transparent;
+    color: #edebe6;
+    box-shadow: inset 0 0 0 1px rgba(141, 117, 86, 0.55);
+  }
+  .btn-ghost:hover {
+    color: #c9b298;
+    box-shadow: inset 0 0 0 1px #c9b298;
+  }
+
+  /* ── Inputs (square, hairline) ────────────────────────────────── */
+  .input-square {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.18);
+    padding: 0 16px;
+    height: 44px;
+    color: #edebe6;
+    font-size: 14px;
+    font-family: var(--font-sans);
+    width: 100%;
+    transition: box-shadow .25s var(--ease-academia);
+    outline: none;
+  }
+  .input-square::placeholder { color: rgba(237, 235, 230, 0.30); }
+  .input-square:focus,
+  .input-square:focus-visible {
+    box-shadow:
+      0 1px 0 0 #c9b298,
+      0 0 0 3px rgba(201, 178, 152, 0.10);
+  }
+
+  /* Glow shadow utility */
+  .shadow-gold-glow {
+    box-shadow: 0 10px 40px rgba(201, 178, 152, 0.25);
+  }
+  .shadow-gold-glow-strong {
+    box-shadow: 0 16px 50px rgba(201, 178, 152, 0.45);
   }
 }
 
-/* Keyframes */
+/* ── Keyframes ───────────────────────────────────────────────────── */
 @keyframes anoLambdaPulse {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50%      { opacity: 0.6; transform: scale(1.04); }
+  0%, 100% { opacity: 0.32; transform: scale(1); }
+  50%      { opacity: 0.58; transform: scale(1.04); }
 }
 @keyframes anoOrb1 {
   0%, 100% { transform: translate(0,0) scale(1); }

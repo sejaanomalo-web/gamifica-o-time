@@ -42,12 +42,12 @@ export default function MoodPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-anomalo-black px-6 py-10">
+    <div className="min-h-screen flex flex-col bg-[#070709] px-6 py-10">
       <header className="flex items-center justify-between">
         <PulsingLambda size={28} />
         <button
           onClick={() => router.push("/dashboard")}
-          className="label-caps text-anomalo-sand hover:text-anomalo-gold"
+          className="label-caps text-mid hover:text-[#c9b298]"
         >
           Pular
         </button>
@@ -55,26 +55,18 @@ export default function MoodPage() {
 
       <main className="flex-1 flex flex-col justify-center max-w-2xl mx-auto w-full py-10">
         <Reveal>
-          <span className="label-caps text-anomalo-gold mb-6 inline-block">
+          <span className="label-caps mb-6 inline-block">
             Anônimo. Admin não vê seu nome.
           </span>
         </Reveal>
 
         <Reveal delay={150}>
           <h1
-            className="text-anomalo-white"
-            style={{
-              fontWeight: 900,
-              fontSize: "clamp(2.25rem, 7vw, 3.5rem)",
-              lineHeight: 1,
-              letterSpacing: "-0.03em",
-              textTransform: "uppercase",
-            }}
+            className="display-serif text-[#edebe6]"
+            style={{ fontSize: "clamp(2.5rem, 8vw, 4rem)", lineHeight: 1 }}
           >
             Como foi<br />
-            <span className="text-respiro" style={{ textTransform: "lowercase" }}>
-              a semana?
-            </span>
+            <span className="display-serif-italic text-[#c9b298]">a semana?</span>
           </h1>
         </Reveal>
 
@@ -91,21 +83,25 @@ export default function MoodPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 + i * 0.08, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                   whileTap={{ scale: 1.08 }}
-                  className="flex-1 aspect-square flex flex-col items-center justify-center border transition-colors"
+                  className="flex-1 aspect-square flex flex-col items-center justify-center transition-all rounded-full"
                   style={{
-                    borderColor: sel ? "#C9953A" : "rgba(255,255,255,0.18)",
-                    background: sel ? "#C9953A" : "transparent",
-                    color: sel ? "#000" : "#FFF",
+                    background: sel ? "#c9b298" : "rgba(255,255,255,0.04)",
+                    boxShadow: sel
+                      ? "0 0 24px rgba(201,178,152,0.45), inset 0 0 0 1px rgba(255,255,255,0.18)"
+                      : "inset 0 0 0 1px rgba(255,255,255,0.10)",
+                    color: sel ? "#1a1712" : "#edebe6",
                   }}
                   aria-label={`Nota ${s.n}: ${s.label}`}
                 >
                   <span
-                    className="font-black"
-                    style={{ fontSize: "clamp(1.75rem, 6vw, 2.5rem)", lineHeight: 1 }}
+                    className="text-mono"
+                    style={{ fontSize: "clamp(1.75rem, 6vw, 2.5rem)", lineHeight: 1, fontWeight: 500 }}
                   >
                     {s.n}
                   </span>
-                  <span className="label-caps mt-2 text-[9px] opacity-80">{s.label}</span>
+                  <span className="label-caps mt-2 text-[9px] opacity-80" style={{ color: "inherit" }}>
+                    {s.label}
+                  </span>
                 </motion.button>
               );
             })}
@@ -117,7 +113,8 @@ export default function MoodPage() {
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               rows={3}
-              className="w-full bg-transparent border border-anomalo-gold-hair text-white px-4 py-3 outline-none focus:border-anomalo-gold transition-colors resize-none"
+              className="w-full input-square py-3 resize-none"
+              style={{ height: "auto", minHeight: 90 }}
             />
           </Reveal>
 
@@ -125,15 +122,14 @@ export default function MoodPage() {
             <button
               type="submit"
               disabled={rating === null || pending}
-              className="mt-6 w-full py-4 label-caps disabled:opacity-30 disabled:cursor-not-allowed"
-              style={{ background: "#C9953A", color: "#000" }}
+              className="btn-pill btn-gold mt-6 w-full disabled:opacity-30 disabled:cursor-not-allowed"
             >
               {pending ? "Enviando…" : "Enviar"}
             </button>
           </Reveal>
 
           <Reveal delay={950}>
-            <p className="mt-6 text-center text-anomalo-muted text-xs">
+            <p className="mt-6 text-center text-faint text-xs">
               Sua resposta é anônima. Admin vê só a média e os comentários sem nome.
             </p>
           </Reveal>

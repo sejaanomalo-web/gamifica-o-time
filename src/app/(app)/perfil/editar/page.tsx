@@ -109,7 +109,7 @@ export default function EditarPerfilPage() {
             type="submit"
             disabled={saving || loading}
             className="w-full py-4 label-caps disabled:opacity-50"
-            style={{ background: "#C9953A", color: "#000" }}
+            style={{ background: "#c9b298", color: "#000" }}
           >
             {saving ? "Salvando…" : "Salvar"}
           </button>
@@ -193,7 +193,7 @@ function PasswordChangeDialog({ onClose }: { onClose: () => void }) {
               type="submit"
               disabled={pending}
               className="flex-1 py-3 label-caps disabled:opacity-50"
-              style={{ background: "#C9953A", color: "#000" }}
+              style={{ background: "#c9b298", color: "#000" }}
             >
               {pending ? "…" : "Trocar"}
             </button>

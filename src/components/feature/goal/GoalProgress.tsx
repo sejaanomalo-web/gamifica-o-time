@@ -25,7 +25,7 @@ export function GoalProgress({ percentage, size = "md" }: GoalProgressProps) {
           cx={px / 2}
           cy={px / 2}
           r={r}
-          stroke="rgba(255,255,255,0.08)"
+          stroke="rgba(255,255,255,0.06)"
           strokeWidth={sw}
           fill="none"
         />
@@ -33,27 +33,28 @@ export function GoalProgress({ percentage, size = "md" }: GoalProgressProps) {
           cx={px / 2}
           cy={px / 2}
           r={r}
-          stroke="#C9953A"
+          stroke="#c9b298"
           strokeWidth={sw}
           fill="none"
-          strokeLinecap="butt"
+          strokeLinecap="round"
           strokeDasharray={c}
           initial={{ strokeDashoffset: c }}
           animate={{ strokeDashoffset: offset }}
           transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-          style={{ filter: "drop-shadow(0 0 6px rgba(201,149,58,0.4))" }}
+          style={{ filter: "drop-shadow(0 0 8px rgba(201,178,152,0.5))" }}
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
         <span
-          className="font-black tabular-nums text-anomalo-white"
+          className="text-mono tabular-nums text-[#edebe6]"
           style={{
             fontSize: size === "lg" ? 32 : size === "md" ? 22 : 13,
             letterSpacing: "-0.02em",
+            fontWeight: 500,
           }}
         >
           {Math.round(pct)}
-          <span className="text-anomalo-sand text-[0.5em] ml-0.5">%</span>
+          <span className="text-mid text-[0.5em] ml-0.5">%</span>
         </span>
       </div>
     </div>

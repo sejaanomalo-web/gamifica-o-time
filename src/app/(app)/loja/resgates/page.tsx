@@ -52,10 +52,10 @@ export default async function ResgatesHistoryPage() {
                   style={{
                     color:
                       r.status === "ENTREGUE"
-                        ? "#C9953A"
+                        ? "#c9b298"
                         : r.status === "REJEITADO"
                           ? "#E26B4A"
-                          : "#8A7850",
+                          : "#8d7556",
                   }}
                 >
                   {STATUS_LABEL[r.status]}

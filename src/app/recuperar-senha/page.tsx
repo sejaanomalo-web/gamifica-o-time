@@ -28,32 +28,32 @@ export default function RecuperarSenhaPage() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-anomalo-black overflow-hidden px-6">
+    <div className="relative min-h-screen flex items-center justify-center bg-[#070709] overflow-hidden px-6">
       <ConstellationBg density="low" opacity={0.3} />
 
       <div className="relative z-10 w-full max-w-md">
         <Reveal delay={120}>
           <div className="flex justify-center mb-12">
-            <span className="text-anomalo-gold text-5xl font-light">Λ</span>
+            <span className="text-[#c9b298] text-5xl font-light leading-none">Λ</span>
           </div>
         </Reveal>
 
         <Reveal delay={220}>
-          <h1 className="text-center text-h2 mb-3 uppercase tracking-tight">
-            Recuperar senha.
+          <h1 className="text-center display-serif mb-3" style={{ fontSize: "2.5rem" }}>
+            <span className="display-serif-italic">recuperar</span> senha.
           </h1>
         </Reveal>
 
         {sent ? (
           <Reveal delay={320}>
-            <div className="ano-card-flat p-8 border border-anomalo-gold-hair text-center">
-              <p className="text-anomalo-white mb-2">Link enviado.</p>
-              <p className="text-anomalo-sand text-sm">
-                Confere o email <span className="text-anomalo-gold">{email}</span>.
+            <div className="ano-card-flat p-8 text-center" style={{ boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.08)" }}>
+              <p className="text-[#edebe6] mb-2">Link enviado.</p>
+              <p className="text-mid text-sm">
+                Confere o email <span className="text-[#c9b298]">{email}</span>.
               </p>
               <Link
                 href="/login"
-                className="inline-block mt-6 label-caps text-anomalo-gold hover:underline"
+                className="inline-block mt-6 label-caps text-[#c9b298] hover:underline"
               >
                 Voltar pro login
               </Link>
@@ -61,35 +61,36 @@ export default function RecuperarSenhaPage() {
           </Reveal>
         ) : (
           <Reveal delay={320}>
-            <p className="text-center text-anomalo-sand mb-8">
+            <p className="text-center text-mid mb-8 text-sm">
               Digite seu email. Mandamos um link pra resetar.
             </p>
             <form
               onSubmit={onSubmit}
-              className="ano-card-flat p-8 border border-anomalo-gold-hair"
+              className="ano-card-flat p-8"
+              style={{ boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.08)" }}
             >
-              <div className="space-y-5">
+              <div className="space-y-6">
                 <div>
-                  <label className="label-caps text-anomalo-sand block mb-2">Email</label>
+                  <label className="label-caps label-caps-muted block mb-3">Email</label>
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-transparent border border-anomalo-gold-hair text-white px-4 py-3 outline-none focus:border-anomalo-gold transition-colors"
+                    className="input-square"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={pending}
-                  className="w-full bg-anomalo-gold text-anomalo-black py-4 label-caps disabled:opacity-50"
+                  className="btn-pill btn-primary w-full disabled:opacity-50"
                 >
                   {pending ? "Enviando…" : "Enviar link"}
                 </button>
-                <div className="text-center pt-2">
+                <div className="text-center pt-1">
                   <Link
                     href="/login"
-                    className="text-anomalo-sand text-sm hover:text-anomalo-gold"
+                    className="text-mid text-sm hover:text-[#c9b298] transition-colors"
                   >
                     Voltar pro login
                   </Link>
