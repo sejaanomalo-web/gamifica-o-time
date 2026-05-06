@@ -86,14 +86,18 @@ export function LogProgressSheet({ open, onOpenChange }: LogProgressSheetProps) 
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 280 }}
-            className="max-h-[92vh] flex flex-col"
+            className="flex flex-col w-full"
             style={{
               background: "#111115",
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
               boxShadow:
-                "inset 0 1px 0 rgba(255,255,255,0.10), 0 -20px 60px rgba(0,0,0,0.6), 0 -8px 32px rgba(201,149,58,0.10)",
+                "inset 0 1px 0 rgba(255,255,255,0.10), 0 -20px 60px rgba(0,0,0,0.6), 0 -8px 32px rgba(201,149,58,0.18)",
               paddingBottom: "env(safe-area-inset-bottom, 0px)",
+              // Quase fullscreen: 12px de respiro no topo pra revelar o cantinho arredondado
+              height: "calc(100dvh - 12px)",
+              maxHeight: "calc(100dvh - 12px)",
+              marginTop: "12px",
             }}
           >
             {/* Drag handle */}
