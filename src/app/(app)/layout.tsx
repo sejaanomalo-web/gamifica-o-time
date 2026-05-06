@@ -68,7 +68,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <main className="flex-1 pb-24 md:pb-8 overflow-y-auto">
           <PageTransition>{children}</PageTransition>
         </main>
-        <BottomNav />
+        <BottomNav isAdmin={isAdmin} />
       </div>
     </div>
   );

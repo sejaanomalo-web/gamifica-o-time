@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Home,
+  Tv,
   Target,
   Users,
   User,
@@ -12,7 +13,7 @@ import {
   Shield,
 } from "lucide-react";
 
-const baseItems = [
+const collaboratorItems = [
   { href: "/dashboard", label: "Hoje",   icon: Home },
   { href: "/metas",     label: "Metas",  icon: Target },
   { href: "/ranking",   label: "Time",   icon: Users },
@@ -21,11 +22,19 @@ const baseItems = [
   { href: "/perfil",    label: "Perfil", icon: User },
 ];
 
+const adminItems = [
+  { href: "/equipe",    label: "Equipe", icon: Tv },
+  { href: "/metas",     label: "Metas",  icon: Target },
+  { href: "/ranking",   label: "Time",   icon: Users },
+  { href: "/badges",    label: "Badges", icon: Award },
+  { href: "/loja",      label: "Loja",   icon: ShoppingBag },
+  { href: "/perfil",    label: "Perfil", icon: User },
+  { href: "/admin",     label: "Admin",  icon: Shield },
+];
+
 export function SideNav({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname();
-  const items = isAdmin
-    ? [...baseItems, { href: "/admin", label: "Admin", icon: Shield }]
-    : baseItems;
+  const items = isAdmin ? adminItems : collaboratorItems;
 
   return (
     <nav

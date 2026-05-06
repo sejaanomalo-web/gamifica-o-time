@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Home, Target, Users, ShoppingBag, User } from "lucide-react";
+import { Home, Tv, Target, Users, ShoppingBag, User } from "lucide-react";
 
-const items = [
+const collaboratorItems = [
   { href: "/dashboard", label: "Hoje",   icon: Home },
   { href: "/metas",     label: "Metas",  icon: Target },
   { href: "/ranking",   label: "Time",   icon: Users },
@@ -13,8 +13,17 @@ const items = [
   { href: "/perfil",    label: "Perfil", icon: User },
 ];
 
-export function BottomNav() {
+const adminItems = [
+  { href: "/equipe",    label: "Equipe", icon: Tv },
+  { href: "/metas",     label: "Metas",  icon: Target },
+  { href: "/ranking",   label: "Time",   icon: Users },
+  { href: "/loja",      label: "Loja",   icon: ShoppingBag },
+  { href: "/perfil",    label: "Perfil", icon: User },
+];
+
+export function BottomNav({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname();
+  const items = isAdmin ? adminItems : collaboratorItems;
   return (
     <nav
       aria-label="Navegação principal"
