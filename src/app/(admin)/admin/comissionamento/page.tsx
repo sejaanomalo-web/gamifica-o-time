@@ -1,10 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { calculateCommission, formatCents } from "@/lib/commission";
-
-function currentMonthISO() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-}
+import { PeriodPicker, parsePeriod } from "@/components/layout/PeriodPicker";
 
 async function safe<T>(label: string, q: () => Promise<T>, fallback: T): Promise<T> {
   try {
@@ -15,11 +11,17 @@ async function safe<T>(label: string, q: () => Promise<T>, fallback: T): Promise
   }
 }
 
-export default async function AdminComissionamentoPage() {
-  const monthIso = currentMonthISO();
-  const monthStart = new Date(`${monthIso}-01T00:00:00`);
-  const monthEnd = new Date(monthStart);
-  monthEnd.setMonth(monthEnd.getMonth() + 1);
+interface PageProps {
+  searchParams: Promise<{ p?: string }>;
+}
+
+export default async function AdminComissionamentoPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const period = parsePeriod(params.p);
+
+  // Range pra preview: usa o período selecionado quando month/year, senão all-time = sem filtro de data
+  const periodFilter =
+    period.start && period.end ? { gte: period.start, lt: period.end } : undefined;
 
   type TiersWithUser = Awaited<
     ReturnType<typeof prisma.commissionTier.findMany<{ include: { user: true } }>>
@@ -40,13 +42,23 @@ export default async function AdminComissionamentoPage() {
     () => prisma.deliveryWeight.findMany({ where: { active: true }, orderBy: { weight: "desc" } }),
     [] as Awaited<ReturnType<typeof prisma.deliveryWeight.findMany>>,
   );
+
+  // Histórico: filtra por mês ISO se mês selecionado, prefixo de ano se ano,
+  // tudo se all
+  const historyWhere: { monthISO?: { startsWith: string } | string } = {};
+  if (period.mode === "month" && period.monthISO) {
+    historyWhere.monthISO = period.monthISO;
+  } else if (period.mode === "year" && period.yearISO) {
+    historyWhere.monthISO = { startsWith: period.yearISO };
+  }
   const history = await safe<HistoryWithUser>(
     "commissionMonth.findMany",
     () =>
       prisma.commissionMonth.findMany({
+        where: historyWhere,
         include: { user: { select: { name: true } } },
         orderBy: { closedAt: "desc" },
-        take: 60,
+        take: 120,
       }),
     [],
   );
@@ -56,13 +68,19 @@ export default async function AdminComissionamentoPage() {
       const [delivAgg, adjAgg] = await Promise.all([
         prisma.delivery
           .aggregate({
-            where: { userId: t.userId, deliveredAt: { gte: monthStart, lt: monthEnd } },
+            where: {
+              userId: t.userId,
+              ...(periodFilter ? { deliveredAt: periodFilter } : {}),
+            },
             _sum: { pointsApplied: true },
           })
           .catch(() => ({ _sum: { pointsApplied: 0 } })),
         prisma.adjustment
           .aggregate({
-            where: { userId: t.userId, createdAt: { gte: monthStart, lt: monthEnd } },
+            where: {
+              userId: t.userId,
+              ...(periodFilter ? { createdAt: periodFilter } : {}),
+            },
             _sum: { pointsDeducted: true },
           })
           .catch(() => ({ _sum: { pointsDeducted: 0 } })),
@@ -75,38 +93,52 @@ export default async function AdminComissionamentoPage() {
     }),
   );
 
+  const previewLabel =
+    period.mode === "all"
+      ? "Tudo registrado"
+      : period.mode === "year"
+        ? `${period.yearISO} acumulado`
+        : `${period.label} (em curso)`;
+
+  const historyTotalCents = history.reduce((s, m) => s + m.bonusValue, 0);
+
   return (
     <div className="px-5 md:px-8 py-8 md:py-12 max-w-6xl mx-auto w-full">
-      <span className="label-caps mb-3 block">Admin · Comissão</span>
-      <h1
-        className="text-white"
-        style={{
-          fontWeight: 900,
-          fontSize: "clamp(2.25rem, 6vw, 2.75rem)",
-          lineHeight: 0.95,
-          letterSpacing: "-0.03em",
-          textTransform: "uppercase",
-        }}
-      >
-        Comissio<br />
-        <span
-          className="text-[#C9953A]"
-          style={{
-            fontWeight: 300,
-            fontStyle: "italic",
-            textTransform: "lowercase",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          namento.
-        </span>
-      </h1>
-      <p className="text-mid text-sm mt-4 max-w-md mb-10">
-        Configura, registra entregas e fecha o mês.
-      </p>
+      <div className="flex items-end justify-between mb-8 gap-6 flex-wrap">
+        <div>
+          <span className="label-caps mb-3 block">Admin · Comissão</span>
+          <h1
+            className="text-white"
+            style={{
+              fontWeight: 900,
+              fontSize: "clamp(2.25rem, 6vw, 2.75rem)",
+              lineHeight: 0.95,
+              letterSpacing: "-0.03em",
+              textTransform: "uppercase",
+            }}
+          >
+            Comissio<br />
+            <span
+              className="text-[#C9953A]"
+              style={{
+                fontWeight: 300,
+                fontStyle: "italic",
+                textTransform: "lowercase",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              namento.
+            </span>
+          </h1>
+          <p className="text-mid text-sm mt-4 max-w-md">
+            Configura, registra entregas e acompanha o progresso por mês, ano ou tudo.
+          </p>
+        </div>
+        <PeriodPicker param={params.p ?? ""} />
+      </div>
 
       <section className="mb-10">
-        <h2 className="label-caps label-caps-muted mb-3">Preview do mês corrente</h2>
+        <h2 className="label-caps label-caps-muted mb-3">{previewLabel}</h2>
         <div className="ano-card-flat overflow-hidden">
           <table className="w-full text-sm">
             <thead>
@@ -167,10 +199,21 @@ export default async function AdminComissionamentoPage() {
       </section>
 
       <section>
-        <h2 className="label-caps label-caps-muted mb-3">Histórico</h2>
+        <div className="flex items-end justify-between mb-3 gap-3">
+          <h2 className="label-caps label-caps-muted">
+            Histórico {period.mode === "all" ? "completo" : period.label}
+          </h2>
+          {history.length > 0 && (
+            <span className="label-caps text-[#C9953A] text-mono">
+              Total · {formatCents(historyTotalCents)}
+            </span>
+          )}
+        </div>
         <div className="ano-card-flat overflow-hidden">
           {history.length === 0 ? (
-            <p className="text-faint text-sm py-10 text-center">Nenhum mês fechado ainda.</p>
+            <p className="text-faint text-sm py-10 text-center">
+              Nenhum mês fechado nesse período ainda.
+            </p>
           ) : (
             <table className="w-full text-sm">
               <thead>

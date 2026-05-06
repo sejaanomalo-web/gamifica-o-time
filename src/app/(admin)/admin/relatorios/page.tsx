@@ -12,7 +12,6 @@ export default function RelatoriosPage() {
           textTransform: "uppercase",
         }}
       >
-        Rela<br />
         <span
           className="text-[#C9953A]"
           style={{
@@ -22,7 +21,7 @@ export default function RelatoriosPage() {
             letterSpacing: "-0.02em",
           }}
         >
-          tórios.
+          relatórios.
         </span>
       </h1>
       <p className="text-mid text-sm mt-4 max-w-md mb-10">

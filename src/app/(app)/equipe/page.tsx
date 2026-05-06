@@ -36,7 +36,7 @@ export default async function EquipePage() {
   let totalSeasonXp = 0;
   let totalDeliveriesToday = 0;
   let totalDeliveriesWeek = 0;
-  let totalBadges = 0;
+  let totalGoalsBeaten = 0;
   let avgLevel = 0;
   let daysLeftInSeason = 0;
   let seasonNumber = 0;
@@ -120,18 +120,19 @@ export default async function EquipePage() {
     );
     const userMap = new Map(users.map((u) => [u.id, u]));
 
-    const badgeCounts = await safe(
-      "userBadge.groupBy",
+    const goalsCounts = await safe(
+      "goal.groupBy concluidas",
       async () => {
-        const rows = await prisma.userBadge.groupBy({
-          by: ["userId"],
+        const rows = await prisma.goal.groupBy({
+          by: ["ownerId"],
+          where: { status: "CONCLUIDA", seasonId: season.id },
           _count: { _all: true },
         });
-        return rows.map((r) => ({ userId: r.userId, n: r._count._all }));
+        return rows.map((r) => ({ userId: r.ownerId, n: r._count._all }));
       },
       [] as { userId: string; n: number }[],
     );
-    const badgeMap = new Map(badgeCounts.map((b) => [b.userId, b.n]));
+    const goalsMap = new Map(goalsCounts.map((g) => [g.userId, g.n]));
 
     members = totals
       .map((t) => {
@@ -145,7 +146,7 @@ export default async function EquipePage() {
           weekXp: weeklyMap.get(t.userId) ?? 0,
           todayCount: todayMap.get(t.userId) ?? 0,
           weekCount: weekMap.get(t.userId) ?? 0,
-          badges: badgeMap.get(t.userId) ?? 0,
+          goalsBeaten: goalsMap.get(t.userId) ?? 0,
           level: Math.floor(t.sum / 1000) + 1,
         };
       })
@@ -154,7 +155,7 @@ export default async function EquipePage() {
     totalSeasonXp = members.reduce((s, m) => s + m.xp, 0);
     totalDeliveriesToday = members.reduce((s, m) => s + m.todayCount, 0);
     totalDeliveriesWeek = members.reduce((s, m) => s + m.weekCount, 0);
-    totalBadges = members.reduce((s, m) => s + m.badges, 0);
+    totalGoalsBeaten = members.reduce((s, m) => s + m.goalsBeaten, 0);
     avgLevel = members.length
       ? Math.round((members.reduce((s, m) => s + m.level, 0) / members.length) * 10) / 10
       : 0;
@@ -196,7 +197,7 @@ export default async function EquipePage() {
       totalSeasonXp={totalSeasonXp}
       totalDeliveriesToday={totalDeliveriesToday}
       totalDeliveriesWeek={totalDeliveriesWeek}
-      totalBadges={totalBadges}
+      totalGoalsBeaten={totalGoalsBeaten}
       avgLevel={avgLevel}
       seasonNumber={seasonNumber}
       daysLeftInSeason={daysLeftInSeason}

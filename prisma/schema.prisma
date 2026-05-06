@@ -116,7 +116,14 @@ model Goal {
   target        Float
   current       Float      @default(0)
   xpReward      Int
+  // Tiered reward (opcional) — quando presente, pagamento em R$ é
+  // calculado por src/lib/tiers.ts. Shape:
+  //   { steps: [{ atXp, rewardCents, label? }], finalBonusCents? }
+  rewardConfig  Json?
   deadline      DateTime
+  // Mês de competência (YYYY-MM) — usado pra filtro mensal em todo o
+  // sistema. Calculado a partir do deadline na criação se não setado.
+  monthISO      String?
   status        GoalStatus @default(ATIVA)
   needsEvidence Boolean    @default(false)
   ownerId       String
@@ -129,6 +136,7 @@ model Goal {
 
   @@index([ownerId, status])
   @@index([seasonId])
+  @@index([monthISO])
 }
 
 model Evidence {

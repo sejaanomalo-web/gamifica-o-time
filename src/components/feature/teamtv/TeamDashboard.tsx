@@ -23,7 +23,7 @@ export interface TeamMember {
   weekXp: number;
   todayCount: number;
   weekCount: number;
-  badges: number;
+  goalsBeaten: number;
   level: number;
 }
 
@@ -43,7 +43,7 @@ interface Props {
   totalSeasonXp: number;
   totalDeliveriesToday: number;
   totalDeliveriesWeek: number;
-  totalBadges: number;
+  totalGoalsBeaten: number;
   avgLevel: number;
   seasonNumber: number;
   daysLeftInSeason: number;
@@ -57,7 +57,7 @@ export function TeamDashboard({
   totalSeasonXp,
   totalDeliveriesToday,
   totalDeliveriesWeek,
-  totalBadges,
+  totalGoalsBeaten,
   avgLevel,
   seasonNumber,
   daysLeftInSeason,
@@ -257,8 +257,8 @@ export function TeamDashboard({
           />
           <StatBig
             icon={<Award size={18} />}
-            label="Badges desbloqueados"
-            value={<CountUp value={totalBadges} duration={1.4} />}
+            label="Metas batidas"
+            value={<CountUp value={totalGoalsBeaten} duration={1.4} />}
           />
         </div>
 
@@ -396,10 +396,10 @@ export function TeamDashboard({
                           <span className="text-mid text-mono tabular-nums">
                             +{m.weekXp.toLocaleString("pt-BR")} sem
                           </span>
-                          {m.badges > 0 && (
+                          {m.goalsBeaten > 0 && (
                             <span className="text-mid text-mono tabular-nums">
                               <Award size={10} className="inline mr-0.5 -mt-0.5" />
-                              {m.badges}
+                              {m.goalsBeaten}
                             </span>
                           )}
                         </div>

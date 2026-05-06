@@ -26,19 +26,15 @@ export default function GamificacaoPage() {
         </span>
       </h1>
       <p className="text-mid text-sm mb-10 max-w-md">
-        Configurações da temporada, badges, regras de pontos e loja. UI completa em
+        Configurações da temporada, regras de pontos e loja. UI completa em
         build seguinte.
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
           {
             title: "Pontos",
             desc: "Regras de XP por meta batida, multiplicadores de prazo, bônus de temporada.",
-          },
-          {
-            title: "Badges",
-            desc: "Catálogo de conquistas. Critério automático ou manual.",
           },
           { title: "Temporadas", desc: "Atual, próxima, histórico." },
           {

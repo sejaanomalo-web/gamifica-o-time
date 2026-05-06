@@ -9,7 +9,6 @@ import {
   Users,
   User,
   ShoppingBag,
-  Award,
   Shield,
 } from "lucide-react";
 
@@ -17,7 +16,6 @@ const collaboratorItems = [
   { href: "/dashboard", label: "Hoje",   icon: Home },
   { href: "/metas",     label: "Metas",  icon: Target },
   { href: "/ranking",   label: "Time",   icon: Users },
-  { href: "/badges",    label: "Badges", icon: Award },
   { href: "/loja",      label: "Loja",   icon: ShoppingBag },
   { href: "/perfil",    label: "Perfil", icon: User },
 ];
@@ -26,7 +24,6 @@ const adminItems = [
   { href: "/equipe",    label: "Equipe", icon: Tv },
   { href: "/metas",     label: "Metas",  icon: Target },
   { href: "/ranking",   label: "Time",   icon: Users },
-  { href: "/badges",    label: "Badges", icon: Award },
   { href: "/loja",      label: "Loja",   icon: ShoppingBag },
   { href: "/perfil",    label: "Perfil", icon: User },
   { href: "/admin",     label: "Admin",  icon: Shield },

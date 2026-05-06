@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { UsuariosHeader } from "@/components/feature/admin/UsuariosHeader";
 
 async function safe<T>(label: string, q: () => Promise<T>, fallback: T): Promise<T> {
   try {
@@ -18,40 +19,13 @@ export default async function UsuariosPage() {
 
   return (
     <div className="px-5 md:px-8 py-8 md:py-12 max-w-5xl mx-auto w-full">
-      <div className="flex items-end justify-between mb-10 gap-6 flex-wrap">
-        <div>
-          <span className="label-caps mb-3 block">Admin · Time</span>
-          <h1
-            className="text-white"
-            style={{
-              fontWeight: 900,
-              fontSize: "clamp(2.25rem, 6vw, 2.75rem)",
-              lineHeight: 0.95,
-              letterSpacing: "-0.03em",
-              textTransform: "uppercase",
-            }}
-          >
-            Quem<br />
-            <span
-              className="text-[#C9953A]"
-              style={{
-                fontWeight: 300,
-                fontStyle: "italic",
-                textTransform: "lowercase",
-                letterSpacing: "-0.02em",
-              }}
-            >
-              entrega.
-            </span>
-          </h1>
-        </div>
-        <button className="btn-pill btn-gold">Convidar usuário</button>
-      </div>
+      <UsuariosHeader />
 
       <div className="ano-card-flat overflow-hidden">
         {users.length === 0 ? (
           <p className="text-faint text-sm py-12 text-center">
-            Sem usuários ainda. Rode <span className="text-mono text-[#C9953A]">npx prisma db seed</span> pra criar Vinicius e Emanuel.
+            Sem usuários ainda. Use <span className="text-[#C9953A]">Adicionar usuário</span> pra
+            criar a primeira conta.
           </p>
         ) : (
           <table className="w-full text-sm">

@@ -7,7 +7,6 @@ const PROTECTED = [
   "/metas",
   "/ranking",
   "/mural",
-  "/badges",
   "/loja",
   "/perfil",
   "/notificacoes",

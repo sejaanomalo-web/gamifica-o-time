@@ -1,23 +1,55 @@
 "use client";
 
 // Daily delivery logger — bottom sheet with repeatable rows.
-// Material list ported from the design prototype. XP estimate = qty * 40 (display only;
-// real XP is computed server-side from delivery weight at registration).
+// Categorias e pesos batem com a tabela oficial do plano de comissionamento
+// e com o seed do banco (DeliveryWeight). UI mostra o multiplicador inline pra
+// o time saber o quanto cada entrega vale antes de registrar.
+// XP exibido = qty × peso × 40 (mesma fórmula que /api/deliveries usa server-side).
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { Plus, X, ChevronDown, Minus, Check } from "lucide-react";
+import { Plus, X, ChevronDown, Minus } from "lucide-react";
 import { toast } from "sonner";
 
-const MATERIAL_OPTIONS = [
-  "Carrosséis difíceis",
-  "Estáticos",
-  "Stories em vídeo",
-  "Stories em foto",
-  "Vídeo do Youtube",
-  "Reels",
-  "Carrosséis fáceis",
-] as const;
+const XP_PER_POINT = 40;
+
+interface MaterialGroup {
+  label: "Alto" | "Médio" | "Padrão";
+  weight: number;
+  rationale: string;
+  items: string[];
+}
+
+const MATERIAL_GROUPS: MaterialGroup[] = [
+  {
+    label: "Alto",
+    weight: 2.0,
+    rationale: "Maior tempo de edição e maior impacto.",
+    items: ["Aulas", "YouTube", "VSL"],
+  },
+  {
+    label: "Médio",
+    weight: 1.5,
+    rationale: "Esforço intermediário de criação e formatação.",
+    items: ["Reel", "Criativo", "Carrossel"],
+  },
+  {
+    label: "Padrão",
+    weight: 1.0,
+    rationale: "Edição mais simples ou em série, maior volume.",
+    items: ["Estáticos", "Carrossel fácil", "Story"],
+  },
+];
+
+const WEIGHT_BY_MATERIAL: Record<string, number> = MATERIAL_GROUPS.reduce(
+  (acc, g) => {
+    g.items.forEach((it) => {
+      acc[it] = g.weight;
+    });
+    return acc;
+  },
+  {} as Record<string, number>,
+);
 
 interface LogRow {
   id: string;
@@ -47,6 +79,15 @@ export function LogProgressSheet({ open, onOpenChange }: LogProgressSheetProps) 
 
   const valid = rows.every((r) => r.material && Number(r.qty) > 0);
   const totalQty = rows.reduce((s, r) => s + (Number(r.qty) || 0), 0);
+  // XP estimado = soma de (qty × peso × XP_PER_POINT) — bate com server.
+  const totalXp = rows.reduce((s, r) => {
+    const w = WEIGHT_BY_MATERIAL[r.material] ?? 0;
+    return s + (Number(r.qty) || 0) * w * XP_PER_POINT;
+  }, 0);
+  const totalPoints = rows.reduce((s, r) => {
+    const w = WEIGHT_BY_MATERIAL[r.material] ?? 0;
+    return s + (Number(r.qty) || 0) * w;
+  }, 0);
 
   const onSubmit = async () => {
     if (!valid || submitting) return;
@@ -177,8 +218,10 @@ export function LogProgressSheet({ open, onOpenChange }: LogProgressSheetProps) 
                 borderTop: "1px solid rgba(255,255,255,0.08)",
               }}
             >
-              <div className="flex items-center justify-between mb-4">
-                <span className="label-caps label-caps-muted">Total do dia</span>
+              <div className="flex items-center justify-between mb-2">
+                <span className="label-caps label-caps-muted">
+                  Total do dia
+                </span>
                 <div className="text-right">
                   <span
                     className="text-mono text-[#C9953A]"
@@ -186,8 +229,25 @@ export function LogProgressSheet({ open, onOpenChange }: LogProgressSheetProps) 
                   >
                     {totalQty}
                   </span>
-                  <span className="label-caps label-caps-muted ml-3">
-                    +{totalQty * 40} XP
+                  <span className="label-caps label-caps-muted ml-3">entregas</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between mb-4">
+                <span className="label-caps label-caps-muted">
+                  Pontos · XP estimado
+                </span>
+                <div className="text-right">
+                  <span
+                    className="text-mono text-white"
+                    style={{ fontSize: 14, fontWeight: 600 }}
+                  >
+                    {totalPoints.toFixed(1)} pts
+                  </span>
+                  <span
+                    className="text-mono text-[#E0B25A] ml-3"
+                    style={{ fontSize: 14, fontWeight: 700 }}
+                  >
+                    +{Math.round(totalXp).toLocaleString("pt-BR")} XP
                   </span>
                 </div>
               </div>
@@ -254,8 +314,19 @@ function LogRowInput({
               color: row.material ? "#FFFFFF" : "rgba(255,255,255,0.40)",
             }}
           >
-            <span className="truncate" style={{ fontWeight: row.material ? 600 : 400 }}>
+            <span
+              className="truncate flex items-center gap-2"
+              style={{ fontWeight: row.material ? 600 : 400 }}
+            >
               {row.material || "Tipo de material"}
+              {row.material && (
+                <span
+                  className="text-mono text-[#C9953A] flex-shrink-0"
+                  style={{ fontSize: 11, fontWeight: 700 }}
+                >
+                  {WEIGHT_BY_MATERIAL[row.material]?.toFixed(1)}×
+                </span>
+              )}
             </span>
             <ChevronDown
               size={14}
@@ -268,7 +339,7 @@ function LogRowInput({
           </button>
           {open && (
             <div
-              className="absolute top-[calc(100%+6px)] left-0 right-0 z-10 max-h-60 overflow-y-auto"
+              className="absolute top-[calc(100%+6px)] left-0 right-0 z-10 max-h-72 overflow-y-auto"
               style={{
                 background: "#111115",
                 borderRadius: 16,
@@ -276,31 +347,70 @@ function LogRowInput({
                   "inset 0 0 0 1px rgba(255,255,255,0.10), 0 24px 60px rgba(0,0,0,0.6), 0 0 32px rgba(201,149,58,0.12)",
               }}
             >
-              {MATERIAL_OPTIONS.map((opt, idx) => {
-                const sel = opt === row.material;
-                return (
-                  <button
-                    key={opt}
-                    onClick={() => {
-                      onChange({ material: opt });
-                      setOpen(false);
-                    }}
-                    className="w-full text-left px-4 py-3 text-sm flex items-center justify-between hover:bg-white/[0.04] transition-colors"
+              {MATERIAL_GROUPS.map((g, gi) => (
+                <div key={g.label}>
+                  <div
+                    className="px-4 py-2 flex items-center justify-between sticky top-0 z-10"
                     style={{
-                      color: sel ? "#E0B25A" : "#FFFFFF",
-                      fontWeight: sel ? 700 : 500,
-                      background: sel ? "rgba(201,149,58,0.08)" : "transparent",
-                      borderBottom:
-                        idx < MATERIAL_OPTIONS.length - 1
-                          ? "1px solid rgba(255,255,255,0.04)"
-                          : "none",
+                      background: "rgba(17,17,21,0.95)",
+                      backdropFilter: "blur(10px)",
+                      borderBottom: "1px solid rgba(201,149,58,0.20)",
                     }}
                   >
-                    {opt}
-                    {sel && <Check size={14} className="text-[#C9953A]" />}
-                  </button>
-                );
-              })}
+                    <span className="label-caps">{g.label}</span>
+                    <span
+                      className="text-mono text-[#C9953A]"
+                      style={{ fontSize: 11, fontWeight: 700, letterSpacing: "-0.01em" }}
+                    >
+                      {g.weight.toFixed(1)}×
+                    </span>
+                  </div>
+                  {g.items.map((opt, idx) => {
+                    const sel = opt === row.material;
+                    const isLastInGroup = idx === g.items.length - 1;
+                    const isLastGroup = gi === MATERIAL_GROUPS.length - 1;
+                    return (
+                      <button
+                        key={opt}
+                        onClick={() => {
+                          onChange({ material: opt });
+                          setOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-3 text-sm flex items-center justify-between hover:bg-white/[0.04] transition-colors"
+                        style={{
+                          color: sel ? "#E0B25A" : "#FFFFFF",
+                          fontWeight: sel ? 700 : 500,
+                          background: sel ? "rgba(201,149,58,0.08)" : "transparent",
+                          borderBottom:
+                            isLastInGroup && isLastGroup
+                              ? "none"
+                              : "1px solid rgba(255,255,255,0.04)",
+                        }}
+                      >
+                        <span>{opt}</span>
+                        <span
+                          className="text-mono"
+                          style={{
+                            fontSize: 11,
+                            color: sel ? "#E0B25A" : "rgba(255,255,255,0.32)",
+                          }}
+                        >
+                          ×{g.weight.toFixed(1)}
+                          <span
+                            className="ml-2 label-caps"
+                            style={{
+                              color: sel ? "#E0B25A" : "rgba(255,255,255,0.30)",
+                              fontSize: 9,
+                            }}
+                          >
+                            +{g.weight * XP_PER_POINT} XP/un
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
             </div>
           )}
         </div>

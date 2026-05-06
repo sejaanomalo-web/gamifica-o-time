@@ -24,11 +24,6 @@ export default async function PerfilPage() {
     () => prisma.xpEvent.aggregate({ where: { userId: user.id }, _sum: { amount: true } }),
     { _sum: { amount: 0 } },
   );
-  const badgeCount = await safe(
-    "userBadge.count",
-    () => prisma.userBadge.count({ where: { userId: user.id } }),
-    0,
-  );
   const goalsBeaten = await safe(
     "goal.count",
     () => prisma.goal.count({ where: { ownerId: user.id, status: "CONCLUIDA" } }),
@@ -170,10 +165,9 @@ export default async function PerfilPage() {
 
       {/* STATS GRID */}
       <Reveal delay={450}>
-        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="mt-6 grid grid-cols-3 gap-3">
           <StatCard label="XP total" value={<CountUp value={totalXp} />} />
           <StatCard label="Metas batidas" value={<CountUp value={goalsBeaten} />} />
-          <StatCard label="Badges" value={<CountUp value={badgeCount} />} />
           <StatCard label="Temporadas" value={<CountUp value={seasonsCount.length} />} />
         </div>
       </Reveal>

@@ -175,11 +175,9 @@ export default async function DashboardPage() {
               {myPos > 0 ? <>#<CountUp value={myPos} duration={0.9} /></> : "—"}
             </span>
           </div>
-          <Link href="/badges" className="ano-card p-5 text-center hover:bg-[#1a1a1f] transition-colors">
-            <span className="label-caps label-caps-muted block mb-2">Badges</span>
-            <span className="text-mono text-white text-3xl">
-              <CountUp value={0} duration={1.2} />
-            </span>
+          <Link href="/metas" className="ano-card p-5 text-center hover:bg-[#1a1a1f] transition-colors">
+            <span className="label-caps label-caps-muted block mb-2">Metas</span>
+            <span className="text-mono text-white text-3xl">→</span>
           </Link>
         </div>
       </Reveal>
