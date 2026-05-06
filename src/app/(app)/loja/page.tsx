@@ -4,25 +4,45 @@ import { CountUp } from "@/components/motion/CountUp";
 import { prisma } from "@/lib/prisma";
 import { requireAppUser } from "@/lib/auth";
 
+async function safe<T>(label: string, q: () => Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await q();
+  } catch (err) {
+    console.error(`[loja] ${label} failed:`, err);
+    return fallback;
+  }
+}
+
 export default async function LojaPage() {
   const user = await requireAppUser();
-  const [items, xpTotalAgg, redeemTotalAgg] = await Promise.all([
-    prisma.shopItem.findMany({ where: { active: true }, orderBy: { costXp: "asc" } }),
-    prisma.xpEvent.aggregate({ where: { userId: user.id }, _sum: { amount: true } }),
-    prisma.redeem.aggregate({
-      where: { userId: user.id, status: { not: "REJEITADO" } },
-      _sum: { costXp: true },
-    }),
-  ]);
+  const items = await safe(
+    "shopItem.findMany",
+    () => prisma.shopItem.findMany({ where: { active: true }, orderBy: { costXp: "asc" } }),
+    [] as Awaited<ReturnType<typeof prisma.shopItem.findMany>>,
+  );
+  const xpTotalAgg = await safe(
+    "xpEvent.aggregate",
+    () => prisma.xpEvent.aggregate({ where: { userId: user.id }, _sum: { amount: true } }),
+    { _sum: { amount: 0 } },
+  );
+  const redeemTotalAgg = await safe(
+    "redeem.aggregate",
+    () =>
+      prisma.redeem.aggregate({
+        where: { userId: user.id, status: { not: "REJEITADO" } },
+        _sum: { costXp: true },
+      }),
+    { _sum: { costXp: 0 } },
+  );
   const balance = (xpTotalAgg._sum.amount ?? 0) - (redeemTotalAgg._sum.costXp ?? 0);
 
   return (
-    <div className="px-5 md:px-8 py-6 md:py-10 max-w-4xl mx-auto w-full">
+    <div className="px-5 md:px-8 py-8 md:py-12 max-w-4xl mx-auto w-full">
       <Reveal>
-        <span className="label-caps text-anomalo-gold mb-3 block">Anômalo · Loja</span>
-        <div className="flex items-end justify-between gap-6">
+        <span className="label-caps mb-3 block">Anômalo · Loja</span>
+        <div className="flex items-end justify-between gap-6 flex-wrap">
           <h1
-            className="text-anomalo-white"
+            className="text-white"
             style={{
               fontWeight: 900,
               fontSize: "clamp(2.5rem, 8vw, 4rem)",
@@ -31,19 +51,33 @@ export default async function LojaPage() {
               textTransform: "uppercase",
             }}
           >
-            Resgate.
+            Loja<br />
+            <span
+              className="text-[#C9953A]"
+              style={{
+                fontWeight: 300,
+                fontStyle: "italic",
+                textTransform: "lowercase",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              de recompensas.
+            </span>
           </h1>
           <div className="text-right">
-            <span className="label-caps text-anomalo-sand block mb-1">Saldo</span>
-            <span className="font-black text-anomalo-gold tabular-nums" style={{ fontSize: "2rem" }}>
+            <span className="label-caps label-caps-muted block mb-1">Saldo</span>
+            <span
+              className="text-mono text-[#C9953A] block"
+              style={{ fontSize: "2.25rem", fontWeight: 700, letterSpacing: "-0.02em" }}
+            >
               <CountUp value={Math.max(0, balance)} duration={1.4} />
-              <span className="label-caps text-anomalo-sand ml-2">XP</span>
+              <span className="label-caps label-caps-muted ml-2">XP</span>
             </span>
           </div>
         </div>
         <Link
           href="/loja/resgates"
-          className="label-caps text-anomalo-gold hover:underline mt-3 inline-block"
+          className="label-caps text-[#C9953A] hover:text-[#E0B25A] mt-5 inline-block transition-colors"
         >
           Histórico de resgates →
         </Link>
@@ -52,34 +86,37 @@ export default async function LojaPage() {
       <Reveal delay={250}>
         <div className="mt-10">
           {items.length === 0 ? (
-            <p className="text-anomalo-muted text-sm py-12 text-center border border-anomalo-gold-hair">
-              Nenhum prêmio cadastrado. Admin define em /admin/gamificacao.
+            <p className="text-faint text-sm py-12 text-center ano-card-flat">
+              Nenhum prêmio cadastrado. O admin define o catálogo em /admin/gamificacao.
             </p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-anomalo-gold-hair border border-anomalo-gold-hair">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {items.map((it) => {
                 const enough = balance >= it.costXp;
                 return (
-                  <div key={it.id} className="bg-anomalo-black p-6 flex flex-col">
+                  <div key={it.id} className="ano-card p-6 flex flex-col gap-5">
                     <div className="flex-1">
-                      <h3 className="font-bold text-anomalo-white text-base mb-2">{it.name}</h3>
+                      <h3 className="text-white text-base font-semibold mb-2">{it.name}</h3>
                       {it.description && (
-                        <p className="text-anomalo-sand text-xs leading-relaxed">
-                          {it.description}
-                        </p>
+                        <p className="text-mid text-sm leading-relaxed">{it.description}</p>
                       )}
                     </div>
-                    <div className="mt-5 flex items-center justify-between">
-                      <span className="label-caps text-anomalo-gold tabular-nums">
+                    <div className="flex items-center justify-between gap-3">
+                      <span
+                        className="label-caps text-mono"
+                        style={{ color: "#C9953A", fontSize: 13 }}
+                      >
                         {it.costXp.toLocaleString("pt-BR")} XP
                       </span>
                       <button
                         disabled={!enough}
-                        className="label-caps px-5 py-2.5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        className={enough ? "btn-pill btn-gold" : "btn-pill btn-ghost"}
                         style={{
-                          background: enough ? "#C9953A" : "transparent",
-                          color: enough ? "#000" : "#5A4A2A",
-                          border: enough ? "none" : "1px solid #5A4A2A",
+                          height: 40,
+                          fontSize: 12,
+                          padding: "0 22px",
+                          opacity: enough ? 1 : 0.5,
+                          cursor: enough ? "pointer" : "not-allowed",
                         }}
                       >
                         {enough ? "Resgatar" : `Faltam ${it.costXp - balance} XP`}

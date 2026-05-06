@@ -74,10 +74,10 @@ export function LogProgressSheet({ open, onOpenChange }: LogProgressSheetProps) 
       {open && (
         <motion.div
           className="fixed inset-0 z-40 flex flex-col justify-end"
-          initial={{ background: "rgba(0,0,0,0)" }}
-          animate={{ background: "rgba(0,0,0,0.55)" }}
-          exit={{ background: "rgba(0,0,0,0)" }}
-          transition={{ duration: 0.3 }}
+          initial={{ background: "rgba(0,0,0,0)", backdropFilter: "blur(0px)" }}
+          animate={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(8px)" }}
+          exit={{ background: "rgba(0,0,0,0)", backdropFilter: "blur(0px)" }}
+          transition={{ duration: 0.35 }}
           onClick={() => onOpenChange(false)}
         >
           <motion.div
@@ -86,26 +86,69 @@ export function LogProgressSheet({ open, onOpenChange }: LogProgressSheetProps) 
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 280 }}
-            className="bg-anomalo-surface border-t border-anomalo-gold-hair max-h-[90vh] flex flex-col"
-            style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+            className="max-h-[92vh] flex flex-col"
+            style={{
+              background: "#111115",
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              boxShadow:
+                "inset 0 1px 0 rgba(255,255,255,0.10), 0 -20px 60px rgba(0,0,0,0.6), 0 -8px 32px rgba(201,149,58,0.10)",
+              paddingBottom: "env(safe-area-inset-bottom, 0px)",
+            }}
           >
-            <div className="px-5 py-5 flex items-start justify-between border-b border-anomalo-gold-hair flex-shrink-0">
+            {/* Drag handle */}
+            <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
+              <span
+                className="rounded-full"
+                style={{ width: 40, height: 4, background: "rgba(255,255,255,0.18)" }}
+              />
+            </div>
+
+            <div
+              className="px-6 py-5 flex items-start justify-between flex-shrink-0"
+              style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
+            >
               <div>
-                <span className="label-caps text-anomalo-gold mb-2 block">Diário · Hoje</span>
-                <h2 className="text-h3 uppercase text-anomalo-white" style={{ letterSpacing: "-0.025em" }}>
-                  O que você<br />entregou?
+                <span className="label-caps mb-2 block">Diário · Hoje</span>
+                <h2
+                  className="text-white"
+                  style={{
+                    fontSize: "1.625rem",
+                    fontWeight: 900,
+                    lineHeight: 1.05,
+                    letterSpacing: "-0.025em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  O que você<br />
+                  <span
+                    className="text-[#C9953A]"
+                    style={{
+                      fontWeight: 300,
+                      fontStyle: "italic",
+                      textTransform: "lowercase",
+                      letterSpacing: "-0.02em",
+                    }}
+                  >
+                    entregou?
+                  </span>
                 </h2>
               </div>
               <button
                 onClick={() => onOpenChange(false)}
                 aria-label="Fechar"
-                className="border border-anomalo-gold-hair p-2 hover:border-anomalo-gold transition-colors"
+                className="rounded-full p-2 transition-all"
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.10)",
+                  color: "rgba(255,255,255,0.85)",
+                }}
               >
-                <X size={16} className="text-anomalo-white/80" />
+                <X size={16} />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-5 py-4">
+            <div className="flex-1 overflow-y-auto px-6 py-5">
               <div className="flex flex-col gap-3">
                 {rows.map((r, i) => (
                   <LogRowInput
@@ -117,28 +160,37 @@ export function LogProgressSheet({ open, onOpenChange }: LogProgressSheetProps) 
                   />
                 ))}
               </div>
-              <button
-                onClick={addRow}
-                className="mt-3 w-full border border-anomalo-gold-hair text-anomalo-gold py-3.5 label-caps flex items-center justify-center gap-2 hover:bg-anomalo-gold-ghost transition-colors"
-              >
+              <button onClick={addRow} className="btn-pill btn-ghost mt-4 w-full">
                 <Plus size={14} />
                 Adicionar mais uma entrega
               </button>
             </div>
 
-            <div className="px-5 py-4 border-t border-anomalo-gold-hair bg-anomalo-black flex-shrink-0">
-              <div className="flex items-center justify-between mb-3">
-                <span className="label-caps text-anomalo-sand">Total do dia</span>
-                <span className="font-black text-anomalo-gold text-2xl tabular-nums">
-                  {totalQty}
-                  <span className="label-caps text-anomalo-sand ml-2">+{totalQty * 40} XP</span>
-                </span>
+            <div
+              className="px-6 py-5 flex-shrink-0"
+              style={{
+                background: "rgba(0,0,0,0.4)",
+                borderTop: "1px solid rgba(255,255,255,0.08)",
+              }}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <span className="label-caps label-caps-muted">Total do dia</span>
+                <div className="text-right">
+                  <span
+                    className="text-mono text-[#C9953A]"
+                    style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.02em" }}
+                  >
+                    {totalQty}
+                  </span>
+                  <span className="label-caps label-caps-muted ml-3">
+                    +{totalQty * 40} XP
+                  </span>
+                </div>
               </div>
               <button
                 disabled={!valid || submitting}
                 onClick={onSubmit}
-                className="w-full py-4 label-caps disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
-                style={{ background: "#C9953A", color: "#000" }}
+                className="btn-pill btn-gold w-full disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {submitting ? "Registrando…" : "Registrar entrega"}
               </button>
@@ -162,50 +214,65 @@ function LogRowInput({
   onRemove: (() => void) | null;
 }) {
   const [open, setOpen] = useState(false);
+  const filled = !!row.material;
   return (
     <div
-      className="border p-3.5 transition-colors"
+      className="p-4 transition-all"
       style={{
-        borderColor: row.material ? "#C9953A" : "rgba(201,149,58,0.32)",
-        background: row.material ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.015)",
+        background: filled ? "rgba(201,149,58,0.06)" : "rgba(255,255,255,0.02)",
+        borderRadius: 16,
+        boxShadow: filled
+          ? "inset 0 0 0 1px rgba(201,149,58,0.40)"
+          : "inset 0 0 0 1px rgba(255,255,255,0.06)",
       }}
     >
-      <div className="flex items-center justify-between mb-2.5">
-        <span className="label-caps text-anomalo-gold">
-          Entrega {String(index).padStart(2, "0")}
-        </span>
+      <div className="flex items-center justify-between mb-3">
+        <span className="label-caps">Entrega {String(index).padStart(2, "0")}</span>
         {onRemove && (
           <button
             onClick={onRemove}
-            className="label-caps text-anomalo-muted hover:text-anomalo-sand transition-colors"
+            className="label-caps label-caps-muted hover:text-[#fb2c36] transition-colors"
           >
             Remover
           </button>
         )}
       </div>
-      <div className="flex gap-2.5 items-stretch">
+      <div className="flex gap-2 items-stretch">
         <div className="flex-1 relative min-w-0">
           <button
             onClick={() => setOpen((o) => !o)}
-            className="w-full h-11 px-3.5 text-sm text-left flex items-center justify-between border outline-none transition-colors"
+            className="w-full h-11 px-4 text-sm text-left flex items-center justify-between transition-all rounded-full"
             style={{
-              borderColor: open ? "#C9953A" : "rgba(255,255,255,0.10)",
-              color: row.material ? "#FFF" : "rgba(255,255,255,0.4)",
-              background: "rgba(255,255,255,0.03)",
+              background: open ? "rgba(201,149,58,0.10)" : "rgba(255,255,255,0.04)",
+              boxShadow: open
+                ? "inset 0 0 0 1px #C9953A, 0 0 16px rgba(201,149,58,0.25)"
+                : "inset 0 0 0 1px rgba(255,255,255,0.10)",
+              color: row.material ? "#FFFFFF" : "rgba(255,255,255,0.40)",
             }}
           >
-            <span className="truncate">{row.material || "Tipo de material"}</span>
+            <span className="truncate" style={{ fontWeight: row.material ? 600 : 400 }}>
+              {row.material || "Tipo de material"}
+            </span>
             <ChevronDown
-              size={12}
-              className="ml-2 text-anomalo-gold transition-transform"
-              style={{ transform: open ? "rotate(180deg)" : "rotate(0)" }}
+              size={14}
+              className="ml-2 transition-transform"
+              style={{
+                transform: open ? "rotate(180deg)" : "rotate(0)",
+                color: "#C9953A",
+              }}
             />
           </button>
           {open && (
             <div
-              className="absolute top-[calc(100%+4px)] left-0 right-0 z-10 max-h-60 overflow-y-auto border border-anomalo-gold-hair bg-anomalo-surface shadow-xl"
+              className="absolute top-[calc(100%+6px)] left-0 right-0 z-10 max-h-60 overflow-y-auto"
+              style={{
+                background: "#111115",
+                borderRadius: 16,
+                boxShadow:
+                  "inset 0 0 0 1px rgba(255,255,255,0.10), 0 24px 60px rgba(0,0,0,0.6), 0 0 32px rgba(201,149,58,0.12)",
+              }}
             >
-              {MATERIAL_OPTIONS.map((opt) => {
+              {MATERIAL_OPTIONS.map((opt, idx) => {
                 const sel = opt === row.material;
                 return (
                   <button
@@ -214,15 +281,19 @@ function LogRowInput({
                       onChange({ material: opt });
                       setOpen(false);
                     }}
-                    className="w-full text-left px-3.5 py-3 text-sm flex items-center justify-between border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors"
+                    className="w-full text-left px-4 py-3 text-sm flex items-center justify-between hover:bg-white/[0.04] transition-colors"
                     style={{
-                      color: sel ? "#E0B25A" : "#FFF",
+                      color: sel ? "#E0B25A" : "#FFFFFF",
                       fontWeight: sel ? 700 : 500,
-                      background: sel ? "rgba(201,149,58,0.10)" : "transparent",
+                      background: sel ? "rgba(201,149,58,0.08)" : "transparent",
+                      borderBottom:
+                        idx < MATERIAL_OPTIONS.length - 1
+                          ? "1px solid rgba(255,255,255,0.04)"
+                          : "none",
                     }}
                   >
                     {opt}
-                    {sel && <Check size={14} className="text-anomalo-gold" />}
+                    {sel && <Check size={14} className="text-[#C9953A]" />}
                   </button>
                 );
               })}
@@ -230,19 +301,22 @@ function LogRowInput({
           )}
         </div>
         <div
-          className="w-24 h-11 flex items-center border overflow-hidden flex-shrink-0"
+          className="w-28 h-11 flex items-center overflow-hidden flex-shrink-0 rounded-full"
           style={{
-            borderColor: Number(row.qty) > 0 ? "#C9953A" : "rgba(255,255,255,0.10)",
-            background: "rgba(255,255,255,0.03)",
+            background: "rgba(255,255,255,0.04)",
+            boxShadow:
+              Number(row.qty) > 0
+                ? "inset 0 0 0 1px rgba(201,149,58,0.45)"
+                : "inset 0 0 0 1px rgba(255,255,255,0.10)",
           }}
         >
           <button
             type="button"
             onClick={() => onChange({ qty: String(Math.max(0, (Number(row.qty) || 0) - 1)) })}
-            className="w-8 h-full text-anomalo-sand hover:text-anomalo-white transition-colors"
+            className="w-9 h-full text-mid hover:text-white transition-colors flex items-center justify-center"
             aria-label="Diminuir"
           >
-            <Minus size={14} className="mx-auto" />
+            <Minus size={14} />
           </button>
           <input
             type="number"
@@ -251,16 +325,16 @@ function LogRowInput({
             value={row.qty}
             onChange={(e) => onChange({ qty: e.target.value.replace(/[^0-9]/g, "") })}
             placeholder="0"
-            className="flex-1 min-w-0 bg-transparent text-center text-base font-bold tabular-nums outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-            style={{ MozAppearance: "textfield" }}
+            className="text-mono flex-1 min-w-0 bg-transparent text-center text-base outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            style={{ MozAppearance: "textfield", color: "#FFFFFF", fontWeight: 700 }}
           />
           <button
             type="button"
             onClick={() => onChange({ qty: String((Number(row.qty) || 0) + 1) })}
-            className="w-8 h-full text-anomalo-gold hover:text-anomalo-gold-bright transition-colors"
+            className="w-9 h-full text-[#C9953A] hover:text-[#E0B25A] transition-colors flex items-center justify-center"
             aria-label="Aumentar"
           >
-            <Plus size={14} className="mx-auto" />
+            <Plus size={14} />
           </button>
         </div>
       </div>
