@@ -35,7 +35,7 @@ export default async function BadgesPage() {
   return (
     <div className="px-5 md:px-8 py-8 md:py-12 max-w-4xl mx-auto w-full">
       <Reveal>
-        <span className="label-caps mb-3 block">Anômalo · Conquistas</span>
+        <span className="label-caps mb-3 block">Game Anômalo · Conquistas</span>
         <h1
           className="text-white"
           style={{

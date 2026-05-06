@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Reveal } from "@/components/motion/Reveal";
 import { CountUp } from "@/components/motion/CountUp";
 import { XpBar } from "@/components/feature/profile/XpBar";
+import { SignOutButton } from "@/components/feature/profile/SignOutButton";
 import { prisma } from "@/lib/prisma";
 import { requireAppUser } from "@/lib/auth";
 import { xpProgress } from "@/lib/xp";
@@ -241,6 +242,13 @@ export default async function PerfilPage() {
             </ul>
           )}
         </section>
+      </Reveal>
+
+      {/* SAIR (logout) */}
+      <Reveal delay={900}>
+        <div className="mt-12 mb-4 flex justify-center">
+          <SignOutButton />
+        </div>
       </Reveal>
     </div>
   );

@@ -6,23 +6,19 @@ import {
   Home,
   Target,
   Users,
-  Newspaper,
   User,
   ShoppingBag,
   Award,
-  Settings,
   Shield,
 } from "lucide-react";
 
 const baseItems = [
-  { href: "/dashboard",     label: "Hoje",          icon: Home },
-  { href: "/metas",         label: "Metas",         icon: Target },
-  { href: "/ranking",       label: "Time",          icon: Users },
-  { href: "/mural",         label: "Mural",         icon: Newspaper },
-  { href: "/badges",        label: "Badges",        icon: Award },
-  { href: "/loja",          label: "Loja",          icon: ShoppingBag },
-  { href: "/perfil",        label: "Perfil",        icon: User },
-  { href: "/configuracoes", label: "Configurações", icon: Settings },
+  { href: "/dashboard", label: "Hoje",   icon: Home },
+  { href: "/metas",     label: "Metas",  icon: Target },
+  { href: "/ranking",   label: "Time",   icon: Users },
+  { href: "/badges",    label: "Badges", icon: Award },
+  { href: "/loja",      label: "Loja",   icon: ShoppingBag },
+  { href: "/perfil",    label: "Perfil", icon: User },
 ];
 
 export function SideNav({ isAdmin = false }: { isAdmin?: boolean }) {
@@ -39,8 +35,22 @@ export function SideNav({ isAdmin = false }: { isAdmin?: boolean }) {
     >
       <div className="px-6 py-7 flex items-center gap-3">
         <span className="text-[#C9953A] text-2xl font-light leading-none">Λ</span>
-        <span className="display-italic text-white" style={{ fontSize: 18 }}>
-          anômalo<span className="text-[#C9953A]"> meta</span>
+        <span
+          className="text-white"
+          style={{
+            fontSize: 18,
+            fontWeight: 900,
+            letterSpacing: "-0.02em",
+            textTransform: "uppercase",
+          }}
+        >
+          Game{" "}
+          <span
+            className="text-[#C9953A]"
+            style={{ fontWeight: 300, fontStyle: "italic", textTransform: "lowercase" }}
+          >
+            anômalo
+          </span>
         </span>
       </div>
       <ul className="flex-1 flex flex-col gap-1 px-3">

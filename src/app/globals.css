@@ -4,7 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ════════════════════════════════════════════════════════════════════
-   Anômalo Meta — design tokens
+   Game Anômalo — design tokens
    Marca: dourado #C9953A + Inter (com Helvetica Bold fallback).
    Estrutura: pílulas, cards 20px, inputs square, glow dourado.
    ════════════════════════════════════════════════════════════════════ */

@@ -32,7 +32,7 @@ export default function MetasPage() {
   return (
     <div className="px-5 md:px-8 py-8 md:py-12 max-w-5xl mx-auto w-full">
       <Reveal>
-        <span className="label-caps mb-3 block">Anômalo · Metas</span>
+        <span className="label-caps mb-3 block">Game Anômalo · Metas</span>
         <h1
           className="display-bold text-white"
           style={{ fontSize: "clamp(2.75rem, 9vw, 4.5rem)", lineHeight: 0.96 }}

@@ -12,18 +12,34 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!user) redirect("/login");
 
   // best-effort lookup; if Prisma isn't reachable yet, fall back to auth user
-  let dbUser: { name: string; role: string; avatarUrl: string | null } | null = null;
+  let dbUser: { id: string; name: string; role: string; avatarUrl: string | null } | null = null;
   let unread = 0;
+  let walletXp = 0;
   try {
     const found = await prisma.user.findUnique({
       where: { email: user.email! },
-      select: { name: true, role: true, avatarUrl: true },
+      select: { id: true, name: true, role: true, avatarUrl: true },
     });
     dbUser = found;
     if (found) {
       unread = await prisma.notification.count({
-        where: { user: { email: user.email! }, readAt: null },
+        where: { userId: found.id, readAt: null },
       });
+      // Saldo XP = total acumulado − resgates (não-rejeitados)
+      const [xpAgg, redeemAgg] = await Promise.all([
+        prisma.xpEvent.aggregate({
+          where: { userId: found.id },
+          _sum: { amount: true },
+        }),
+        prisma.redeem.aggregate({
+          where: { userId: found.id, status: { not: "REJEITADO" } },
+          _sum: { costXp: true },
+        }),
+      ]);
+      walletXp = Math.max(
+        0,
+        (xpAgg._sum.amount ?? 0) - (redeemAgg._sum.costXp ?? 0),
+      );
     }
   } catch {
     // schema not migrated yet
@@ -47,6 +63,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           userInitials={initials}
           avatarUrl={dbUser?.avatarUrl ?? null}
           unreadCount={unread}
+          walletXp={walletXp}
         />
         <main className="flex-1 pb-24 md:pb-8 overflow-y-auto">
           <PageTransition>{children}</PageTransition>

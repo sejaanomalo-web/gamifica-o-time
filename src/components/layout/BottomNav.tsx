@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Home, Target, Users, Newspaper, User } from "lucide-react";
+import { Home, Target, Users, ShoppingBag, User } from "lucide-react";
 
 const items = [
   { href: "/dashboard", label: "Hoje",   icon: Home },
   { href: "/metas",     label: "Metas",  icon: Target },
   { href: "/ranking",   label: "Time",   icon: Users },
-  { href: "/mural",     label: "Mural",  icon: Newspaper },
+  { href: "/loja",      label: "Loja",   icon: ShoppingBag },
   { href: "/perfil",    label: "Perfil", icon: User },
 ];
 

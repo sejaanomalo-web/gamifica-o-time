@@ -39,7 +39,7 @@ export default async function LojaPage() {
   return (
     <div className="px-5 md:px-8 py-8 md:py-12 max-w-4xl mx-auto w-full">
       <Reveal>
-        <span className="label-caps mb-3 block">Anômalo · Loja</span>
+        <span className="label-caps mb-3 block">Game Anômalo · Loja</span>
         <div className="flex items-end justify-between gap-6 flex-wrap">
           <h1
             className="text-white"
