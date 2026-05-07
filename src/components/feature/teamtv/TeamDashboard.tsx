@@ -425,6 +425,9 @@ export function TeamDashboard({
           </div>
         </div>
 
+        {/* MANIFESTO SOU ANÔMALO — credo cultural da Anômalo Hub */}
+        <SouAnomaloManifesto />
+
         {/* LAMBDA gigante decorativo */}
         <div
           className="absolute pointer-events-none select-none"
@@ -684,3 +687,137 @@ const TAG_BY_TYPE: Record<string, { label: string; color: string }> = {
   delivery: { label: "Entrega", color: "#C9953A" },
   shop_redeem: { label: "Loja", color: "#8A7850" },
 };
+
+function SouAnomaloManifesto() {
+  return (
+    <section
+      aria-label="Manifesto cultural da Anômalo Hub"
+      className="manifesto-section relative overflow-hidden"
+      style={{
+        marginTop: "clamp(40px, 5vw, 80px)",
+        background: "#0A0A0A",
+        border: "1px solid rgba(201,149,58,0.15)",
+        borderRadius: 12,
+        padding: "clamp(40px, 5vw, 96px) clamp(28px, 4vw, 80px)",
+        minHeight: "clamp(220px, 30vh, 400px)",
+      }}
+    >
+      <span
+        className="label-caps block"
+        style={{
+          color: "#C9953A",
+          letterSpacing: "0.16em",
+          fontSize: "clamp(11px, 0.78vw, 13px)",
+          marginBottom: "clamp(24px, 3vw, 48px)",
+        }}
+      >
+        Manifesto · Cultura
+      </span>
+
+      <div
+        className="manifesto-grid"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr auto 1fr",
+          alignItems: "center",
+          gap: "clamp(28px, 4vw, 80px)",
+        }}
+      >
+        <ul
+          className="manifesto-frases"
+          style={{
+            listStyle: "none",
+            padding: 0,
+            margin: 0,
+            textAlign: "right",
+            display: "flex",
+            flexDirection: "column",
+            gap: "clamp(10px, 1vw, 18px)",
+          }}
+        >
+          {[
+            "Compreendo meu papel.",
+            "Assumo nosso propósito.",
+            "Me comprometo com nossa cultura.",
+          ].map((frase) => (
+            <li
+              key={frase}
+              style={{
+                color: "#8A7850",
+                fontSize: "clamp(14px, 1.05vw, 18px)",
+                lineHeight: 1.5,
+                fontWeight: 400,
+                letterSpacing: "-0.005em",
+              }}
+            >
+              {frase}
+            </li>
+          ))}
+        </ul>
+
+        <div
+          className="manifesto-divider"
+          aria-hidden
+          style={{
+            width: 1,
+            height: "clamp(60px, 8vw, 120px)",
+            background: "rgba(201,149,58,0.30)",
+          }}
+        />
+
+        <strong
+          className="manifesto-signature"
+          style={{
+            color: "#FFFFFF",
+            fontSize: "clamp(32px, 3.5vw, 64px)",
+            fontWeight: 900,
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            fontStyle: "normal",
+            lineHeight: 1,
+            display: "block",
+          }}
+        >
+          Sou <span style={{ color: "#C9953A" }}>Anômalo.</span>
+        </strong>
+      </div>
+
+      <span
+        aria-hidden
+        style={{
+          position: "absolute",
+          bottom: 12,
+          right: 16,
+          color: "rgba(201,149,58,0.40)",
+          fontSize: 14,
+          fontWeight: 300,
+          lineHeight: 1,
+          fontFamily: "Inter, sans-serif",
+        }}
+      >
+        Λ
+      </span>
+
+      <style jsx>{`
+        @media (max-width: 768px) {
+          .manifesto-grid {
+            grid-template-columns: 1fr !important;
+            text-align: center;
+          }
+          .manifesto-frases {
+            text-align: center !important;
+            align-items: center;
+          }
+          .manifesto-divider {
+            width: 32px !important;
+            height: 1px !important;
+            margin: 0 auto;
+          }
+          .manifesto-signature {
+            text-align: center;
+          }
+        }
+      `}</style>
+    </section>
+  );
+}
