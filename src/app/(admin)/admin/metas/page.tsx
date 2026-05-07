@@ -1,5 +1,11 @@
-import { Plus } from "lucide-react";
+// /admin/metas — gestão de metas. Filtro por período (Mês/Ano/Tudo).
+// Tabela mostra metas que valem no período selecionado, com escopo
+// (Permanente/Mensal/Anual). Clicar em uma linha abre o GoalEditorDialog.
+
 import { prisma } from "@/lib/prisma";
+import { PeriodPicker } from "@/components/layout/PeriodPicker";
+import { parsePeriod } from "@/lib/period";
+import { AdminGoalsTable, type AdminGoalRow } from "@/components/feature/admin/AdminGoalsTable";
 
 async function safe<T>(label: string, q: () => Promise<T>, fallback: T): Promise<T> {
   try {
@@ -10,20 +16,77 @@ async function safe<T>(label: string, q: () => Promise<T>, fallback: T): Promise
   }
 }
 
-export default async function AdminMetasPage() {
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+interface PageProps {
+  searchParams: Promise<{ p?: string }>;
+}
+
+export default async function AdminMetasPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const period = parsePeriod(params.p);
+
+  // Filtro por escopo/período pra tabela.
+  // - mode="all": tudo
+  // - mode="month": MONTHLY do mês + PERMANENT (admin precisa ver os dois)
+  // - mode="year": YEARLY do ano + PERMANENT
+  const where: Record<string, unknown> = {};
+  if (period.mode === "month" && period.monthISO) {
+    where.OR = [
+      { scope: "MONTHLY", monthISO: period.monthISO },
+      { scope: "PERMANENT" },
+    ];
+  } else if (period.mode === "year" && period.yearISO) {
+    where.OR = [
+      { scope: "YEARLY", yearISO: period.yearISO },
+      { scope: "PERMANENT" },
+    ];
+  }
+
   type GoalWithOwner = Awaited<
-    ReturnType<typeof prisma.goal.findMany<{ include: { owner: { select: { name: true; email: true } } } }>>
+    ReturnType<typeof prisma.goal.findMany<{ include: { owner: { select: { name: true } } } }>>
   >;
-  const goals = await safe<GoalWithOwner>(
+  const goalsRaw = await safe<GoalWithOwner>(
     "goal.findMany",
     () =>
       prisma.goal.findMany({
-        include: { owner: { select: { name: true, email: true } } },
-        orderBy: { deadline: "asc" },
-        take: 100,
+        where,
+        include: { owner: { select: { name: true } } },
+        orderBy: [{ scope: "asc" }, { deadline: "asc" }],
+        take: 200,
       }),
     [],
   );
+
+  const collaborators = await safe(
+    "user.findMany collaborators",
+    () =>
+      prisma.user.findMany({
+        where: { role: "COLABORADOR" },
+        select: { id: true, name: true, area: true },
+        orderBy: { name: "asc" },
+      }),
+    [] as Array<{ id: string; name: string; area: string | null }>,
+  );
+
+  const goals: AdminGoalRow[] = goalsRaw.map((g) => ({
+    id: g.id,
+    ownerId: g.ownerId,
+    ownerName: g.owner.name,
+    title: g.title,
+    description: g.description,
+    kpi: g.kpi,
+    target: g.target,
+    current: g.current,
+    deadline: g.deadline.toISOString(),
+    xpReward: g.xpReward,
+    needsEvidence: g.needsEvidence,
+    status: g.status,
+    scope: g.scope,
+    monthISO: g.monthISO,
+    yearISO: g.yearISO,
+  }));
 
   return (
     <div className="px-5 md:px-8 py-8 md:py-12 max-w-6xl mx-auto w-full">
@@ -54,54 +117,15 @@ export default async function AdminMetasPage() {
             </span>
           </h1>
         </div>
-        <button className="btn-pill btn-gold">
-          <Plus size={14} />
-          Nova meta
-        </button>
+        <PeriodPicker param={params.p ?? ""} />
       </div>
 
-      <div className="ano-card-flat overflow-hidden">
-        {goals.length === 0 ? (
-          <p className="text-faint text-sm py-12 text-center">
-            Nenhuma meta cadastrada ainda.
-          </p>
-        ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-                <th className="text-left px-5 py-3 label-caps label-caps-muted">Título</th>
-                <th className="text-left px-5 py-3 label-caps label-caps-muted">Atribuída</th>
-                <th className="text-left px-5 py-3 label-caps label-caps-muted">Status</th>
-                <th className="text-right px-5 py-3 label-caps label-caps-muted">Prazo</th>
-                <th className="text-right px-5 py-3 label-caps label-caps-muted">XP</th>
-              </tr>
-            </thead>
-            <tbody>
-              {goals.map((g, i) => (
-                <tr
-                  key={g.id}
-                  style={{
-                    borderBottom: i < goals.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
-                  }}
-                >
-                  <td className="px-5 py-3 text-white">{g.title}</td>
-                  <td className="px-5 py-3 text-mid">{g.owner.name}</td>
-                  <td className="px-5 py-3 label-caps text-[10px]">{g.status}</td>
-                  <td className="px-5 py-3 text-right text-mid text-mono">
-                    {g.deadline.toLocaleDateString("pt-BR")}
-                  </td>
-                  <td className="px-5 py-3 text-right text-[#C9953A] text-mono font-bold">
-                    +{g.xpReward}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      <AdminGoalsTable goals={goals} collaborators={collaborators} />
 
       <p className="mt-6 text-faint text-xs">
-        Em breve: dialog de criar/editar meta com KPI, target, atribuição e validação.
+        <strong className="text-mid">Permanente</strong> vale como padrão pra todo o período.
+        <strong className="text-mid"> Mensal</strong> e
+        <strong className="text-mid"> Anual</strong> substituem a permanente apenas no período selecionado.
       </p>
     </div>
   );

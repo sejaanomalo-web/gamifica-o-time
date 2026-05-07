@@ -26,6 +26,15 @@ enum GoalStatus {
   REJEITADA
 }
 
+enum GoalScope {
+  // PERMANENT: vale como padrão pra todo período do colaborador.
+  // MONTHLY/YEARLY: substituem a permanente APENAS no período selecionado.
+  // Resolver em src/lib/goals.ts (resolveGoalsForPeriod).
+  PERMANENT
+  MONTHLY
+  YEARLY
+}
+
 enum RedeemStatus {
   PENDENTE
   APROVADO
@@ -121,9 +130,12 @@ model Goal {
   //   { steps: [{ atXp, rewardCents, label? }], finalBonusCents? }
   rewardConfig  Json?
   deadline      DateTime
-  // Mês de competência (YYYY-MM) — usado pra filtro mensal em todo o
-  // sistema. Calculado a partir do deadline na criação se não setado.
+  // Escopo da meta. Default MONTHLY pra retrocompat com metas legadas.
+  scope         GoalScope  @default(MONTHLY)
+  // Mês de competência (YYYY-MM) quando scope=MONTHLY.
   monthISO      String?
+  // Ano de competência (YYYY) quando scope=YEARLY.
+  yearISO       String?
   status        GoalStatus @default(ATIVA)
   needsEvidence Boolean    @default(false)
   ownerId       String
@@ -137,6 +149,8 @@ model Goal {
   @@index([ownerId, status])
   @@index([seasonId])
   @@index([monthISO])
+  @@index([yearISO])
+  @@index([ownerId, scope])
 }
 
 model Evidence {

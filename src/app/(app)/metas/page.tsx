@@ -1,14 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
 import { Reveal } from "@/components/motion/Reveal";
 import { GoalCard, type GoalCardData } from "@/components/feature/goal/GoalCard";
 import { LogProgressSheet } from "@/components/feature/goal/LogProgressSheet";
+import { PeriodPicker } from "@/components/layout/PeriodPicker";
 
 type Tab = "ativas" | "historico" | "naoBatidas";
 
 export default function MetasPage() {
+  const searchParams = useSearchParams();
+  const periodParam = searchParams.get("p") ?? "";
   const [tab, setTab] = useState<Tab>("ativas");
   const [logOpen, setLogOpen] = useState(false);
   const [goals, setGoals] = useState<{ ativas: GoalCardData[]; historico: GoalCardData[]; naoBatidas: GoalCardData[] }>({
@@ -19,12 +23,14 @@ export default function MetasPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/goals")
+    setLoading(true);
+    const url = periodParam ? `/api/goals?p=${encodeURIComponent(periodParam)}` : "/api/goals";
+    fetch(url)
       .then((r) => (r.ok ? r.json() : { ativas: [], historico: [], naoBatidas: [] }))
       .then((d) => setGoals(d))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [periodParam]);
 
   const list =
     tab === "ativas" ? goals.ativas : tab === "historico" ? goals.historico : goals.naoBatidas;
@@ -32,18 +38,23 @@ export default function MetasPage() {
   return (
     <div className="px-5 md:px-8 py-8 md:py-12 max-w-5xl mx-auto w-full">
       <Reveal>
-        <span className="label-caps mb-3 block">Game Anômalo · Metas</span>
-        <h1
-          className="display-bold text-white"
-          style={{ fontSize: "clamp(2.75rem, 9vw, 4.5rem)", lineHeight: 0.96 }}
-        >
-          Suas<br />
-          <span className="display-italic text-[#C9953A]">metas.</span>
-        </h1>
-        <p className="mt-4 text-mid text-sm max-w-md">
-          {goals.ativas.length} ativas. {goals.historico.length} batidas no ano.{" "}
-          <span className="display-italic text-[#C9953A]">Constância</span> em construção.
-        </p>
+        <div className="flex items-end justify-between gap-6 flex-wrap">
+          <div>
+            <span className="label-caps mb-3 block">Game Anômalo · Metas</span>
+            <h1
+              className="display-bold text-white"
+              style={{ fontSize: "clamp(2.75rem, 9vw, 4.5rem)", lineHeight: 0.96 }}
+            >
+              Suas<br />
+              <span className="display-italic text-[#C9953A]">metas.</span>
+            </h1>
+            <p className="mt-4 text-mid text-sm max-w-md">
+              {goals.ativas.length} ativas. {goals.historico.length} batidas.{" "}
+              <span className="display-italic text-[#C9953A]">Constância</span> em construção.
+            </p>
+          </div>
+          <PeriodPicker param={periodParam} />
+        </div>
       </Reveal>
 
       <Reveal delay={200}>
