@@ -11,6 +11,18 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { isValidRewardConfig } from "@/lib/tiers";
+
+const RewardStep = z.object({
+  atXp: z.number().nonnegative(),
+  rewardCents: z.number().int().nonnegative(),
+  label: z.string().optional(),
+});
+
+const RewardConfigSchema = z.object({
+  steps: z.array(RewardStep).min(1),
+  finalBonusCents: z.number().int().nonnegative().optional(),
+});
 
 const Body = z
   .object({
@@ -25,6 +37,7 @@ const Body = z
     scope: z.enum(["PERMANENT", "MONTHLY", "YEARLY"]),
     monthISO: z.string().regex(/^\d{4}-\d{2}$/).optional().nullable(),
     yearISO: z.string().regex(/^\d{4}$/).optional().nullable(),
+    rewardConfig: RewardConfigSchema.optional().nullable(),
   })
   .refine(
     (d) => d.scope !== "MONTHLY" || !!d.monthISO,
@@ -79,6 +92,12 @@ export async function POST(req: Request) {
   const yearISO =
     parsed.data.scope === "YEARLY" ? parsed.data.yearISO ?? null : null;
 
+  // Valida rewardConfig (extra check além do zod)
+  const rewardConfig = parsed.data.rewardConfig ?? null;
+  if (rewardConfig && !isValidRewardConfig(rewardConfig)) {
+    return NextResponse.json({ error: "rewardConfig inválido" }, { status: 400 });
+  }
+
   try {
     const goal = await prisma.goal.create({
       data: {
@@ -92,6 +111,9 @@ export async function POST(req: Request) {
         scope: parsed.data.scope,
         monthISO,
         yearISO,
+        rewardConfig: rewardConfig
+          ? (rewardConfig as unknown as object)
+          : undefined,
         ownerId: parsed.data.ownerId,
         seasonId: season.id,
       },

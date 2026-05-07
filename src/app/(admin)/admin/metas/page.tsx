@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { PeriodPicker } from "@/components/layout/PeriodPicker";
 import { parsePeriod } from "@/lib/period";
 import { AdminGoalsTable, type AdminGoalRow } from "@/components/feature/admin/AdminGoalsTable";
+import { isValidRewardConfig, type RewardConfig } from "@/lib/tiers";
 
 async function safe<T>(label: string, q: () => Promise<T>, fallback: T): Promise<T> {
   try {
@@ -70,23 +71,30 @@ export default async function AdminMetasPage({ searchParams }: PageProps) {
     [] as Array<{ id: string; name: string; area: string | null }>,
   );
 
-  const goals: AdminGoalRow[] = goalsRaw.map((g) => ({
-    id: g.id,
-    ownerId: g.ownerId,
-    ownerName: g.owner.name,
-    title: g.title,
-    description: g.description,
-    kpi: g.kpi,
-    target: g.target,
-    current: g.current,
-    deadline: g.deadline.toISOString(),
-    xpReward: g.xpReward,
-    needsEvidence: g.needsEvidence,
-    status: g.status,
-    scope: g.scope,
-    monthISO: g.monthISO,
-    yearISO: g.yearISO,
-  }));
+  const goals: AdminGoalRow[] = goalsRaw.map((g) => {
+    const rc =
+      g.rewardConfig && isValidRewardConfig(g.rewardConfig)
+        ? (g.rewardConfig as RewardConfig)
+        : null;
+    return {
+      id: g.id,
+      ownerId: g.ownerId,
+      ownerName: g.owner.name,
+      title: g.title,
+      description: g.description,
+      kpi: g.kpi,
+      target: g.target,
+      current: g.current,
+      deadline: g.deadline.toISOString(),
+      xpReward: g.xpReward,
+      needsEvidence: g.needsEvidence,
+      status: g.status,
+      scope: g.scope,
+      monthISO: g.monthISO,
+      yearISO: g.yearISO,
+      rewardConfig: rc,
+    };
+  });
 
   return (
     <div className="px-5 md:px-8 py-8 md:py-12 max-w-6xl mx-auto w-full">

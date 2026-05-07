@@ -290,9 +290,14 @@ export function TeamDashboard({
         </div>
 
         {/* MAIN GRID: leaderboard + spotlight + activity */}
+        {/* Em fullscreen, limita a 55vh pra deixar o manifesto respirar
+            embaixo sem ser comprimido. Fora dela, comportamento normal. */}
         <div
           className="grid grid-cols-1 xl:grid-cols-[1.4fr_1fr] gap-4 md:gap-6 flex-1"
-          style={{ minHeight: 0 }}
+          style={{
+            minHeight: 0,
+            maxHeight: fullscreen ? "55vh" : undefined,
+          }}
         >
           {/* LEFT: leaderboard */}
           <section
@@ -736,10 +741,10 @@ function SouAnomaloManifesto({ compact }: { compact?: boolean }) {
       aria-label="Manifesto cultural da Anômalo Hub"
       className="manifesto-section"
       style={{
-        paddingTop: compact ? "clamp(14px, 1.6vh, 24px)" : "clamp(40px, 5vw, 96px)",
-        paddingBottom: compact ? "clamp(8px, 1vh, 16px)" : "clamp(28px, 3vw, 56px)",
+        paddingTop: compact ? "clamp(28px, 3.5vh, 52px)" : "clamp(40px, 5vw, 96px)",
+        paddingBottom: compact ? "clamp(20px, 2.5vh, 36px)" : "clamp(28px, 3vw, 56px)",
         borderTop: "1px solid rgba(201,149,58,0.10)",
-        marginTop: compact ? "clamp(8px, 1vh, 18px)" : "clamp(48px, 6vw, 96px)",
+        marginTop: compact ? "clamp(20px, 2.5vh, 36px)" : "clamp(48px, 6vw, 96px)",
       }}
     >
       <div
@@ -748,7 +753,7 @@ function SouAnomaloManifesto({ compact }: { compact?: boolean }) {
           display: "grid",
           gridTemplateColumns: "1fr auto 1fr",
           alignItems: "center",
-          gap: compact ? "clamp(20px, 3vw, 56px)" : "clamp(32px, 4.5vw, 96px)",
+          gap: compact ? "clamp(28px, 4vw, 80px)" : "clamp(32px, 4.5vw, 96px)",
         }}
       >
         <ul
@@ -760,7 +765,7 @@ function SouAnomaloManifesto({ compact }: { compact?: boolean }) {
             textAlign: "right",
             display: "flex",
             flexDirection: "column",
-            gap: compact ? "clamp(2px, 0.4vw, 6px)" : "clamp(8px, 0.9vw, 16px)",
+            gap: compact ? "clamp(6px, 0.7vw, 12px)" : "clamp(8px, 0.9vw, 16px)",
           }}
         >
           {[
@@ -772,7 +777,7 @@ function SouAnomaloManifesto({ compact }: { compact?: boolean }) {
               key={frase}
               style={{
                 color: "#8A7850",
-                fontSize: compact ? "clamp(11px, 0.9vw, 14px)" : "clamp(13px, 1vw, 17px)",
+                fontSize: compact ? "clamp(15px, 1.3vw, 22px)" : "clamp(13px, 1vw, 17px)",
                 lineHeight: 1.4,
                 fontWeight: 400,
                 letterSpacing: "-0.005em",
@@ -788,7 +793,7 @@ function SouAnomaloManifesto({ compact }: { compact?: boolean }) {
           aria-hidden
           style={{
             width: 1,
-            height: compact ? "clamp(40px, 5vw, 70px)" : "clamp(56px, 7vw, 110px)",
+            height: compact ? "clamp(72px, 9vw, 130px)" : "clamp(56px, 7vw, 110px)",
             background: "rgba(201,149,58,0.30)",
           }}
         />
@@ -797,7 +802,7 @@ function SouAnomaloManifesto({ compact }: { compact?: boolean }) {
           className="manifesto-signature"
           style={{
             color: "#FFFFFF",
-            fontSize: compact ? "clamp(20px, 2vw, 32px)" : "clamp(28px, 3vw, 56px)",
+            fontSize: compact ? "clamp(36px, 4vw, 68px)" : "clamp(28px, 3vw, 56px)",
             fontWeight: 900,
             letterSpacing: "0.06em",
             textTransform: "uppercase",

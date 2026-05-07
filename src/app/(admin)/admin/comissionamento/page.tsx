@@ -2,6 +2,10 @@ import { prisma } from "@/lib/prisma";
 import { calculateCommission, formatCents } from "@/lib/commission";
 import { PeriodPicker } from "@/components/layout/PeriodPicker";
 import { parsePeriod } from "@/lib/period";
+import {
+  DeliveryWeightsEditor,
+  type WeightRow,
+} from "@/components/feature/admin/DeliveryWeightsEditor";
 
 async function safe<T>(label: string, q: () => Promise<T>, fallback: T): Promise<T> {
   try {
@@ -40,7 +44,10 @@ export default async function AdminComissionamentoPage({ searchParams }: PagePro
   );
   const weights = await safe(
     "deliveryWeight.findMany",
-    () => prisma.deliveryWeight.findMany({ where: { active: true }, orderBy: { weight: "desc" } }),
+    () =>
+      prisma.deliveryWeight.findMany({
+        orderBy: [{ active: "desc" }, { weight: "desc" }, { category: "asc" }],
+      }),
     [] as Awaited<ReturnType<typeof prisma.deliveryWeight.findMany>>,
   );
 
@@ -185,18 +192,15 @@ export default async function AdminComissionamentoPage({ searchParams }: PagePro
       </section>
 
       <section className="mb-10">
-        <h2 className="label-caps label-caps-muted mb-3">Pesos das categorias</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {weights.map((w) => (
-            <div key={w.id} className="ano-card p-5">
-              <span className="label-caps mb-2 block text-[10px]">{w.group}</span>
-              <p className="text-white text-base font-semibold">{w.category}</p>
-              <p className="mt-2 text-[#C9953A] text-mono font-bold" style={{ fontSize: 18 }}>
-                {w.weight.toFixed(1)}×
-              </p>
-            </div>
-          ))}
-        </div>
+        <DeliveryWeightsEditor
+          rows={weights.map<WeightRow>((w) => ({
+            id: w.id,
+            category: w.category,
+            group: w.group,
+            weight: w.weight,
+            active: w.active,
+          }))}
+        />
       </section>
 
       <section>

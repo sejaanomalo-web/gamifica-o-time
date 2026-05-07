@@ -14,9 +14,10 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X } from "lucide-react";
+import { X, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { calculateGoalReward, formatCents, type RewardConfig } from "@/lib/tiers";
 
 interface CollaboratorOption {
   id: string;
@@ -25,6 +26,7 @@ interface CollaboratorOption {
 }
 
 export type GoalScopeOption = "PERMANENT" | "MONTHLY" | "YEARLY";
+export type RewardType = "FIXED" | "TIERED";
 
 export interface GoalEditorInitial {
   id: string;
@@ -39,6 +41,30 @@ export interface GoalEditorInitial {
   scope: GoalScopeOption;
   monthISO: string | null;
   yearISO: string | null;
+  rewardConfig: RewardConfig | null;
+}
+
+interface StepDraft {
+  id: string;
+  atXp: string;
+  rewardReais: string; // R$ como string pra digitar com vírgula/ponto
+  label: string;
+}
+
+function newStepDraft(atXp = "", reais = "", label = ""): StepDraft {
+  return { id: String(Date.now() + Math.random()), atXp, rewardReais: reais, label };
+}
+
+function reaisToCents(s: string): number {
+  // Aceita "50", "50,00", "50.00", "1.500,00", "1500.00" — converte pra cents.
+  const cleaned = s.replace(/\s/g, "").replace(/\./g, "").replace(",", ".");
+  const n = Number(cleaned);
+  if (Number.isNaN(n) || n < 0) return 0;
+  return Math.round(n * 100);
+}
+
+function centsToReais(cents: number): string {
+  return (cents / 100).toFixed(2).replace(".", ",");
 }
 
 interface Props {
@@ -78,6 +104,9 @@ export function GoalEditorDialog({ open, onOpenChange, collaborators, initial }:
   const [scope, setScope] = useState<GoalScopeOption>("MONTHLY");
   const [monthISO, setMonthISO] = useState(defaultMonth());
   const [yearISO, setYearISO] = useState(defaultYear());
+  const [rewardType, setRewardType] = useState<RewardType>("FIXED");
+  const [steps, setSteps] = useState<StepDraft[]>([newStepDraft("80", "50,00", "")]);
+  const [finalBonusReais, setFinalBonusReais] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -94,6 +123,23 @@ export function GoalEditorDialog({ open, onOpenChange, collaborators, initial }:
       setScope(initial.scope);
       setMonthISO(initial.monthISO ?? defaultMonth());
       setYearISO(initial.yearISO ?? defaultYear());
+      if (initial.rewardConfig && initial.rewardConfig.steps?.length) {
+        setRewardType("TIERED");
+        setSteps(
+          initial.rewardConfig.steps.map((s) =>
+            newStepDraft(String(s.atXp), centsToReais(s.rewardCents), s.label ?? ""),
+          ),
+        );
+        setFinalBonusReais(
+          initial.rewardConfig.finalBonusCents
+            ? centsToReais(initial.rewardConfig.finalBonusCents)
+            : "",
+        );
+      } else {
+        setRewardType("FIXED");
+        setSteps([newStepDraft("80", "50,00", "")]);
+        setFinalBonusReais("");
+      }
     } else {
       setOwnerId(collaborators[0]?.id ?? "");
       setTitle("");
@@ -106,8 +152,16 @@ export function GoalEditorDialog({ open, onOpenChange, collaborators, initial }:
       setScope("MONTHLY");
       setMonthISO(defaultMonth());
       setYearISO(defaultYear());
+      setRewardType("FIXED");
+      setSteps([newStepDraft("80", "50,00", "")]);
+      setFinalBonusReais("");
     }
   }, [open, initial, collaborators]);
+
+  const stepsValid =
+    rewardType === "FIXED" ||
+    (steps.length > 0 &&
+      steps.every((s) => Number(s.atXp) > 0 && reaisToCents(s.rewardReais) > 0));
 
   const valid =
     !!ownerId &&
@@ -116,7 +170,31 @@ export function GoalEditorDialog({ open, onOpenChange, collaborators, initial }:
     Number(target) > 0 &&
     !!deadline &&
     (scope !== "MONTHLY" || /^\d{4}-\d{2}$/.test(monthISO)) &&
-    (scope !== "YEARLY" || /^\d{4}$/.test(yearISO));
+    (scope !== "YEARLY" || /^\d{4}$/.test(yearISO)) &&
+    stepsValid;
+
+  const buildRewardConfig = (): RewardConfig | null => {
+    if (rewardType === "FIXED") return null;
+    return {
+      steps: steps
+        .map((s) => ({
+          atXp: Number(s.atXp) || 0,
+          rewardCents: reaisToCents(s.rewardReais),
+          ...(s.label.trim() ? { label: s.label.trim() } : {}),
+        }))
+        .sort((a, b) => a.atXp - b.atXp),
+      ...(reaisToCents(finalBonusReais) > 0
+        ? { finalBonusCents: reaisToCents(finalBonusReais) }
+        : {}),
+    };
+  };
+
+  // Preview do total se atingir o último marco
+  const previewConfig = rewardType === "TIERED" ? buildRewardConfig() : null;
+  const previewMaxXp = previewConfig?.steps.reduce((mx, s) => Math.max(mx, s.atXp), 0) ?? 0;
+  const previewResult = previewConfig
+    ? calculateGoalReward(previewConfig, previewMaxXp)
+    : null;
 
   const onSubmit = async () => {
     if (!valid || submitting) return;
@@ -134,6 +212,7 @@ export function GoalEditorDialog({ open, onOpenChange, collaborators, initial }:
       scope,
       monthISO: scope === "MONTHLY" ? monthISO : null,
       yearISO: scope === "YEARLY" ? yearISO : null,
+      rewardConfig: buildRewardConfig(),
     };
 
     try {
@@ -380,6 +459,183 @@ export function GoalEditorDialog({ open, onOpenChange, collaborators, initial }:
                   />
                 </Field>
               </div>
+
+              <Field label="Tipo de recompensa">
+                <div className="flex gap-2 flex-wrap">
+                  {(
+                    [
+                      ["FIXED", "Fixa"],
+                      ["TIERED", "Escalonável"],
+                    ] as [RewardType, string][]
+                  ).map(([k, lbl]) => {
+                    const on = rewardType === k;
+                    return (
+                      <button
+                        key={k}
+                        type="button"
+                        onClick={() => setRewardType(k)}
+                        className="label-caps px-4 py-2 rounded-full transition-all"
+                        style={{
+                          background: on ? "#C9953A" : "rgba(255,255,255,0.04)",
+                          color: on ? "#1a1410" : "rgba(255,255,255,0.65)",
+                          boxShadow: on
+                            ? "0 0 12px rgba(201,149,58,0.30)"
+                            : "inset 0 0 0 1px rgba(255,255,255,0.10)",
+                        }}
+                      >
+                        {lbl}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="mt-2 text-xs text-mid">
+                  {rewardType === "FIXED"
+                    ? "Apenas o XP acima ao concluir. Sem bônus em R$."
+                    : "Marcos por XP: ao chegar em X, paga Y em R$. Cumulativo. Pode ter bônus final."}
+                </p>
+              </Field>
+
+              {rewardType === "TIERED" && (
+                <Field label="Marcos da meta escalonável">
+                  <div className="flex flex-col gap-2">
+                    {steps.map((s, idx) => (
+                      <div
+                        key={s.id}
+                        className="flex gap-2 items-stretch"
+                        style={{
+                          background: "rgba(255,255,255,0.02)",
+                          boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)",
+                          borderRadius: 12,
+                          padding: 8,
+                        }}
+                      >
+                        <div className="flex flex-col flex-1 min-w-0">
+                          <span className="label-caps label-caps-muted text-[9px] mb-1">
+                            Ao chegar em
+                          </span>
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              min={0}
+                              value={s.atXp}
+                              onChange={(e) =>
+                                setSteps((ss) =>
+                                  ss.map((x) =>
+                                    x.id === s.id
+                                      ? { ...x, atXp: e.target.value.replace(/[^0-9]/g, "") }
+                                      : x,
+                                  ),
+                                )
+                              }
+                              placeholder="80"
+                              className="input-square flex-1 min-w-0"
+                            />
+                            <span className="text-mid text-xs">XP</span>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col flex-1 min-w-0">
+                          <span className="label-caps label-caps-muted text-[9px] mb-1">
+                            Paga
+                          </span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-mid text-xs">R$</span>
+                            <input
+                              type="text"
+                              inputMode="decimal"
+                              value={s.rewardReais}
+                              onChange={(e) =>
+                                setSteps((ss) =>
+                                  ss.map((x) =>
+                                    x.id === s.id
+                                      ? { ...x, rewardReais: e.target.value }
+                                      : x,
+                                  ),
+                                )
+                              }
+                              placeholder="50,00"
+                              className="input-square flex-1 min-w-0"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col flex-[1.2] min-w-0">
+                          <span className="label-caps label-caps-muted text-[9px] mb-1">
+                            Rótulo (opcional)
+                          </span>
+                          <input
+                            type="text"
+                            value={s.label}
+                            onChange={(e) =>
+                              setSteps((ss) =>
+                                ss.map((x) =>
+                                  x.id === s.id ? { ...x, label: e.target.value } : x,
+                                ),
+                              )
+                            }
+                            placeholder={`Marco ${idx + 1}`}
+                            className="input-square w-full"
+                          />
+                        </div>
+
+                        {steps.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setSteps((ss) => ss.filter((x) => x.id !== s.id))
+                            }
+                            aria-label="Remover marco"
+                            className="self-end mb-1 w-9 h-9 flex items-center justify-center rounded-full text-[#fb2c36] hover:bg-white/[0.04]"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSteps((ss) => {
+                          const last = ss[ss.length - 1];
+                          const lastXp = last ? Number(last.atXp) || 0 : 0;
+                          return [...ss, newStepDraft(String(lastXp + 100), "100,00", "")];
+                        })
+                      }
+                      className="btn-pill btn-ghost mt-1 self-start"
+                    >
+                      <Plus size={14} />
+                      Adicionar marco
+                    </button>
+
+                    <div className="mt-2">
+                      <span className="label-caps label-caps-muted text-[9px] block mb-1">
+                        Bônus final ao bater todos os marcos (opcional)
+                      </span>
+                      <div className="flex items-center gap-1 max-w-[200px]">
+                        <span className="text-mid text-xs">R$</span>
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={finalBonusReais}
+                          onChange={(e) => setFinalBonusReais(e.target.value)}
+                          placeholder="200,00"
+                          className="input-square flex-1 min-w-0"
+                        />
+                      </div>
+                    </div>
+
+                    {previewResult && (
+                      <p className="mt-2 text-xs text-mid">
+                        Total se bater todos os marcos:{" "}
+                        <span className="text-mono text-[#C9953A] font-bold">
+                          {formatCents(previewResult.totalCents)}
+                        </span>
+                      </p>
+                    )}
+                  </div>
+                </Field>
+              )}
 
               <label className="flex items-center gap-2 cursor-pointer text-sm text-mid">
                 <input

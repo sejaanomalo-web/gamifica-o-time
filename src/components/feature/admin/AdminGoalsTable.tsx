@@ -10,6 +10,7 @@ import {
   type GoalEditorInitial,
   type GoalScopeOption,
 } from "./GoalEditorDialog";
+import { formatCents, type RewardConfig } from "@/lib/tiers";
 
 interface CollaboratorOption {
   id: string;
@@ -33,6 +34,7 @@ export interface AdminGoalRow {
   scope: GoalScopeOption;
   monthISO: string | null;
   yearISO: string | null;
+  rewardConfig: RewardConfig | null;
 }
 
 const SCOPE_LABEL: Record<GoalScopeOption, string> = {
@@ -75,6 +77,7 @@ export function AdminGoalsTable({ goals, collaborators }: Props) {
       scope: g.scope,
       monthISO: g.monthISO,
       yearISO: g.yearISO,
+      rewardConfig: g.rewardConfig,
     });
     setOpen(true);
   };
@@ -102,7 +105,7 @@ export function AdminGoalsTable({ goals, collaborators }: Props) {
                 <th className="text-left px-5 py-3 label-caps label-caps-muted">Escopo</th>
                 <th className="text-left px-5 py-3 label-caps label-caps-muted">Período</th>
                 <th className="text-right px-5 py-3 label-caps label-caps-muted">Progresso</th>
-                <th className="text-right px-5 py-3 label-caps label-caps-muted">XP</th>
+                <th className="text-right px-5 py-3 label-caps label-caps-muted">Recompensa</th>
                 <th className="text-left px-5 py-3 label-caps label-caps-muted">Status</th>
               </tr>
             </thead>
@@ -141,8 +144,27 @@ export function AdminGoalsTable({ goals, collaborators }: Props) {
                     <td className="px-5 py-3 text-right text-mono text-mid">
                       {g.current.toFixed(0)}/{g.target.toFixed(0)}
                     </td>
-                    <td className="px-5 py-3 text-right text-[#C9953A] text-mono font-bold">
-                      +{g.xpReward}
+                    <td className="px-5 py-3 text-right">
+                      {g.rewardConfig ? (
+                        (() => {
+                          const total =
+                            g.rewardConfig.steps.reduce((s, st) => s + st.rewardCents, 0) +
+                            (g.rewardConfig.finalBonusCents ?? 0);
+                          return (
+                            <div className="flex flex-col items-end gap-0.5">
+                              <span className="text-[#C9953A] text-mono font-bold">
+                                {formatCents(total)}
+                              </span>
+                              <span className="label-caps label-caps-muted text-[9px]">
+                                {g.rewardConfig.steps.length} marco
+                                {g.rewardConfig.steps.length > 1 ? "s" : ""} · +{g.xpReward} XP
+                              </span>
+                            </div>
+                          );
+                        })()
+                      ) : (
+                        <span className="text-[#C9953A] text-mono font-bold">+{g.xpReward} XP</span>
+                      )}
                     </td>
                     <td className="px-5 py-3 label-caps text-[10px]">{g.status}</td>
                   </tr>

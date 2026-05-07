@@ -5,6 +5,18 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { isValidRewardConfig } from "@/lib/tiers";
+
+const RewardStep = z.object({
+  atXp: z.number().nonnegative(),
+  rewardCents: z.number().int().nonnegative(),
+  label: z.string().optional(),
+});
+
+const RewardConfigSchema = z.object({
+  steps: z.array(RewardStep).min(1),
+  finalBonusCents: z.number().int().nonnegative().optional(),
+});
 
 const PatchBody = z
   .object({
@@ -19,6 +31,7 @@ const PatchBody = z
     scope: z.enum(["PERMANENT", "MONTHLY", "YEARLY"]).optional(),
     monthISO: z.string().regex(/^\d{4}-\d{2}$/).optional().nullable(),
     yearISO: z.string().regex(/^\d{4}$/).optional().nullable(),
+    rewardConfig: RewardConfigSchema.optional().nullable(),
   })
   .refine(
     (d) => d.scope !== "MONTHLY" || !!d.monthISO,
@@ -64,6 +77,11 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
 
   if (typeof data.deadline === "string") {
     data.deadline = new Date(data.deadline);
+  }
+
+  // Valida rewardConfig se vier (null é permitido — limpa o campo)
+  if (parsed.data.rewardConfig && !isValidRewardConfig(parsed.data.rewardConfig)) {
+    return NextResponse.json({ error: "rewardConfig inválido" }, { status: 400 });
   }
 
   try {
