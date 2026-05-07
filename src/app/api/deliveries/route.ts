@@ -1,7 +1,8 @@
 // POST /api/deliveries — collaborator self-logs daily deliveries.
 // Each entry: { material: <category>, count: <int> }.
-// Server resolves the active DeliveryWeight by category and freezes pointsApplied = count × weight.
-// Also creates an XpEvent in the active season so commission AND ranking get the same units.
+// Server resolves the active DeliveryWeight by category and freezes
+// pointsApplied = count × weight. XpEvent.amount = pointsApplied (mesma
+// unidade — sem multiplicador extra). Ex: 2 Reels (peso 1.5) = 3 XP.
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -50,11 +51,13 @@ export async function POST(req: Request) {
         },
       });
       if (season) {
+        // XP é a soma direta dos pontos. 1 Aula (2.0) = 2 XP, 2 Reels
+        // (1.5+1.5) = 3 XP, 5 Estáticos = 5 XP. Round pra manter Int no schema.
         await tx.xpEvent.create({
           data: {
             userId: user.id,
             seasonId: season.id,
-            amount: Math.round(points * 40), // XP heuristic ported from prototype
+            amount: Math.round(points),
             source: "delivery",
             refId: delivery.id,
           },

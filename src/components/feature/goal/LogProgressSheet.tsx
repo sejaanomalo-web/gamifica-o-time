@@ -2,16 +2,14 @@
 
 // Daily delivery logger — bottom sheet with repeatable rows.
 // Categorias e pesos batem com a tabela oficial do plano de comissionamento
-// e com o seed do banco (DeliveryWeight). UI mostra o multiplicador inline pra
-// o time saber o quanto cada entrega vale antes de registrar.
-// XP exibido = qty × peso × 40 (mesma fórmula que /api/deliveries usa server-side).
+// e com o seed do banco (DeliveryWeight).
+// XP = qty × peso (somatório direto, sem multiplicar por nada extra).
+// Ex: 2 Reels (peso 1.5) = 1.5 + 1.5 = 3 XP.
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Plus, X, ChevronDown, Minus } from "lucide-react";
 import { toast } from "sonner";
-
-const XP_PER_POINT = 40;
 
 interface MaterialGroup {
   label: "Alto" | "Médio" | "Padrão";
@@ -79,12 +77,8 @@ export function LogProgressSheet({ open, onOpenChange }: LogProgressSheetProps) 
 
   const valid = rows.every((r) => r.material && Number(r.qty) > 0);
   const totalQty = rows.reduce((s, r) => s + (Number(r.qty) || 0), 0);
-  // XP estimado = soma de (qty × peso × XP_PER_POINT) — bate com server.
+  // XP = qty × peso (somatório direto). Bate com /api/deliveries.
   const totalXp = rows.reduce((s, r) => {
-    const w = WEIGHT_BY_MATERIAL[r.material] ?? 0;
-    return s + (Number(r.qty) || 0) * w * XP_PER_POINT;
-  }, 0);
-  const totalPoints = rows.reduce((s, r) => {
     const w = WEIGHT_BY_MATERIAL[r.material] ?? 0;
     return s + (Number(r.qty) || 0) * w;
   }, 0);
@@ -114,7 +108,7 @@ export function LogProgressSheet({ open, onOpenChange }: LogProgressSheetProps) 
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-40 flex flex-col justify-end"
+          className="fixed inset-0 z-[60] flex flex-col justify-end"
           initial={{ background: "rgba(0,0,0,0)", backdropFilter: "blur(0px)" }}
           animate={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(8px)" }}
           exit={{ background: "rgba(0,0,0,0)", backdropFilter: "blur(0px)" }}
@@ -224,8 +218,8 @@ export function LogProgressSheet({ open, onOpenChange }: LogProgressSheetProps) 
                 </span>
                 <div className="text-right">
                   <span
-                    className="text-mono text-[#C9953A]"
-                    style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.02em" }}
+                    className="text-mono text-white"
+                    style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em" }}
                   >
                     {totalQty}
                   </span>
@@ -234,22 +228,15 @@ export function LogProgressSheet({ open, onOpenChange }: LogProgressSheetProps) 
               </div>
               <div className="flex items-center justify-between mb-4">
                 <span className="label-caps label-caps-muted">
-                  Pontos · XP estimado
+                  XP estimado
                 </span>
-                <div className="text-right">
-                  <span
-                    className="text-mono text-white"
-                    style={{ fontSize: 14, fontWeight: 600 }}
-                  >
-                    {totalPoints.toFixed(1)} pts
-                  </span>
-                  <span
-                    className="text-mono text-[#E0B25A] ml-3"
-                    style={{ fontSize: 14, fontWeight: 700 }}
-                  >
-                    +{Math.round(totalXp).toLocaleString("pt-BR")} XP
-                  </span>
-                </div>
+                <span
+                  className="text-mono text-[#C9953A]"
+                  style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.02em" }}
+                >
+                  +{totalXp % 1 === 0 ? totalXp.toLocaleString("pt-BR") : totalXp.toFixed(1)}
+                  <span className="label-caps label-caps-muted ml-2">XP</span>
+                </span>
               </div>
               <button
                 disabled={!valid || submitting}
@@ -324,7 +311,7 @@ function LogRowInput({
                   className="text-mono text-[#C9953A] flex-shrink-0"
                   style={{ fontSize: 11, fontWeight: 700 }}
                 >
-                  {WEIGHT_BY_MATERIAL[row.material]?.toFixed(1)}×
+                  +{WEIGHT_BY_MATERIAL[row.material]?.toFixed(1)} XP
                 </span>
               )}
             </span>
@@ -362,7 +349,7 @@ function LogRowInput({
                       className="text-mono text-[#C9953A]"
                       style={{ fontSize: 11, fontWeight: 700, letterSpacing: "-0.01em" }}
                     >
-                      {g.weight.toFixed(1)}×
+                      +{g.weight.toFixed(1)} XP/un
                     </span>
                   </div>
                   {g.items.map((opt, idx) => {
@@ -392,19 +379,11 @@ function LogRowInput({
                           className="text-mono"
                           style={{
                             fontSize: 11,
-                            color: sel ? "#E0B25A" : "rgba(255,255,255,0.32)",
+                            fontWeight: 700,
+                            color: sel ? "#E0B25A" : "rgba(255,255,255,0.40)",
                           }}
                         >
-                          ×{g.weight.toFixed(1)}
-                          <span
-                            className="ml-2 label-caps"
-                            style={{
-                              color: sel ? "#E0B25A" : "rgba(255,255,255,0.30)",
-                              fontSize: 9,
-                            }}
-                          >
-                            +{g.weight * XP_PER_POINT} XP/un
-                          </span>
+                          +{g.weight.toFixed(1)} XP
                         </span>
                       </button>
                     );
