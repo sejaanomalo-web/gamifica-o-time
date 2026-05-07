@@ -3,70 +3,22 @@
 // Filtro de período compartilhável: All-time / Year / Month.
 // Sincroniza estado com query string (?p=all | ?p=2026 | ?p=2026-05)
 // pra ser bookmarkable e shareable.
+//
+// Lógica de parse (parsePeriod, ParsedPeriod, PeriodMode) mora em
+// src/lib/period.ts pra ser importável de server components.
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { monthLabel, parseMonthISO, shiftMonth } from "@/lib/period";
+import {
+  parsePeriod,
+  shiftMonth,
+  currentMonthISO,
+  type PeriodMode,
+} from "@/lib/period";
 
-export type PeriodMode = "all" | "year" | "month";
-export interface ParsedPeriod {
-  mode: PeriodMode;
-  yearISO: string | null;        // "2026"
-  monthISO: string | null;       // "2026-05"
-  start: Date | null;            // null se all-time
-  end: Date | null;              // null se all-time
-  label: string;
-  param: string;                 // valor pra URL
-}
-
-export function parsePeriod(raw: string | undefined | null): ParsedPeriod {
-  const value = raw && raw.trim() ? raw.trim() : currentMonthParam();
-  if (value === "all") {
-    return {
-      mode: "all",
-      yearISO: null,
-      monthISO: null,
-      start: null,
-      end: null,
-      label: "Todo o período",
-      param: "all",
-    };
-  }
-  if (/^\d{4}$/.test(value)) {
-    const y = Number(value);
-    return {
-      mode: "year",
-      yearISO: value,
-      monthISO: null,
-      start: new Date(y, 0, 1),
-      end: new Date(y + 1, 0, 1),
-      label: value,
-      param: value,
-    };
-  }
-  if (/^\d{4}-\d{2}$/.test(value)) {
-    const start = parseMonthISO(value);
-    const end = new Date(start);
-    end.setMonth(end.getMonth() + 1);
-    return {
-      mode: "month",
-      yearISO: value.slice(0, 4),
-      monthISO: value,
-      start,
-      end,
-      label: monthLabel(value),
-      param: value,
-    };
-  }
-  // fallback
-  const cur = currentMonthParam();
-  return parsePeriod(cur);
-}
-
-function currentMonthParam(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-}
+// Re-export pra retrocompat: páginas antigas que importavam de PeriodPicker.
+export { parsePeriod, type PeriodMode } from "@/lib/period";
+export type { ParsedPeriod } from "@/lib/period";
 
 interface PeriodPickerProps {
   param: string;
@@ -88,7 +40,7 @@ export function PeriodPicker({ param }: PeriodPickerProps) {
     const now = new Date();
     if (mode === "all") setParam("all");
     else if (mode === "year") setParam(String(now.getFullYear()));
-    else setParam(currentMonthParam());
+    else setParam(currentMonthISO());
   };
 
   const stepMonth = (delta: number) => {

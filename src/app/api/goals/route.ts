@@ -4,10 +4,19 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   const user = await requireAppUser();
-  const goals = await prisma.goal.findMany({
-    where: { ownerId: user.id },
-    orderBy: { deadline: "asc" },
-  });
+
+  let goals: Awaited<ReturnType<typeof prisma.goal.findMany>> = [];
+  try {
+    goals = await prisma.goal.findMany({
+      where: { ownerId: user.id },
+      orderBy: { deadline: "asc" },
+    });
+  } catch (err) {
+    // Migration 004 (Goal.rewardConfig + Goal.monthISO) ainda não aplicada
+    // no banco — devolve listas vazias em vez de 500.
+    console.error("[api/goals] findMany failed:", err);
+    return NextResponse.json({ ativas: [], historico: [], naoBatidas: [] });
+  }
 
   const toCard = (g: typeof goals[number]) => ({
     id: g.id,

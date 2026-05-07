@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { calculateCommission, formatCents } from "@/lib/commission";
-import { PeriodPicker, parsePeriod } from "@/components/layout/PeriodPicker";
+import { PeriodPicker } from "@/components/layout/PeriodPicker";
+import { parsePeriod } from "@/lib/period";
 
 async function safe<T>(label: string, q: () => Promise<T>, fallback: T): Promise<T> {
   try {
