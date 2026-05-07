@@ -48,7 +48,9 @@ interface Props {
   daysLeftInSeason: number;
 }
 
-const REFRESH_MS = 30_000;
+// Auto-refresh do dashboard a cada 1 minuto. O botão "Atualizar" no
+// header dispara router.refresh() instantâneo quando precisa antes disso.
+const REFRESH_MS = 60_000;
 
 export function TeamDashboard({
   members,
