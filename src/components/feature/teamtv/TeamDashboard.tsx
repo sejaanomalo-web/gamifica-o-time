@@ -134,10 +134,15 @@ export function TeamDashboard({
   return (
     <div
       ref={containerRef}
-      className="relative min-h-screen bg-[#070709] flex flex-col"
+      className="relative bg-[#070709] flex flex-col"
       style={{
+        // Em tela cheia: trava no viewport e nada de scroll — tudo precisa
+        // caber. Fora dela: comportamento normal de página rolável.
+        height: fullscreen ? "100vh" : undefined,
+        minHeight: fullscreen ? undefined : "100vh",
         paddingBottom: fullscreen ? 0 : 96,
-        overflowX: "hidden",
+        overflow: fullscreen ? "hidden" : undefined,
+        overflowX: fullscreen ? undefined : "hidden",
       }}
     >
       {/* Estilo pra esconder shell quando body.tv-mode */}
@@ -187,15 +192,25 @@ export function TeamDashboard({
         transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      <div className="relative z-10 px-6 md:px-10 py-8 md:py-10 max-w-[1600px] mx-auto w-full flex-1">
+      <div
+        className="relative z-10 px-6 md:px-10 max-w-[1600px] mx-auto w-full flex-1 flex flex-col"
+        style={{
+          paddingTop: fullscreen ? "clamp(16px, 2vh, 28px)" : "2rem",
+          paddingBottom: fullscreen ? "clamp(8px, 1.5vh, 20px)" : "2.5rem",
+          minHeight: 0,
+          gap: fullscreen ? "clamp(12px, 1.5vh, 24px)" : "2rem",
+        }}
+      >
         {/* HEADER: brand + clock + fullscreen */}
-        <div className="flex items-end justify-between gap-6 flex-wrap mb-10">
+        <div className="flex items-end justify-between gap-6 flex-wrap flex-shrink-0">
           <div>
-            <span className="label-caps mb-2 block">Game Anômalo · Time</span>
+            <span className="label-caps mb-1 block">Game Anômalo · Time</span>
             <h1
               className="display-bold text-white"
               style={{
-                fontSize: "clamp(3rem, 6vw, 5.5rem)",
+                fontSize: fullscreen
+                  ? "clamp(2rem, 4.5vw, 3.5rem)"
+                  : "clamp(3rem, 6vw, 5.5rem)",
                 lineHeight: 0.92,
               }}
             >
@@ -203,14 +218,20 @@ export function TeamDashboard({
               <span className="display-italic text-[#C9953A]">anômalo.</span>
             </h1>
           </div>
-          <div className="flex items-end gap-6">
+          <div className="flex items-end gap-4">
             <div className="text-right">
               <span className="label-caps label-caps-muted block mb-1">
                 {dateLabel}
               </span>
               <span
                 className="text-mono text-white tabular-nums block"
-                style={{ fontSize: "clamp(2rem, 4.5vw, 3.5rem)", letterSpacing: "-0.02em", lineHeight: 1 }}
+                style={{
+                  fontSize: fullscreen
+                    ? "clamp(1.5rem, 3vw, 2.25rem)"
+                    : "clamp(2rem, 4.5vw, 3.5rem)",
+                  letterSpacing: "-0.02em",
+                  lineHeight: 1,
+                }}
               >
                 {timeLabel}
               </span>
@@ -221,7 +242,7 @@ export function TeamDashboard({
             <button
               onClick={toggleFullscreen}
               className="btn-pill btn-ghost flex-shrink-0"
-              style={{ height: 44, padding: "0 18px", fontSize: 12 }}
+              style={{ height: 40, padding: "0 16px", fontSize: 11 }}
               aria-label={fullscreen ? "Sair de tela cheia" : "Tela cheia"}
             >
               {fullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
@@ -230,7 +251,7 @@ export function TeamDashboard({
             <button
               onClick={() => router.refresh()}
               className="btn-pill btn-ghost flex-shrink-0"
-              style={{ height: 44, padding: "0 18px", fontSize: 12 }}
+              style={{ height: 40, padding: "0 16px", fontSize: 11 }}
               aria-label="Atualizar agora"
             >
               <RefreshCw size={14} />
@@ -240,35 +261,45 @@ export function TeamDashboard({
         </div>
 
         {/* STATS GLOBAIS */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 flex-shrink-0">
           <StatBig
             icon={<Zap size={18} />}
             label="XP do time"
             value={<CountUp value={totalSeasonXp} duration={1.6} />}
             tone="primary"
+            compact={fullscreen}
           />
           <StatBig
             icon={<Trophy size={18} />}
             label="Entregas hoje"
             value={<CountUp value={totalDeliveriesToday} duration={1.2} />}
+            compact={fullscreen}
           />
           <StatBig
             icon={<Trophy size={18} />}
             label="Esta semana"
             value={<CountUp value={totalDeliveriesWeek} duration={1.4} />}
+            compact={fullscreen}
           />
           <StatBig
             icon={<Award size={18} />}
             label="Metas batidas"
             value={<CountUp value={totalGoalsBeaten} duration={1.4} />}
+            compact={fullscreen}
           />
         </div>
 
         {/* MAIN GRID: leaderboard + spotlight + activity */}
-        <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_1fr] gap-6">
+        <div
+          className="grid grid-cols-1 xl:grid-cols-[1.4fr_1fr] gap-4 md:gap-6 flex-1"
+          style={{ minHeight: 0 }}
+        >
           {/* LEFT: leaderboard */}
-          <section className="ano-card p-6 md:p-8">
-            <div className="flex items-baseline justify-between mb-6">
+          <section
+            className="ano-card p-5 md:p-6 flex flex-col"
+            style={{ minHeight: 0 }}
+          >
+            <div className="flex items-baseline justify-between mb-4 flex-shrink-0">
               <h2 className="label-caps">Ranking ao vivo</h2>
               <span className="label-caps label-caps-muted">
                 <Users size={12} className="inline mr-1.5 -mt-0.5" />
@@ -281,7 +312,10 @@ export function TeamDashboard({
                 Sem dados de temporada ainda. Cadastre entregas pra começar.
               </p>
             ) : (
-              <ul className="flex flex-col gap-3">
+              <ul
+                className="flex flex-col gap-2 flex-1 overflow-y-auto pr-1"
+                style={{ minHeight: 0 }}
+              >
                 {members.map((m, i) => {
                   const pct = (m.xp / maxXp) * 100;
                   const isLeader = i === 0;
@@ -414,15 +448,23 @@ export function TeamDashboard({
           </section>
 
           {/* RIGHT: spotlight + ticker activity */}
-          <div className="flex flex-col gap-6">
-            <section className="ano-card p-6 md:p-7 relative overflow-hidden">
-              <h2 className="label-caps mb-4">Em destaque</h2>
+          <div
+            className="flex flex-col gap-4 md:gap-6"
+            style={{ minHeight: 0 }}
+          >
+            <section className="ano-card p-5 md:p-6 relative overflow-hidden flex-shrink-0">
+              <h2 className="label-caps mb-3">Em destaque</h2>
               <SpotlightCard member={top5[highlightIdx] ?? null} avgLevel={avgLevel} leader={leader} />
             </section>
 
-            <section className="ano-card-flat p-6 md:p-7 relative">
-              <h2 className="label-caps mb-4">Atividade ao vivo</h2>
-              <ActivityTicker events={activity} />
+            <section
+              className="ano-card-flat p-5 md:p-6 relative flex-1 flex flex-col"
+              style={{ minHeight: 0 }}
+            >
+              <h2 className="label-caps mb-3 flex-shrink-0">Atividade ao vivo</h2>
+              <div className="flex-1" style={{ minHeight: 0 }}>
+                <ActivityTicker events={activity} />
+              </div>
             </section>
           </div>
         </div>
@@ -431,8 +473,8 @@ export function TeamDashboard({
 
       {/* MANIFESTO SOU ANÔMALO — assinatura cultural ao pé da página, no
           background. Sem card, sem borda, visível também em tela cheia. */}
-      <div className="relative z-10 px-6 md:px-10 max-w-[1600px] mx-auto w-full">
-        <SouAnomaloManifesto />
+      <div className="relative z-10 px-6 md:px-10 max-w-[1600px] mx-auto w-full flex-shrink-0">
+        <SouAnomaloManifesto compact={fullscreen} />
       </div>
     </div>
   );
@@ -443,15 +485,17 @@ function StatBig({
   label,
   value,
   tone,
+  compact,
 }: {
   icon: React.ReactNode;
   label: string;
   value: React.ReactNode;
   tone?: "primary";
+  compact?: boolean;
 }) {
   return (
     <div
-      className="ano-card-flat p-5 md:p-6 relative overflow-hidden"
+      className={compact ? "ano-card-flat p-3 md:p-4 relative overflow-hidden" : "ano-card-flat p-5 md:p-6 relative overflow-hidden"}
       style={{
         boxShadow:
           tone === "primary"
@@ -459,7 +503,7 @@ function StatBig({
             : "inset 0 0 0 1px rgba(255,255,255,0.08)",
       }}
     >
-      <div className="flex items-center gap-2 mb-3">
+      <div className={compact ? "flex items-center gap-2 mb-1" : "flex items-center gap-2 mb-3"}>
         <span style={{ color: tone === "primary" ? "#C9953A" : "#8A7850" }}>
           {icon}
         </span>
@@ -468,7 +512,7 @@ function StatBig({
       <span
         className="text-mono text-white tabular-nums block"
         style={{
-          fontSize: "clamp(2rem, 4vw, 3rem)",
+          fontSize: compact ? "clamp(1.5rem, 2.5vw, 2.25rem)" : "clamp(2rem, 4vw, 3rem)",
           fontWeight: 700,
           letterSpacing: "-0.03em",
           lineHeight: 1,
@@ -603,7 +647,7 @@ function ActivityTicker({ events }: { events: ActivityEvent[] }) {
   // Duplica a lista pra fazer scroll loop infinito
   const loop = [...events, ...events];
   return (
-    <div className="relative overflow-hidden" style={{ height: 360 }}>
+    <div className="relative overflow-hidden h-full" style={{ minHeight: 200 }}>
       <motion.div
         animate={{ y: [0, -50 * events.length] }}
         transition={{
@@ -686,16 +730,16 @@ const TAG_BY_TYPE: Record<string, { label: string; color: string }> = {
   shop_redeem: { label: "Loja", color: "#8A7850" },
 };
 
-function SouAnomaloManifesto() {
+function SouAnomaloManifesto({ compact }: { compact?: boolean }) {
   return (
     <section
       aria-label="Manifesto cultural da Anômalo Hub"
       className="manifesto-section"
       style={{
-        paddingTop: "clamp(40px, 5vw, 96px)",
-        paddingBottom: "clamp(28px, 3vw, 56px)",
+        paddingTop: compact ? "clamp(14px, 1.6vh, 24px)" : "clamp(40px, 5vw, 96px)",
+        paddingBottom: compact ? "clamp(8px, 1vh, 16px)" : "clamp(28px, 3vw, 56px)",
         borderTop: "1px solid rgba(201,149,58,0.10)",
-        marginTop: "clamp(48px, 6vw, 96px)",
+        marginTop: compact ? "clamp(8px, 1vh, 18px)" : "clamp(48px, 6vw, 96px)",
       }}
     >
       <div
@@ -704,7 +748,7 @@ function SouAnomaloManifesto() {
           display: "grid",
           gridTemplateColumns: "1fr auto 1fr",
           alignItems: "center",
-          gap: "clamp(32px, 4.5vw, 96px)",
+          gap: compact ? "clamp(20px, 3vw, 56px)" : "clamp(32px, 4.5vw, 96px)",
         }}
       >
         <ul
@@ -716,7 +760,7 @@ function SouAnomaloManifesto() {
             textAlign: "right",
             display: "flex",
             flexDirection: "column",
-            gap: "clamp(8px, 0.9vw, 16px)",
+            gap: compact ? "clamp(2px, 0.4vw, 6px)" : "clamp(8px, 0.9vw, 16px)",
           }}
         >
           {[
@@ -728,8 +772,8 @@ function SouAnomaloManifesto() {
               key={frase}
               style={{
                 color: "#8A7850",
-                fontSize: "clamp(13px, 1vw, 17px)",
-                lineHeight: 1.45,
+                fontSize: compact ? "clamp(11px, 0.9vw, 14px)" : "clamp(13px, 1vw, 17px)",
+                lineHeight: 1.4,
                 fontWeight: 400,
                 letterSpacing: "-0.005em",
               }}
@@ -744,7 +788,7 @@ function SouAnomaloManifesto() {
           aria-hidden
           style={{
             width: 1,
-            height: "clamp(56px, 7vw, 110px)",
+            height: compact ? "clamp(40px, 5vw, 70px)" : "clamp(56px, 7vw, 110px)",
             background: "rgba(201,149,58,0.30)",
           }}
         />
@@ -753,7 +797,7 @@ function SouAnomaloManifesto() {
           className="manifesto-signature"
           style={{
             color: "#FFFFFF",
-            fontSize: "clamp(28px, 3vw, 56px)",
+            fontSize: compact ? "clamp(20px, 2vw, 32px)" : "clamp(28px, 3vw, 56px)",
             fontWeight: 900,
             letterSpacing: "0.06em",
             textTransform: "uppercase",
