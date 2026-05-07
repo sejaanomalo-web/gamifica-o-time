@@ -4,6 +4,7 @@
 import { redirect } from "next/navigation";
 import { requireAppUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getCollaboratorIds } from "@/lib/collaborators";
 import { TeamDashboard, type TeamMember, type ActivityEvent } from "@/components/feature/teamtv/TeamDashboard";
 
 async function safe<T>(label: string, q: () => Promise<T>, fallback: T): Promise<T> {
@@ -32,6 +33,31 @@ export default async function EquipePage() {
   dayStart.setHours(0, 0, 0, 0);
   const weekStart = new Date(Date.now() - 7 * 86400000);
 
+  // Apenas COLABORADORes entram no game. ADMINs são gestores e ficam de fora
+  // de qualquer ranking, contagem ou destaque.
+  const collaboratorIds = await safe(
+    "collaboratorIds",
+    () => getCollaboratorIds(),
+    [] as string[],
+  );
+
+  // Sempre busca todos os colaboradores (mesmo os zerados aparecem na equipe)
+  const collaboratorUsers = await safe(
+    "user.findMany collaborators",
+    () =>
+      prisma.user.findMany({
+        where: { role: "COLABORADOR" },
+        select: { id: true, name: true, area: true, avatarUrl: true },
+        orderBy: { name: "asc" },
+      }),
+    [] as Array<{
+      id: string;
+      name: string;
+      area: string | null;
+      avatarUrl: string | null;
+    }>,
+  );
+
   let members: TeamMember[] = [];
   let totalSeasonXp = 0;
   let totalDeliveriesToday = 0;
@@ -41,7 +67,7 @@ export default async function EquipePage() {
   let daysLeftInSeason = 0;
   let seasonNumber = 0;
 
-  if (season) {
+  if (season && collaboratorIds.length > 0) {
     seasonNumber = season.number;
     daysLeftInSeason = Math.max(
       0,
@@ -53,20 +79,25 @@ export default async function EquipePage() {
       async () => {
         const rows = await prisma.xpEvent.groupBy({
           by: ["userId"],
-          where: { seasonId: season.id },
+          where: { seasonId: season.id, userId: { in: collaboratorIds } },
           _sum: { amount: true },
         });
         return rows.map((r) => ({ userId: r.userId, sum: r._sum.amount ?? 0 }));
       },
       [] as { userId: string; sum: number }[],
     );
+    const totalsMap = new Map(totals.map((t) => [t.userId, t.sum]));
 
     const weekly = await safe(
       "xpEvent.groupBy weekly",
       async () => {
         const rows = await prisma.xpEvent.groupBy({
           by: ["userId"],
-          where: { seasonId: season.id, createdAt: { gte: weekStart } },
+          where: {
+            seasonId: season.id,
+            createdAt: { gte: weekStart },
+            userId: { in: collaboratorIds },
+          },
           _sum: { amount: true },
         });
         return rows.map((r) => ({ userId: r.userId, sum: r._sum.amount ?? 0 }));
@@ -80,7 +111,10 @@ export default async function EquipePage() {
       async () => {
         const rows = await prisma.delivery.groupBy({
           by: ["userId"],
-          where: { deliveredAt: { gte: dayStart } },
+          where: {
+            deliveredAt: { gte: dayStart },
+            userId: { in: collaboratorIds },
+          },
           _sum: { count: true },
         });
         return rows.map((r) => ({ userId: r.userId, n: r._sum.count ?? 0 }));
@@ -94,7 +128,10 @@ export default async function EquipePage() {
       async () => {
         const rows = await prisma.delivery.groupBy({
           by: ["userId"],
-          where: { deliveredAt: { gte: weekStart } },
+          where: {
+            deliveredAt: { gte: weekStart },
+            userId: { in: collaboratorIds },
+          },
           _sum: { count: true },
         });
         return rows.map((r) => ({ userId: r.userId, n: r._sum.count ?? 0 }));
@@ -103,29 +140,16 @@ export default async function EquipePage() {
     );
     const weekMap = new Map(weekDeliveries.map((w) => [w.userId, w.n]));
 
-    const userIds = totals.map((t) => t.userId);
-    const users = await safe(
-      "user.findMany",
-      () =>
-        prisma.user.findMany({
-          where: { id: { in: userIds } },
-          select: { id: true, name: true, area: true, avatarUrl: true },
-        }),
-      [] as Array<{
-        id: string;
-        name: string;
-        area: string | null;
-        avatarUrl: string | null;
-      }>,
-    );
-    const userMap = new Map(users.map((u) => [u.id, u]));
-
     const goalsCounts = await safe(
       "goal.groupBy concluidas",
       async () => {
         const rows = await prisma.goal.groupBy({
           by: ["ownerId"],
-          where: { status: "CONCLUIDA", seasonId: season.id },
+          where: {
+            status: "CONCLUIDA",
+            seasonId: season.id,
+            ownerId: { in: collaboratorIds },
+          },
           _count: { _all: true },
         });
         return rows.map((r) => ({ userId: r.ownerId, n: r._count._all }));
@@ -134,20 +158,20 @@ export default async function EquipePage() {
     );
     const goalsMap = new Map(goalsCounts.map((g) => [g.userId, g.n]));
 
-    members = totals
-      .map((t) => {
-        const u = userMap.get(t.userId);
+    members = collaboratorUsers
+      .map((u) => {
+        const xp = totalsMap.get(u.id) ?? 0;
         return {
-          userId: t.userId,
-          name: u?.name ?? "—",
-          area: u?.area ?? null,
-          avatarUrl: u?.avatarUrl ?? null,
-          xp: t.sum,
-          weekXp: weeklyMap.get(t.userId) ?? 0,
-          todayCount: todayMap.get(t.userId) ?? 0,
-          weekCount: weekMap.get(t.userId) ?? 0,
-          goalsBeaten: goalsMap.get(t.userId) ?? 0,
-          level: Math.floor(t.sum / 1000) + 1,
+          userId: u.id,
+          name: u.name,
+          area: u.area,
+          avatarUrl: u.avatarUrl,
+          xp,
+          weekXp: weeklyMap.get(u.id) ?? 0,
+          todayCount: todayMap.get(u.id) ?? 0,
+          weekCount: weekMap.get(u.id) ?? 0,
+          goalsBeaten: goalsMap.get(u.id) ?? 0,
+          level: Math.floor(xp / 1000) + 1,
         };
       })
       .sort((a, b) => b.xp - a.xp);
@@ -170,6 +194,7 @@ export default async function EquipePage() {
     "muralEvent.findMany",
     () =>
       prisma.muralEvent.findMany({
+        where: { user: { role: "COLABORADOR" } },
         orderBy: { createdAt: "desc" },
         take: 30,
         include: { user: { select: { name: true, avatarUrl: true } } },

@@ -45,19 +45,34 @@ export default async function RankingPage() {
     you: boolean;
   }> = [];
 
-  if (season) {
+  // ADMINs não competem nem aparecem no Time. Sempre lista todos colaboradores
+  // (mesmo zerados) pra ninguém sumir do mural até começar a registrar.
+  const collaboratorUsers = await safe(
+    "user.findMany collaborators",
+    () =>
+      prisma.user.findMany({
+        where: { role: "COLABORADOR" },
+        select: { id: true, name: true, area: true, avatarUrl: true },
+        orderBy: { name: "asc" },
+      }),
+    [] as Array<{ id: string; name: string; area: string | null; avatarUrl: string | null }>,
+  );
+  const collaboratorIds = collaboratorUsers.map((u) => u.id);
+
+  if (season && collaboratorIds.length > 0) {
     const totals = await safe(
       "xpEvent.groupBy totals",
       async () => {
         const rows = await prisma.xpEvent.groupBy({
           by: ["userId"],
-          where: { seasonId: season.id },
+          where: { seasonId: season.id, userId: { in: collaboratorIds } },
           _sum: { amount: true },
         });
         return rows.map((r) => ({ userId: r.userId, sum: r._sum.amount ?? 0 }));
       },
       [] as { userId: string; sum: number }[],
     );
+    const totalsMap = new Map(totals.map((t) => [t.userId, t.sum]));
 
     const since = new Date(Date.now() - 7 * 86400000);
     const weekly = await safe(
@@ -65,7 +80,11 @@ export default async function RankingPage() {
       async () => {
         const rows = await prisma.xpEvent.groupBy({
           by: ["userId"],
-          where: { seasonId: season.id, createdAt: { gte: since } },
+          where: {
+            seasonId: season.id,
+            createdAt: { gte: since },
+            userId: { in: collaboratorIds },
+          },
           _sum: { amount: true },
         });
         return rows.map((r) => ({ userId: r.userId, sum: r._sum.amount ?? 0 }));
@@ -80,7 +99,10 @@ export default async function RankingPage() {
       async () => {
         const rows = await prisma.delivery.groupBy({
           by: ["userId"],
-          where: { deliveredAt: { gte: dayStart } },
+          where: {
+            deliveredAt: { gte: dayStart },
+            userId: { in: collaboratorIds },
+          },
           _sum: { count: true },
         });
         return rows.map((r) => ({ userId: r.userId, n: r._sum.count ?? 0 }));
@@ -89,30 +111,30 @@ export default async function RankingPage() {
     );
     const todayMap = new Map(todayDeliveries.map((t) => [t.userId, t.n]));
 
-    const userIds = totals.map((t) => t.userId);
-    const users = await safe(
-      "user.findMany",
-      () =>
-        prisma.user.findMany({
-          where: { id: { in: userIds } },
-          select: { id: true, name: true, area: true, avatarUrl: true },
-        }),
-      [] as Array<{ id: string; name: string; area: string | null; avatarUrl: string | null }>,
-    );
-    const userMap = new Map(users.map((u) => [u.id, u]));
-
-    ranking = totals
-      .map((t) => ({
-        userId: t.userId,
-        name: userMap.get(t.userId)?.name ?? "—",
-        area: userMap.get(t.userId)?.area ?? null,
-        avatarUrl: userMap.get(t.userId)?.avatarUrl ?? null,
-        xp: t.sum,
-        delta: weeklyMap.get(t.userId) ?? 0,
-        todayCount: todayMap.get(t.userId) ?? 0,
-        you: t.userId === user.id,
+    ranking = collaboratorUsers
+      .map((u) => ({
+        userId: u.id,
+        name: u.name,
+        area: u.area,
+        avatarUrl: u.avatarUrl,
+        xp: totalsMap.get(u.id) ?? 0,
+        delta: weeklyMap.get(u.id) ?? 0,
+        todayCount: todayMap.get(u.id) ?? 0,
+        you: u.id === user.id,
       }))
       .sort((a, b) => b.xp - a.xp);
+  } else {
+    // Sem temporada ativa, ainda assim mostra os colaboradores zerados.
+    ranking = collaboratorUsers.map((u) => ({
+      userId: u.id,
+      name: u.name,
+      area: u.area,
+      avatarUrl: u.avatarUrl,
+      xp: 0,
+      delta: 0,
+      todayCount: 0,
+      you: u.id === user.id,
+    }));
   }
 
   type MuralEventWithUser = Awaited<
@@ -124,6 +146,7 @@ export default async function RankingPage() {
     "muralEvent.findMany",
     () =>
       prisma.muralEvent.findMany({
+        where: { user: { role: "COLABORADOR" } },
         orderBy: { createdAt: "desc" },
         take: 30,
         include: { user: { select: { name: true, avatarUrl: true } } },

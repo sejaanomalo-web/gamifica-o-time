@@ -13,7 +13,9 @@ const KIND_LABEL: Record<string, { tag: string; color: string }> = {
 
 export default async function MuralPage() {
   await requireAppUser();
+  // Mural reflete só o que colaboradores fazem — ADMIN é gestor, não compete.
   const events = await prisma.muralEvent.findMany({
+    where: { user: { role: "COLABORADOR" } },
     orderBy: { createdAt: "desc" },
     take: 80,
     include: { user: { select: { name: true } } },

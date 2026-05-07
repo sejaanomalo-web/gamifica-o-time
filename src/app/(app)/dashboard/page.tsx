@@ -68,22 +68,39 @@ export default async function DashboardPage() {
     [] as Awaited<ReturnType<typeof prisma.muralEvent.findMany>>,
   );
 
-  const ranking: Array<{ userId: string }> = season
-    ? await safe<Array<{ userId: string }>>(
-        "xpEvent.groupBy",
-        async () => {
-          const rows = await prisma.xpEvent.groupBy({
-            by: ["userId"],
-            where: { seasonId: season.id },
-            _sum: { amount: true },
-            orderBy: { _sum: { amount: "desc" } },
-          });
-          return rows.map((r) => ({ userId: r.userId }));
-        },
-        [],
-      )
-    : [];
-  const myPos = ranking.findIndex((r) => r.userId === user.id) + 1;
+  // ADMIN não compete — só colaboradores entram no ranking de posição.
+  const collaboratorIds = await safe(
+    "collaboratorIds",
+    async () => {
+      const rows = await prisma.user.findMany({
+        where: { role: "COLABORADOR" },
+        select: { id: true },
+      });
+      return rows.map((r) => r.id);
+    },
+    [] as string[],
+  );
+
+  const ranking: Array<{ userId: string }> =
+    season && collaboratorIds.length > 0
+      ? await safe<Array<{ userId: string }>>(
+          "xpEvent.groupBy",
+          async () => {
+            const rows = await prisma.xpEvent.groupBy({
+              by: ["userId"],
+              where: { seasonId: season.id, userId: { in: collaboratorIds } },
+              _sum: { amount: true },
+              orderBy: { _sum: { amount: "desc" } },
+            });
+            return rows.map((r) => ({ userId: r.userId }));
+          },
+          [],
+        )
+      : [];
+  // ADMIN nunca aparece no ranking (filtrado acima); user.role==="ADMIN" cai
+  // em -1+1=0, e o JSX já trata 0 como "—".
+  const myPos =
+    user.role === "ADMIN" ? 0 : ranking.findIndex((r) => r.userId === user.id) + 1;
 
   return (
     <div className="px-5 md:px-8 py-8 md:py-12 max-w-5xl mx-auto w-full">

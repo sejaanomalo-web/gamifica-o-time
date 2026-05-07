@@ -94,8 +94,18 @@ export function LogProgressSheet({ open, onOpenChange }: LogProgressSheetProps) 
           entries: rows.map((r) => ({ material: r.material, count: Number(r.qty) })),
         }),
       });
-      if (!res.ok) throw new Error(await res.text());
-      toast.success(`+${totalQty} entregas registradas.`);
+      const data: { ok?: boolean; error?: string; seasonActive?: boolean } = await res
+        .json()
+        .catch(() => ({}));
+      if (!res.ok) {
+        toast.error(data.error ?? "Falha ao registrar. Tenta de novo.");
+        return;
+      }
+      if (data.seasonActive === false) {
+        toast.success(`+${totalQty} entregas registradas (sem temporada ativa, XP não somou).`);
+      } else {
+        toast.success(`+${totalQty} entregas registradas.`);
+      }
       onOpenChange(false);
     } catch {
       toast.error("Falha ao registrar. Tenta de novo.");
