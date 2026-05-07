@@ -12,7 +12,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Maximize2, Minimize2, RefreshCw, Trophy, Zap, Award, Users } from "lucide-react";
 import { CountUp } from "@/components/motion/CountUp";
 import { ConstellationBg } from "@/components/motion/ConstellationBg";
-import { PulsingLambda } from "@/components/motion/PulsingLambda";
 
 export interface TeamMember {
   userId: string;
@@ -135,8 +134,11 @@ export function TeamDashboard({
   return (
     <div
       ref={containerRef}
-      className="relative min-h-screen bg-[#070709] overflow-hidden"
-      style={{ paddingBottom: fullscreen ? 0 : 96 }}
+      className="relative min-h-screen bg-[#070709] flex flex-col"
+      style={{
+        paddingBottom: fullscreen ? 0 : 96,
+        overflowX: "hidden",
+      }}
     >
       {/* Estilo pra esconder shell quando body.tv-mode */}
       <style jsx global>{`
@@ -185,7 +187,7 @@ export function TeamDashboard({
         transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      <div className="relative z-10 px-6 md:px-10 py-8 md:py-10 max-w-[1600px] mx-auto">
+      <div className="relative z-10 px-6 md:px-10 py-8 md:py-10 max-w-[1600px] mx-auto w-full flex-1">
         {/* HEADER: brand + clock + fullscreen */}
         <div className="flex items-end justify-between gap-6 flex-wrap mb-10">
           <div>
@@ -425,16 +427,12 @@ export function TeamDashboard({
           </div>
         </div>
 
-        {/* MANIFESTO SOU ANÔMALO — credo cultural da Anômalo Hub */}
-        <SouAnomaloManifesto />
+      </div>
 
-        {/* LAMBDA gigante decorativo */}
-        <div
-          className="absolute pointer-events-none select-none"
-          style={{ bottom: "8%", right: "5%", opacity: 0.08, zIndex: 0 }}
-        >
-          <PulsingLambda size={260} duration={6} opacityRange={[0.6, 1]} />
-        </div>
+      {/* MANIFESTO SOU ANÔMALO — assinatura cultural ao pé da página, no
+          background. Sem card, sem borda, visível também em tela cheia. */}
+      <div className="relative z-10 px-6 md:px-10 max-w-[1600px] mx-auto w-full">
+        <SouAnomaloManifesto />
       </div>
     </div>
   );
@@ -692,35 +690,21 @@ function SouAnomaloManifesto() {
   return (
     <section
       aria-label="Manifesto cultural da Anômalo Hub"
-      className="manifesto-section relative overflow-hidden"
+      className="manifesto-section"
       style={{
-        marginTop: "clamp(40px, 5vw, 80px)",
-        background: "#0A0A0A",
-        border: "1px solid rgba(201,149,58,0.15)",
-        borderRadius: 12,
-        padding: "clamp(40px, 5vw, 96px) clamp(28px, 4vw, 80px)",
-        minHeight: "clamp(220px, 30vh, 400px)",
+        paddingTop: "clamp(40px, 5vw, 96px)",
+        paddingBottom: "clamp(28px, 3vw, 56px)",
+        borderTop: "1px solid rgba(201,149,58,0.10)",
+        marginTop: "clamp(48px, 6vw, 96px)",
       }}
     >
-      <span
-        className="label-caps block"
-        style={{
-          color: "#C9953A",
-          letterSpacing: "0.16em",
-          fontSize: "clamp(11px, 0.78vw, 13px)",
-          marginBottom: "clamp(24px, 3vw, 48px)",
-        }}
-      >
-        Manifesto · Cultura
-      </span>
-
       <div
         className="manifesto-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "1fr auto 1fr",
           alignItems: "center",
-          gap: "clamp(28px, 4vw, 80px)",
+          gap: "clamp(32px, 4.5vw, 96px)",
         }}
       >
         <ul
@@ -732,7 +716,7 @@ function SouAnomaloManifesto() {
             textAlign: "right",
             display: "flex",
             flexDirection: "column",
-            gap: "clamp(10px, 1vw, 18px)",
+            gap: "clamp(8px, 0.9vw, 16px)",
           }}
         >
           {[
@@ -744,8 +728,8 @@ function SouAnomaloManifesto() {
               key={frase}
               style={{
                 color: "#8A7850",
-                fontSize: "clamp(14px, 1.05vw, 18px)",
-                lineHeight: 1.5,
+                fontSize: "clamp(13px, 1vw, 17px)",
+                lineHeight: 1.45,
                 fontWeight: 400,
                 letterSpacing: "-0.005em",
               }}
@@ -760,7 +744,7 @@ function SouAnomaloManifesto() {
           aria-hidden
           style={{
             width: 1,
-            height: "clamp(60px, 8vw, 120px)",
+            height: "clamp(56px, 7vw, 110px)",
             background: "rgba(201,149,58,0.30)",
           }}
         />
@@ -769,7 +753,7 @@ function SouAnomaloManifesto() {
           className="manifesto-signature"
           style={{
             color: "#FFFFFF",
-            fontSize: "clamp(32px, 3.5vw, 64px)",
+            fontSize: "clamp(28px, 3vw, 56px)",
             fontWeight: 900,
             letterSpacing: "0.06em",
             textTransform: "uppercase",
@@ -781,22 +765,6 @@ function SouAnomaloManifesto() {
           Sou <span style={{ color: "#C9953A" }}>Anômalo.</span>
         </strong>
       </div>
-
-      <span
-        aria-hidden
-        style={{
-          position: "absolute",
-          bottom: 12,
-          right: 16,
-          color: "rgba(201,149,58,0.40)",
-          fontSize: 14,
-          fontWeight: 300,
-          lineHeight: 1,
-          fontFamily: "Inter, sans-serif",
-        }}
-      >
-        Λ
-      </span>
 
       <style jsx>{`
         @media (max-width: 768px) {
