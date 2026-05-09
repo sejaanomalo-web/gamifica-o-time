@@ -52,6 +52,30 @@ interface Props {
 // header dispara router.refresh() instantâneo quando precisa antes disso.
 const REFRESH_MS = 60_000;
 
+// Screen Orientation API — best effort. Não-suportado (iPhone Safari)
+// silenciosamente vira no-op.
+type ScreenOrientationLockable = ScreenOrientation & {
+  lock?: (orientation: "landscape" | "portrait" | "any") => Promise<void>;
+};
+
+function lockOrientationLandscape() {
+  if (typeof screen === "undefined" || !screen.orientation) return;
+  const o = screen.orientation as ScreenOrientationLockable;
+  if (typeof o.lock !== "function") return;
+  o.lock("landscape").catch(() => {
+    // iPhone Safari, ou usuário desabilitou — ignora
+  });
+}
+
+function unlockOrientation() {
+  if (typeof screen === "undefined" || !screen.orientation) return;
+  try {
+    screen.orientation.unlock?.();
+  } catch {
+    // ignora
+  }
+}
+
 export function TeamDashboard({
   members,
   activity,
@@ -90,9 +114,16 @@ export function TeamDashboard({
     return () => clearInterval(id);
   }, [members.length]);
 
-  // Sync state com fullscreen real
+  // Sync state quando user pressiona ESC ou navegador solta o fullscreen.
+  // (Não setamos true aqui — quem ativa é o toggle, pra suportar iOS
+  // Safari que não tem Fullscreen API mas ainda recebe modo TV via CSS.)
   useEffect(() => {
-    const onChange = () => setFullscreen(!!document.fullscreenElement);
+    const onChange = () => {
+      if (!document.fullscreenElement) {
+        setFullscreen(false);
+        unlockOrientation();
+      }
+    };
     document.addEventListener("fullscreenchange", onChange);
     return () => document.removeEventListener("fullscreenchange", onChange);
   }, []);
@@ -107,16 +138,33 @@ export function TeamDashboard({
   }, [fullscreen]);
 
   const toggleFullscreen = useCallback(async () => {
-    try {
+    if (fullscreen) {
+      // Sair: solta orientação + sai do fullscreen real (se ativo).
+      unlockOrientation();
       if (document.fullscreenElement) {
-        await document.exitFullscreen();
-      } else {
-        await document.documentElement.requestFullscreen();
+        try {
+          await document.exitFullscreen();
+        } catch (err) {
+          console.warn("exitFullscreen failed", err);
+        }
       }
-    } catch (err) {
-      console.error(err);
+      setFullscreen(false);
+      return;
     }
-  }, []);
+
+    // Entrar: tenta API real; se falhar (iPhone Safari), segue só com
+    // CSS mode (body.tv-mode esconde shell e ocupa o viewport).
+    try {
+      await document.documentElement.requestFullscreen();
+    } catch (err) {
+      console.warn("requestFullscreen indisponível, usando CSS mode:", err);
+    }
+
+    // Trava em paisagem se a API estiver disponível (Android Chrome,
+    // iPad). iPhone Safari ignora silenciosamente.
+    lockOrientationLandscape();
+    setFullscreen(true);
+  }, [fullscreen]);
 
   const dateLabel = now.toLocaleDateString("pt-BR", {
     weekday: "long",
@@ -293,9 +341,15 @@ export function TeamDashboard({
 
         {/* MAIN GRID: leaderboard + spotlight + activity */}
         {/* Em fullscreen, limita a 55vh pra deixar o manifesto respirar
-            embaixo sem ser comprimido. Fora dela, comportamento normal. */}
+            embaixo sem ser comprimido. Fora dela, comportamento normal.
+            Em fullscreen mobile/tablet, força 2 colunas — landscape de
+            celular tem ~700-900px de largura, dá pra dividir. */}
         <div
-          className="grid grid-cols-1 xl:grid-cols-[1.4fr_1fr] gap-4 md:gap-6 flex-1"
+          className={
+            fullscreen
+              ? "grid grid-cols-1 md:grid-cols-[1.4fr_1fr] gap-4 md:gap-6 flex-1"
+              : "grid grid-cols-1 xl:grid-cols-[1.4fr_1fr] gap-4 md:gap-6 flex-1"
+          }
           style={{
             minHeight: 0,
             maxHeight: fullscreen ? "55vh" : undefined,
