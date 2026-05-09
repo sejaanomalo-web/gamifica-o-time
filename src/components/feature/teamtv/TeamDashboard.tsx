@@ -184,15 +184,26 @@ export function TeamDashboard({
   return (
     <div
       ref={containerRef}
-      className="relative bg-[#070709] flex flex-col"
+      className="relative bg-[#070709]"
       style={{
-        // Em tela cheia: trava no viewport e nada de scroll — tudo precisa
-        // caber. Fora dela: comportamento normal de página rolável.
-        height: fullscreen ? "100vh" : undefined,
-        minHeight: fullscreen ? undefined : "100vh",
-        paddingBottom: fullscreen ? 0 : 96,
-        overflow: fullscreen ? "hidden" : undefined,
-        overflowX: fullscreen ? undefined : "hidden",
+        // Em tela cheia: grid de 2 linhas (conteúdo principal / manifesto)
+        // travado em 100dvh (dynamic viewport — preciso em mobile). Inner
+        // content distribui header/stats/grid via flex-col interno.
+        // Fora dela: flex column normal (rolável).
+        ...(fullscreen
+          ? {
+              display: "grid",
+              gridTemplateRows: "minmax(0, 1fr) auto",
+              height: "100dvh",
+              overflow: "hidden",
+            }
+          : {
+              display: "flex",
+              flexDirection: "column",
+              minHeight: "100vh",
+              paddingBottom: 96,
+              overflowX: "hidden",
+            }),
       }}
     >
       {/* Estilo pra esconder shell quando body.tv-mode */}
@@ -243,23 +254,25 @@ export function TeamDashboard({
       />
 
       <div
-        className="relative z-10 px-6 md:px-10 max-w-[1600px] mx-auto w-full flex-1 flex flex-col"
+        className="relative z-10 max-w-[1600px] mx-auto w-full flex flex-col"
         style={{
-          paddingTop: fullscreen ? "clamp(16px, 2vh, 28px)" : "2rem",
-          paddingBottom: fullscreen ? "clamp(8px, 1.5vh, 20px)" : "2.5rem",
+          paddingLeft: fullscreen ? "clamp(12px, 2vw, 40px)" : "1.5rem",
+          paddingRight: fullscreen ? "clamp(12px, 2vw, 40px)" : "1.5rem",
+          paddingTop: fullscreen ? "clamp(10px, 1.6vh, 28px)" : "2rem",
+          paddingBottom: fullscreen ? "clamp(6px, 1vh, 16px)" : "2.5rem",
           minHeight: 0,
-          gap: fullscreen ? "clamp(12px, 1.5vh, 24px)" : "2rem",
+          gap: fullscreen ? "clamp(8px, 1.2vh, 20px)" : "2rem",
         }}
       >
         {/* HEADER: brand + clock + fullscreen */}
-        <div className="flex items-end justify-between gap-6 flex-wrap flex-shrink-0">
+        <div className="flex items-end justify-between gap-3 md:gap-6 flex-wrap flex-shrink-0">
           <div>
             <span className="label-caps mb-1 block">Game Anômalo · Time</span>
             <h1
               className="display-bold text-white"
               style={{
                 fontSize: fullscreen
-                  ? "clamp(2rem, 4.5vw, 3.5rem)"
+                  ? "clamp(1.25rem, min(4vw, 6vh), 3rem)"
                   : "clamp(3rem, 6vw, 5.5rem)",
                 lineHeight: 0.92,
               }}
@@ -268,16 +281,19 @@ export function TeamDashboard({
               <span className="display-italic text-[#C9953A]">anômalo.</span>
             </h1>
           </div>
-          <div className="flex items-end gap-4">
+          <div className="flex items-end gap-2 md:gap-4">
             <div className="text-right">
-              <span className="label-caps label-caps-muted block mb-1">
+              <span
+                className="label-caps label-caps-muted block mb-1"
+                style={{ fontSize: fullscreen ? "clamp(8px, 1.1vh, 11px)" : undefined }}
+              >
                 {dateLabel}
               </span>
               <span
                 className="text-mono text-white tabular-nums block"
                 style={{
                   fontSize: fullscreen
-                    ? "clamp(1.5rem, 3vw, 2.25rem)"
+                    ? "clamp(0.95rem, min(2.6vw, 4vh), 2rem)"
                     : "clamp(2rem, 4.5vw, 3.5rem)",
                   letterSpacing: "-0.02em",
                   lineHeight: 1,
@@ -285,26 +301,37 @@ export function TeamDashboard({
               >
                 {timeLabel}
               </span>
-              <span className="label-caps text-[#C9953A] mt-1 block">
+              <span
+                className="label-caps text-[#C9953A] mt-1 block"
+                style={{ fontSize: fullscreen ? "clamp(8px, 1.1vh, 11px)" : undefined }}
+              >
                 Temporada {String(seasonNumber).padStart(2, "0")} · {daysLeftInSeason}d restantes
               </span>
             </div>
             <button
               onClick={toggleFullscreen}
               className="btn-pill btn-ghost flex-shrink-0"
-              style={{ height: 40, padding: "0 16px", fontSize: 11 }}
+              style={{
+                height: fullscreen ? 32 : 40,
+                padding: fullscreen ? "0 12px" : "0 16px",
+                fontSize: fullscreen ? 10 : 11,
+              }}
               aria-label={fullscreen ? "Sair de tela cheia" : "Tela cheia"}
             >
-              {fullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+              {fullscreen ? <Minimize2 size={12} /> : <Maximize2 size={14} />}
               {fullscreen ? "Sair" : "Tela cheia"}
             </button>
             <button
               onClick={() => router.refresh()}
               className="btn-pill btn-ghost flex-shrink-0"
-              style={{ height: 40, padding: "0 16px", fontSize: 11 }}
+              style={{
+                height: fullscreen ? 32 : 40,
+                padding: fullscreen ? "0 12px" : "0 16px",
+                fontSize: fullscreen ? 10 : 11,
+              }}
               aria-label="Atualizar agora"
             >
-              <RefreshCw size={14} />
+              <RefreshCw size={fullscreen ? 12 : 14} />
               Atualizar
             </button>
           </div>
@@ -340,27 +367,30 @@ export function TeamDashboard({
         </div>
 
         {/* MAIN GRID: leaderboard + spotlight + activity */}
-        {/* Em fullscreen, limita a 55vh pra deixar o manifesto respirar
-            embaixo sem ser comprimido. Fora dela, comportamento normal.
-            Em fullscreen mobile/tablet, força 2 colunas — landscape de
-            celular tem ~700-900px de largura, dá pra dividir. */}
+        {/* Em fullscreen, o outer grid-template-rows já distribui a altura
+            (1fr aqui, auto na manifesto). Em fullscreen mobile/tablet,
+            força 2 colunas — landscape de celular tem ~700-900px, divide. */}
         <div
           className={
             fullscreen
-              ? "grid grid-cols-1 md:grid-cols-[1.4fr_1fr] gap-4 md:gap-6 flex-1"
+              ? "grid grid-cols-1 md:grid-cols-[1.4fr_1fr] gap-3 md:gap-5 flex-1"
               : "grid grid-cols-1 xl:grid-cols-[1.4fr_1fr] gap-4 md:gap-6 flex-1"
           }
-          style={{
-            minHeight: 0,
-            maxHeight: fullscreen ? "55vh" : undefined,
-          }}
+          style={{ minHeight: 0 }}
         >
           {/* LEFT: leaderboard */}
           <section
-            className="ano-card p-5 md:p-6 flex flex-col"
+            className={
+              fullscreen
+                ? "ano-card p-3 md:p-4 flex flex-col"
+                : "ano-card p-5 md:p-6 flex flex-col"
+            }
             style={{ minHeight: 0 }}
           >
-            <div className="flex items-baseline justify-between mb-4 flex-shrink-0">
+            <div
+              className="flex items-baseline justify-between flex-shrink-0"
+              style={{ marginBottom: fullscreen ? 8 : 16 }}
+            >
               <h2 className="label-caps">Ranking ao vivo</h2>
               <span className="label-caps label-caps-muted">
                 <Users size={12} className="inline mr-1.5 -mt-0.5" />
@@ -510,19 +540,44 @@ export function TeamDashboard({
 
           {/* RIGHT: spotlight + ticker activity */}
           <div
-            className="flex flex-col gap-4 md:gap-6"
+            className={fullscreen ? "flex flex-col gap-2 md:gap-3" : "flex flex-col gap-4 md:gap-6"}
             style={{ minHeight: 0 }}
           >
-            <section className="ano-card p-5 md:p-6 relative overflow-hidden flex-shrink-0">
-              <h2 className="label-caps mb-3">Em destaque</h2>
-              <SpotlightCard member={top5[highlightIdx] ?? null} avgLevel={avgLevel} leader={leader} />
+            <section
+              className={
+                fullscreen
+                  ? "ano-card p-3 md:p-4 relative overflow-hidden flex-shrink-0"
+                  : "ano-card p-5 md:p-6 relative overflow-hidden flex-shrink-0"
+              }
+            >
+              <h2
+                className="label-caps"
+                style={{ marginBottom: fullscreen ? 8 : 12 }}
+              >
+                Em destaque
+              </h2>
+              <SpotlightCard
+                member={top5[highlightIdx] ?? null}
+                avgLevel={avgLevel}
+                leader={leader}
+                compact={fullscreen}
+              />
             </section>
 
             <section
-              className="ano-card-flat p-5 md:p-6 relative flex-1 flex flex-col"
+              className={
+                fullscreen
+                  ? "ano-card-flat p-3 md:p-4 relative flex-1 flex flex-col"
+                  : "ano-card-flat p-5 md:p-6 relative flex-1 flex flex-col"
+              }
               style={{ minHeight: 0 }}
             >
-              <h2 className="label-caps mb-3 flex-shrink-0">Atividade ao vivo</h2>
+              <h2
+                className="label-caps flex-shrink-0"
+                style={{ marginBottom: fullscreen ? 8 : 12 }}
+              >
+                Atividade ao vivo
+              </h2>
               <div className="flex-1" style={{ minHeight: 0 }}>
                 <ActivityTicker events={activity} />
               </div>
@@ -590,15 +645,18 @@ function SpotlightCard({
   member,
   avgLevel,
   leader,
+  compact,
 }: {
   member: TeamMember | null;
   avgLevel: number;
   leader?: TeamMember;
+  compact?: boolean;
 }) {
   if (!member) {
     return <p className="text-faint text-sm py-8 text-center">Aguardando dados.</p>;
   }
   const isLeader = leader && member.userId === leader.userId;
+  const avatarSize = compact ? 48 : 80;
   return (
     <AnimatePresence mode="wait">
       <motion.div
@@ -609,13 +667,17 @@ function SpotlightCard({
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         className="relative"
       >
-        <div className="flex items-center gap-5">
+        <div className={compact ? "flex items-center gap-3" : "flex items-center gap-5"}>
           <div
-            className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center font-bold text-2xl flex-shrink-0"
+            className="rounded-full overflow-hidden flex items-center justify-center font-bold flex-shrink-0"
             style={{
+              width: avatarSize,
+              height: avatarSize,
+              fontSize: compact ? 14 : 24,
               background: "rgba(201,149,58,0.12)",
-              boxShadow:
-                "inset 0 0 0 2px #C9953A, 0 0 32px rgba(201,149,58,0.45), 0 8px 32px rgba(0,0,0,0.6)",
+              boxShadow: compact
+                ? "inset 0 0 0 1.5px #C9953A, 0 0 16px rgba(201,149,58,0.30)"
+                : "inset 0 0 0 2px #C9953A, 0 0 32px rgba(201,149,58,0.45), 0 8px 32px rgba(0,0,0,0.6)",
               color: "#C9953A",
             }}
           >
@@ -632,14 +694,20 @@ function SpotlightCard({
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <span className="label-caps label-caps-muted block mb-1.5">
+            <span
+              className="label-caps label-caps-muted block"
+              style={{
+                marginBottom: compact ? 2 : 6,
+                fontSize: compact ? 9 : undefined,
+              }}
+            >
               {isLeader ? "Liderando" : "Em destaque"}
               {member.area ? ` · ${member.area}` : ""}
             </span>
             <h3
               className="text-white"
               style={{
-                fontSize: 24,
+                fontSize: compact ? 14 : 24,
                 fontWeight: 800,
                 letterSpacing: "-0.01em",
                 lineHeight: 1.1,
@@ -649,16 +717,26 @@ function SpotlightCard({
             </h3>
           </div>
         </div>
-        <div className="grid grid-cols-3 mt-6 gap-3">
-          <SpotlightStat label="XP" value={member.xp.toLocaleString("pt-BR")} primary />
-          <SpotlightStat label="Nível" value={String(member.level)} />
-          <SpotlightStat label="Hoje" value={`${member.todayCount}`} />
+        <div
+          className="grid grid-cols-3 gap-2"
+          style={{ marginTop: compact ? 10 : 24 }}
+        >
+          <SpotlightStat
+            label="XP"
+            value={member.xp.toLocaleString("pt-BR")}
+            primary
+            compact={compact}
+          />
+          <SpotlightStat label="Nível" value={String(member.level)} compact={compact} />
+          <SpotlightStat label="Hoje" value={`${member.todayCount}`} compact={compact} />
         </div>
-        <p className="mt-5 text-sm text-mid">
-          {isLeader
-            ? "Cabeça do ranking esta temporada."
-            : `Nível médio do time: ${avgLevel}.`}
-        </p>
+        {!compact && (
+          <p className="mt-5 text-sm text-mid">
+            {isLeader
+              ? "Cabeça do ranking esta temporada."
+              : `Nível médio do time: ${avgLevel}.`}
+          </p>
+        )}
       </motion.div>
     </AnimatePresence>
   );
@@ -668,24 +746,35 @@ function SpotlightStat({
   label,
   value,
   primary,
+  compact,
 }: {
   label: string;
   value: string;
   primary?: boolean;
+  compact?: boolean;
 }) {
   return (
     <div
-      className="rounded-xl px-3 py-3 text-center"
+      className="rounded-xl text-center"
       style={{
+        padding: compact ? "6px 8px" : "12px 12px",
         background: primary ? "rgba(201,149,58,0.10)" : "rgba(255,255,255,0.03)",
         boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)",
       }}
     >
-      <span className="label-caps label-caps-muted block mb-1">{label}</span>
+      <span
+        className="label-caps label-caps-muted block"
+        style={{
+          marginBottom: compact ? 1 : 4,
+          fontSize: compact ? 8 : undefined,
+        }}
+      >
+        {label}
+      </span>
       <span
         className="text-mono tabular-nums"
         style={{
-          fontSize: 20,
+          fontSize: compact ? 14 : 20,
           fontWeight: 700,
           letterSpacing: "-0.02em",
           color: primary ? "#E0B25A" : "#FFF",
@@ -797,10 +886,13 @@ function SouAnomaloManifesto({ compact }: { compact?: boolean }) {
       aria-label="Manifesto cultural da Anômalo Hub"
       className="manifesto-section"
       style={{
-        paddingTop: compact ? "clamp(28px, 3.5vh, 52px)" : "clamp(40px, 5vw, 96px)",
-        paddingBottom: compact ? "clamp(20px, 2.5vh, 36px)" : "clamp(28px, 3vw, 56px)",
+        // Em compact (fullscreen) o tamanho usa vh — o gargalo no mobile
+        // landscape é a altura, não a largura. Garante que tudo cabe sem
+        // sobrepor o grid principal.
+        paddingTop: compact ? "clamp(12px, 2.5vh, 40px)" : "clamp(40px, 5vw, 96px)",
+        paddingBottom: compact ? "clamp(10px, 2vh, 32px)" : "clamp(28px, 3vw, 56px)",
         borderTop: "1px solid rgba(201,149,58,0.10)",
-        marginTop: compact ? "clamp(20px, 2.5vh, 36px)" : "clamp(48px, 6vw, 96px)",
+        marginTop: compact ? "clamp(8px, 1.2vh, 20px)" : "clamp(48px, 6vw, 96px)",
       }}
     >
       <div
@@ -809,7 +901,7 @@ function SouAnomaloManifesto({ compact }: { compact?: boolean }) {
           display: "grid",
           gridTemplateColumns: "1fr auto 1fr",
           alignItems: "center",
-          gap: compact ? "clamp(28px, 4vw, 80px)" : "clamp(32px, 4.5vw, 96px)",
+          gap: compact ? "clamp(16px, 3vw, 56px)" : "clamp(32px, 4.5vw, 96px)",
         }}
       >
         <ul
@@ -821,7 +913,7 @@ function SouAnomaloManifesto({ compact }: { compact?: boolean }) {
             textAlign: "right",
             display: "flex",
             flexDirection: "column",
-            gap: compact ? "clamp(6px, 0.7vw, 12px)" : "clamp(8px, 0.9vw, 16px)",
+            gap: compact ? "clamp(2px, 0.6vh, 10px)" : "clamp(8px, 0.9vw, 16px)",
           }}
         >
           {[
@@ -833,8 +925,8 @@ function SouAnomaloManifesto({ compact }: { compact?: boolean }) {
               key={frase}
               style={{
                 color: "#8A7850",
-                fontSize: compact ? "clamp(15px, 1.3vw, 22px)" : "clamp(13px, 1vw, 17px)",
-                lineHeight: 1.4,
+                fontSize: compact ? "clamp(11px, 1.6vh, 18px)" : "clamp(13px, 1vw, 17px)",
+                lineHeight: 1.35,
                 fontWeight: 400,
                 letterSpacing: "-0.005em",
               }}
@@ -849,7 +941,7 @@ function SouAnomaloManifesto({ compact }: { compact?: boolean }) {
           aria-hidden
           style={{
             width: 1,
-            height: compact ? "clamp(72px, 9vw, 130px)" : "clamp(56px, 7vw, 110px)",
+            height: compact ? "clamp(40px, 7vh, 100px)" : "clamp(56px, 7vw, 110px)",
             background: "rgba(201,149,58,0.30)",
           }}
         />
@@ -858,7 +950,10 @@ function SouAnomaloManifesto({ compact }: { compact?: boolean }) {
           className="manifesto-signature"
           style={{
             color: "#FFFFFF",
-            fontSize: compact ? "clamp(36px, 4vw, 68px)" : "clamp(28px, 3vw, 56px)",
+            // Usa o MENOR entre vw (largura) e vh (altura) — assim em
+            // landscape phone (largura grande, altura pequena) escolhe
+            // vh e fica proporcional. Cap em 56px no maior.
+            fontSize: compact ? "clamp(22px, min(3.5vw, 5vh), 56px)" : "clamp(28px, 3vw, 56px)",
             fontWeight: 900,
             letterSpacing: "0.06em",
             textTransform: "uppercase",
