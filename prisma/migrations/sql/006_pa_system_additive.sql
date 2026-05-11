@@ -146,12 +146,14 @@ INSERT INTO public."atividades_catalogo" (funcao, nome, codigo, pa_valor, ordem)
 ON CONFLICT (codigo) DO UPDATE
 SET nome = EXCLUDED.nome, pa_valor = EXCLUDED.pa_valor, ordem = EXCLUDED.ordem;
 
--- Design
+-- Design (Vinicius) — inclui dupla pontuação por viral (espelha Bruno/Social)
 INSERT INTO public."atividades_catalogo" (funcao, nome, codigo, pa_valor, ordem) VALUES
-  ('design', 'Estático, story ou carrossel fácil',  'design_estatico_facil', 1.0,  1),
-  ('design', 'Reel, criativo ou carrossel completo','design_reel_carrossel', 1.5,  2),
-  ('design', 'Aula, YouTube ou VSL',                'design_aula_yt_vsl',    2.0,  3),
-  ('design', 'Penalidade: ajuste ou retrabalho',    'design_pen_retrabalho',-5.0, 99)
+  ('design', 'Estático, story ou carrossel fácil',    'design_estatico_facil', 1.0,  1),
+  ('design', 'Reel, criativo ou carrossel completo',  'design_reel_carrossel', 1.5,  2),
+  ('design', 'Aula, YouTube ou VSL',                  'design_aula_yt_vsl',    2.0,  3),
+  ('design', 'Reel editado com 10k+ views orgânicos', 'design_reel_10k',       3.0,  4),
+  ('design', 'Conteúdo viral editado (50k+ views)',   'design_viral_50k',      8.0,  5),
+  ('design', 'Penalidade: ajuste ou retrabalho',      'design_pen_retrabalho',-5.0, 99)
 ON CONFLICT (codigo) DO UPDATE
 SET nome = EXCLUDED.nome, pa_valor = EXCLUDED.pa_valor, ordem = EXCLUDED.ordem;
 

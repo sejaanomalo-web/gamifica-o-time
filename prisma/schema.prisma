@@ -403,3 +403,115 @@ model CommissionMonth {
   @@index([monthISO])
   @@index([status])
 }
+
+// ════════════════════════════════════════════════════════════════════════
+// PA SYSTEM (Comissionamento Coletivo) — aditivo, coexiste com schema acima.
+// Tabelas Portuguese-first conforme spec Anômalo Hub.
+// Migration: prisma/migrations/sql/006_pa_system_additive.sql
+// ════════════════════════════════════════════════════════════════════════
+
+enum FuncaoEquipe {
+  sdr
+  design
+  trafego
+  social_midia
+  video_maker
+  closer
+}
+
+enum NivelMeta {
+  base
+  meta_1
+  meta_2
+  excelencia
+}
+
+model Colaborador {
+  id          String         @id @default(uuid()) @db.Uuid
+  email       String         @unique
+  nome        String
+  funcoes     FuncaoEquipe[]
+  isAdmin     Boolean        @default(false) @map("is_admin")
+  ativo       Boolean        @default(true)
+  avatarUrl   String?        @map("avatar_url")
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime       @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  acoes              AcaoPontuada[]      @relation("ColaboradorAcoes")
+  acoesCriadas       AcaoPontuada[]      @relation("CriadorAcoes")
+  fechamentos        FechamentoMensal[]  @relation("ColaboradorFechamentos")
+  fechamentosFeitos  FechamentoMensal[]  @relation("AdminFechou")
+
+  @@index([ativo])
+  @@index([isAdmin])
+  @@map("colaboradores")
+}
+
+model AtividadeCatalogo {
+  id        String        @id @default(uuid()) @db.Uuid
+  funcao    FuncaoEquipe
+  nome      String
+  codigo    String        @unique
+  paValor   Decimal       @map("pa_valor") @db.Decimal(10, 2)
+  ativo     Boolean       @default(true)
+  ordem     Int           @default(0)
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime      @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  acoes AcaoPontuada[]
+
+  @@index([funcao, ativo])
+  @@map("atividades_catalogo")
+}
+
+model AcaoPontuada {
+  id             String   @id @default(uuid()) @db.Uuid
+  colaboradorId  String   @map("colaborador_id") @db.Uuid
+  atividadeId    String   @map("atividade_id") @db.Uuid
+  data           DateTime @db.Date
+  quantidade     Int      @default(1)
+  paGerado       Decimal  @map("pa_gerado") @db.Decimal(10, 2)
+  cliente        String?
+  observacao     String?
+  ehPenalidade   Boolean  @default(false) @map("eh_penalidade")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy      String?  @map("created_by") @db.Uuid
+
+  colaborador Colaborador        @relation("ColaboradorAcoes", fields: [colaboradorId], references: [id], onDelete: Cascade)
+  atividade   AtividadeCatalogo  @relation(fields: [atividadeId], references: [id])
+  criador     Colaborador?       @relation("CriadorAcoes", fields: [createdBy], references: [id], onDelete: SetNull)
+
+  @@index([colaboradorId, data(sort: Desc)])
+  @@index([data(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+  @@map("acoes_pontuadas")
+}
+
+model MetasConfig {
+  nivel           NivelMeta @id
+  paMinimo        Int       @map("pa_minimo")
+  paMaximo        Int?      @map("pa_maximo")
+  bonusMilestone  Decimal   @default(0) @map("bonus_milestone") @db.Decimal(10, 2)
+
+  @@map("metas_config")
+}
+
+model FechamentoMensal {
+  id              String    @id @default(uuid()) @db.Uuid
+  colaboradorId   String    @map("colaborador_id") @db.Uuid
+  mesAno          String    @map("mes_ano")
+  paTotal         Decimal   @map("pa_total") @db.Decimal(10, 2)
+  nivelAtingido   NivelMeta @map("nivel_atingido")
+  valorPorPontos  Decimal   @map("valor_por_pontos") @db.Decimal(10, 2)
+  bonusMilestone  Decimal   @default(0) @map("bonus_milestone") @db.Decimal(10, 2)
+  totalComissao   Decimal   @map("total_comissao") @db.Decimal(10, 2)
+  fechadoEm       DateTime  @default(now()) @map("fechado_em") @db.Timestamptz(6)
+  fechadoPor      String?   @map("fechado_por") @db.Uuid
+
+  colaborador  Colaborador  @relation("ColaboradorFechamentos", fields: [colaboradorId], references: [id])
+  adminFechou  Colaborador? @relation("AdminFechou", fields: [fechadoPor], references: [id], onDelete: SetNull)
+
+  @@unique([colaboradorId, mesAno])
+  @@index([mesAno(sort: Desc)])
+  @@map("fechamentos_mensais")
+}
