@@ -2,31 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Home,
-  Tv,
-  Target,
-  Users,
-  User,
-  ShoppingBag,
-  Shield,
-} from "lucide-react";
+import { Home, Tv, Users, User, Settings } from "lucide-react";
 
+// Sistema PA — rotas oficiais.
 const collaboratorItems = [
-  { href: "/dashboard", label: "Hoje",   icon: Home },
-  { href: "/metas",     label: "Metas",  icon: Target },
-  { href: "/ranking",   label: "Time",   icon: Users },
-  { href: "/loja",      label: "Loja",   icon: ShoppingBag },
-  { href: "/perfil",    label: "Perfil", icon: User },
+  { href: "/pa",       label: "Hoje",   icon: Home },
+  { href: "/pa/time",  label: "Time",   icon: Users },
+  { href: "/perfil",   label: "Perfil", icon: User },
 ];
 
 const adminItems = [
-  { href: "/equipe",    label: "Equipe", icon: Tv },
-  { href: "/metas",     label: "Metas",  icon: Target },
-  { href: "/ranking",   label: "Time",   icon: Users },
-  { href: "/loja",      label: "Loja",   icon: ShoppingBag },
-  { href: "/perfil",    label: "Perfil", icon: User },
-  { href: "/admin",     label: "Admin",  icon: Shield },
+  { href: "/equipe",   label: "Equipe", icon: Tv },
+  { href: "/pa/time",  label: "Time",   icon: Users },
+  { href: "/admin/pa", label: "Admin",  icon: Settings },
+  { href: "/perfil",   label: "Perfil", icon: User },
 ];
 
 export function SideNav({ isAdmin = false }: { isAdmin?: boolean }) {

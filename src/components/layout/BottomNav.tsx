@@ -3,22 +3,21 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Home, Tv, Target, Users, ShoppingBag, User } from "lucide-react";
+import { Home, Tv, Users, Settings, User } from "lucide-react";
 
+// Sistema PA — rotas oficiais. As antigas (/dashboard, /metas, /ranking,
+// /loja) redirecionam pra cá ou serão removidas.
 const collaboratorItems = [
-  { href: "/dashboard", label: "Hoje",   icon: Home },
-  { href: "/metas",     label: "Metas",  icon: Target },
-  { href: "/ranking",   label: "Time",   icon: Users },
-  { href: "/loja",      label: "Loja",   icon: ShoppingBag },
-  { href: "/perfil",    label: "Perfil", icon: User },
+  { href: "/pa",       label: "Hoje",   icon: Home },
+  { href: "/pa/time",  label: "Time",   icon: Users },
+  { href: "/perfil",   label: "Perfil", icon: User },
 ];
 
 const adminItems = [
-  { href: "/equipe",    label: "Equipe", icon: Tv },
-  { href: "/metas",     label: "Metas",  icon: Target },
-  { href: "/ranking",   label: "Time",   icon: Users },
-  { href: "/loja",      label: "Loja",   icon: ShoppingBag },
-  { href: "/perfil",    label: "Perfil", icon: User },
+  { href: "/equipe",   label: "Equipe", icon: Tv },
+  { href: "/pa/time",  label: "Time",   icon: Users },
+  { href: "/admin/pa", label: "Admin",  icon: Settings },
+  { href: "/perfil",   label: "Perfil", icon: User },
 ];
 
 export function BottomNav({ isAdmin = false }: { isAdmin?: boolean }) {

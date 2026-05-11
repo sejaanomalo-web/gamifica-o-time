@@ -1,11 +1,18 @@
-// Dashboard do Time — admin-only. Tela "kiosk" pra TV no escritório.
-// Roda 24h, auto-refresh a cada 30s, animação constante.
+// /equipe — TV dashboard admin. Agora puxa dados do sistema PA:
+// - Ranking dos 5 colaboradores (incluindo Bruno e Alisson)
+// - PA do mês atual (calendário, não temporada)
+// - Entregas hoje, da semana, e fechamentos do mês
+// - Atividade ao vivo via MuralEvent foi substituída por AcaoPontuada
 
 import { redirect } from "next/navigation";
-import { requireAppUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getCollaboratorIds } from "@/lib/collaborators";
-import { TeamDashboard, type TeamMember, type ActivityEvent } from "@/components/feature/teamtv/TeamDashboard";
+import { requireColaboradorPA } from "@/lib/pa-auth";
+import { currentMesAno, calcularComissao, type FuncaoCodigo } from "@/lib/pa";
+import {
+  TeamDashboard,
+  type TeamMember,
+  type ActivityEvent,
+} from "@/components/feature/teamtv/TeamDashboard";
 
 async function safe<T>(label: string, q: () => Promise<T>, fallback: T): Promise<T> {
   try {
@@ -20,212 +27,198 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function EquipePage() {
-  const user = await requireAppUser();
-  if (user.role !== "ADMIN") redirect("/dashboard");
+  const me = await requireColaboradorPA();
+  if (!me.isAdmin) redirect("/pa");
 
-  const season = await safe(
-    "season.findFirst",
-    () => prisma.season.findFirst({ where: { isActive: true } }),
-    null,
-  );
+  const mesAno = currentMesAno();
+  const [year, month] = mesAno.split("-").map(Number);
+  const inicio = new Date(year, month - 1, 1);
+  const fim = new Date(year, month, 1);
 
-  const dayStart = new Date();
-  dayStart.setHours(0, 0, 0, 0);
-  const weekStart = new Date(Date.now() - 7 * 86400000);
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  const amanha = new Date(hoje.getTime() + 86400000);
+  const inicioSemana = new Date(hoje.getTime() - 6 * 86400000);
 
-  // Apenas COLABORADORes entram no game. ADMINs são gestores e ficam de fora
-  // de qualquer ranking, contagem ou destaque.
-  const collaboratorIds = await safe(
-    "collaboratorIds",
-    () => getCollaboratorIds(),
-    [] as string[],
-  );
-
-  // Sempre busca todos os colaboradores (mesmo os zerados aparecem na equipe)
-  const collaboratorUsers = await safe(
-    "user.findMany collaborators",
+  // Todos os colaboradores ativos (Bruno e Alisson incluídos)
+  const colabs = await safe(
+    "colab.findMany",
     () =>
-      prisma.user.findMany({
-        where: { role: "COLABORADOR" },
-        select: { id: true, name: true, area: true, avatarUrl: true },
-        orderBy: { name: "asc" },
+      prisma.colaborador.findMany({
+        where: { ativo: true },
+        select: { id: true, nome: true, funcoes: true, avatarUrl: true },
+        orderBy: { nome: "asc" },
       }),
     [] as Array<{
       id: string;
-      name: string;
-      area: string | null;
+      nome: string;
+      funcoes: FuncaoCodigo[];
       avatarUrl: string | null;
     }>,
   );
 
-  let members: TeamMember[] = [];
-  let totalSeasonXp = 0;
-  let totalDeliveriesToday = 0;
-  let totalDeliveriesWeek = 0;
-  let totalGoalsBeaten = 0;
-  let avgLevel = 0;
-  let daysLeftInSeason = 0;
-  let seasonNumber = 0;
+  // PA acumulado do mês
+  const totalMes = await safe(
+    "groupBy totalMes",
+    async () => {
+      const rows = await prisma.acaoPontuada.groupBy({
+        by: ["colaboradorId"],
+        where: { data: { gte: inicio, lt: fim } },
+        _sum: { paGerado: true },
+      });
+      return new Map(rows.map((r) => [r.colaboradorId, Number(r._sum.paGerado ?? 0)]));
+    },
+    new Map<string, number>(),
+  );
 
-  if (season && collaboratorIds.length > 0) {
-    seasonNumber = season.number;
-    daysLeftInSeason = Math.max(
-      0,
-      Math.ceil((season.endsAt.getTime() - Date.now()) / 86400000),
-    );
+  // PA da semana (últimos 7 dias)
+  const totalSemana = await safe(
+    "groupBy totalSemana",
+    async () => {
+      const rows = await prisma.acaoPontuada.groupBy({
+        by: ["colaboradorId"],
+        where: { data: { gte: inicioSemana } },
+        _sum: { paGerado: true },
+      });
+      return new Map(rows.map((r) => [r.colaboradorId, Number(r._sum.paGerado ?? 0)]));
+    },
+    new Map<string, number>(),
+  );
 
-    const totals = await safe(
-      "xpEvent.groupBy totals",
-      async () => {
-        const rows = await prisma.xpEvent.groupBy({
-          by: ["userId"],
-          where: { seasonId: season.id, userId: { in: collaboratorIds } },
-          _sum: { amount: true },
-        });
-        return rows.map((r) => ({ userId: r.userId, sum: r._sum.amount ?? 0 }));
-      },
-      [] as { userId: string; sum: number }[],
-    );
-    const totalsMap = new Map(totals.map((t) => [t.userId, t.sum]));
+  // Quantidade de ações hoje
+  const acoesHoje = await safe(
+    "groupBy acoesHoje",
+    async () => {
+      const rows = await prisma.acaoPontuada.groupBy({
+        by: ["colaboradorId"],
+        where: { data: { gte: hoje, lt: amanha } },
+        _count: { _all: true },
+      });
+      return new Map(rows.map((r) => [r.colaboradorId, r._count._all]));
+    },
+    new Map<string, number>(),
+  );
 
-    const weekly = await safe(
-      "xpEvent.groupBy weekly",
-      async () => {
-        const rows = await prisma.xpEvent.groupBy({
-          by: ["userId"],
-          where: {
-            seasonId: season.id,
-            createdAt: { gte: weekStart },
-            userId: { in: collaboratorIds },
-          },
-          _sum: { amount: true },
-        });
-        return rows.map((r) => ({ userId: r.userId, sum: r._sum.amount ?? 0 }));
-      },
-      [] as { userId: string; sum: number }[],
-    );
-    const weeklyMap = new Map(weekly.map((w) => [w.userId, w.sum]));
-
-    const todayDeliveries = await safe(
-      "delivery.groupBy today",
-      async () => {
-        const rows = await prisma.delivery.groupBy({
-          by: ["userId"],
-          where: {
-            deliveredAt: { gte: dayStart },
-            userId: { in: collaboratorIds },
-          },
-          _sum: { count: true },
-        });
-        return rows.map((r) => ({ userId: r.userId, n: r._sum.count ?? 0 }));
-      },
-      [] as { userId: string; n: number }[],
-    );
-    const todayMap = new Map(todayDeliveries.map((t) => [t.userId, t.n]));
-
-    const weekDeliveries = await safe(
-      "delivery.groupBy week",
-      async () => {
-        const rows = await prisma.delivery.groupBy({
-          by: ["userId"],
-          where: {
-            deliveredAt: { gte: weekStart },
-            userId: { in: collaboratorIds },
-          },
-          _sum: { count: true },
-        });
-        return rows.map((r) => ({ userId: r.userId, n: r._sum.count ?? 0 }));
-      },
-      [] as { userId: string; n: number }[],
-    );
-    const weekMap = new Map(weekDeliveries.map((w) => [w.userId, w.n]));
-
-    const goalsCounts = await safe(
-      "goal.groupBy concluidas",
-      async () => {
-        const rows = await prisma.goal.groupBy({
-          by: ["ownerId"],
-          where: {
-            status: "CONCLUIDA",
-            seasonId: season.id,
-            ownerId: { in: collaboratorIds },
-          },
-          _count: { _all: true },
-        });
-        return rows.map((r) => ({ userId: r.ownerId, n: r._count._all }));
-      },
-      [] as { userId: string; n: number }[],
-    );
-    const goalsMap = new Map(goalsCounts.map((g) => [g.userId, g.n]));
-
-    members = collaboratorUsers
-      .map((u) => {
-        const xp = totalsMap.get(u.id) ?? 0;
-        return {
-          userId: u.id,
-          name: u.name,
-          area: u.area,
-          avatarUrl: u.avatarUrl,
-          xp,
-          weekXp: weeklyMap.get(u.id) ?? 0,
-          todayCount: todayMap.get(u.id) ?? 0,
-          weekCount: weekMap.get(u.id) ?? 0,
-          goalsBeaten: goalsMap.get(u.id) ?? 0,
-          level: Math.floor(xp / 1000) + 1,
-        };
-      })
-      .sort((a, b) => b.xp - a.xp);
-
-    totalSeasonXp = members.reduce((s, m) => s + m.xp, 0);
-    totalDeliveriesToday = members.reduce((s, m) => s + m.todayCount, 0);
-    totalDeliveriesWeek = members.reduce((s, m) => s + m.weekCount, 0);
-    totalGoalsBeaten = members.reduce((s, m) => s + m.goalsBeaten, 0);
-    avgLevel = members.length
-      ? Math.round((members.reduce((s, m) => s + m.level, 0) / members.length) * 10) / 10
-      : 0;
-  }
-
-  type MuralEventWithUser = Awaited<
-    ReturnType<typeof prisma.muralEvent.findMany<{
-      include: { user: { select: { name: true; avatarUrl: true } } };
-    }>>
-  >;
-  const events = await safe<MuralEventWithUser>(
-    "muralEvent.findMany",
+  // Total de ações na semana (pra stat global)
+  const totalAcoesSemana = await safe(
+    "count semanaCount",
     () =>
-      prisma.muralEvent.findMany({
-        where: { user: { role: "COLABORADOR" } },
+      prisma.acaoPontuada.count({
+        where: { data: { gte: inicioSemana } },
+      }),
+    0,
+  );
+
+  // Total de ações hoje (stat global)
+  const totalAcoesHoje = await safe(
+    "count hojeCount",
+    () =>
+      prisma.acaoPontuada.count({
+        where: { data: { gte: hoje, lt: amanha } },
+      }),
+    0,
+  );
+
+  // Fechamentos do mês (= "metas batidas" equivalente)
+  const fechamentosMes = await safe(
+    "fechamentos count",
+    () => prisma.fechamentoMensal.count({ where: { mesAno } }),
+    0,
+  );
+
+  // Ranking calculado: nível = floor(pa / 80) + 1, com cap em 4 (excelência)
+  const members: TeamMember[] = colabs
+    .map((c) => {
+      const pa = totalMes.get(c.id) ?? 0;
+      const semana = totalSemana.get(c.id) ?? 0;
+      const comissao = calcularComissao(pa);
+      // Nível visual: cada faixa de 80 PA sobe 1 nível (base=1, m1=2, m2=3, excel=4+)
+      const level =
+        comissao.nivel === "excelencia"
+          ? 4
+          : comissao.nivel === "meta_2"
+            ? 3
+            : comissao.nivel === "meta_1"
+              ? 2
+              : 1;
+      return {
+        userId: c.id,
+        name: c.nome,
+        area: c.funcoes.join(" · "),
+        avatarUrl: c.avatarUrl,
+        xp: Math.round(pa),
+        weekXp: Math.round(semana),
+        todayCount: acoesHoje.get(c.id) ?? 0,
+        weekCount: 0, // não usamos aqui
+        goalsBeaten: 0, // não aplicável no PA puro
+        level,
+      };
+    })
+    .sort((a, b) => b.xp - a.xp);
+
+  const totalPaTime = members.reduce((s, m) => s + m.xp, 0);
+  const avgLevel = members.length
+    ? Math.round(
+        (members.reduce((s, m) => s + m.level, 0) / members.length) * 10,
+      ) / 10
+    : 0;
+
+  // Atividade ao vivo: últimas 30 ações
+  type AcaoFeed = Awaited<
+    ReturnType<
+      typeof prisma.acaoPontuada.findMany<{
+        include: {
+          colaborador: { select: { nome: true; avatarUrl: true } };
+          atividade: { select: { nome: true } };
+        };
+      }>
+    >
+  >;
+  const acoes = await safe<AcaoFeed>(
+    "acao feed",
+    () =>
+      prisma.acaoPontuada.findMany({
         orderBy: { createdAt: "desc" },
         take: 30,
-        include: { user: { select: { name: true, avatarUrl: true } } },
+        include: {
+          colaborador: { select: { nome: true, avatarUrl: true } },
+          atividade: { select: { nome: true } },
+        },
       }),
     [],
   );
 
-  const activity: ActivityEvent[] = events.map((ev) => {
-    const payload = ev.payload as { text?: string; emoji?: string } | null;
+  const activity: ActivityEvent[] = acoes.map((a) => {
+    const pa = Number(a.paGerado);
     return {
-      id: ev.id,
-      type: ev.type,
-      userName: ev.user.name,
-      avatarUrl: ev.user.avatarUrl ?? null,
-      text: payload?.text ?? "—",
-      emoji: payload?.emoji ?? "",
-      createdAt: ev.createdAt.toISOString(),
+      id: a.id,
+      type: pa < 0 ? "shop_redeem" : "delivery", // mapeia pra cores do ticker
+      userName: a.colaborador.nome,
+      avatarUrl: a.colaborador.avatarUrl,
+      text: `${a.atividade.nome} (${pa < 0 ? "" : "+"}${pa.toFixed(1)} PA)`,
+      emoji: "",
+      createdAt: a.createdAt.toISOString(),
     };
   });
+
+  // Calendário civil — dias restantes no mês
+  const fimMes = new Date(year, month, 0); // último dia do mês
+  const daysLeftInMonth = Math.max(
+    0,
+    Math.ceil((fimMes.getTime() - Date.now()) / 86400000),
+  );
 
   return (
     <TeamDashboard
       members={members}
       activity={activity}
-      totalSeasonXp={totalSeasonXp}
-      totalDeliveriesToday={totalDeliveriesToday}
-      totalDeliveriesWeek={totalDeliveriesWeek}
-      totalGoalsBeaten={totalGoalsBeaten}
+      totalSeasonXp={Math.round(totalPaTime)}
+      totalDeliveriesToday={totalAcoesHoje}
+      totalDeliveriesWeek={totalAcoesSemana}
+      totalGoalsBeaten={fechamentosMes}
       avgLevel={avgLevel}
-      seasonNumber={seasonNumber}
-      daysLeftInSeason={daysLeftInSeason}
+      seasonNumber={month}
+      daysLeftInSeason={daysLeftInMonth}
     />
   );
 }
