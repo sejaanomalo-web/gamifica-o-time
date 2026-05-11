@@ -25,7 +25,7 @@ export default async function AdminPaPage({ searchParams }: PageProps) {
   await requireAdminPA();
   const params = await searchParams;
   const mesAno = /^\d{4}-\d{2}$/.test(params.mes ?? "") ? params.mes! : currentMesAno();
-  const tab = (params.tab as "validacoes" | "acoes" | "loja" | "fechamentos") ?? "validacoes";
+  const tab = (params.tab as "validacoes" | "acoes" | "loja" | "atividades" | "fechamentos") ?? "validacoes";
   const [year, month] = mesAno.split("-").map(Number);
   const inicio = new Date(year, month - 1, 1);
   const fim = new Date(year, month, 1);
@@ -89,6 +89,16 @@ export default async function AdminPaPage({ searchParams }: PageProps) {
         include: { colaborador: { select: { nome: true } } },
       }),
     [],
+  );
+
+  // Atividades do catálogo (CRUD admin)
+  const atividades = await safe(
+    "atividades.findMany",
+    () =>
+      prisma.atividadeCatalogo.findMany({
+        orderBy: [{ funcao: "asc" }, { ordem: "asc" }],
+      }),
+    [] as Awaited<ReturnType<typeof prisma.atividadeCatalogo.findMany>>,
   );
 
   const rows = acoes.map((a) => ({
@@ -159,6 +169,15 @@ export default async function AdminPaPage({ searchParams }: PageProps) {
           observacao: r.observacao,
           createdAt: r.createdAt.toISOString(),
           resolvidoEm: r.resolvidoEm?.toISOString() ?? null,
+        }))}
+        atividades={atividades.map((a) => ({
+          id: a.id,
+          funcao: a.funcao as FuncaoCodigo,
+          nome: a.nome,
+          codigo: a.codigo,
+          paValor: Number(a.paValor),
+          ativo: a.ativo,
+          ordem: a.ordem,
         }))}
         mesAno={mesAno}
         tabInicial={tab}

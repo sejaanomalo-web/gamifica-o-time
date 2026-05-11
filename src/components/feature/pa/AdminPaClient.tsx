@@ -7,7 +7,7 @@
 // - Fechamentos: histórico de fechamentos mensais + botão Fechar mês
 
 import { useState, useMemo } from "react";
-import { Trash2, Check, X, ShieldCheck, Gift, Lock } from "lucide-react";
+import { Trash2, Check, X, ShieldCheck, Gift, Lock, ListChecks, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import {
@@ -56,15 +56,35 @@ interface ResgateRow {
   resolvidoEm: string | null;
 }
 
+export interface AtividadeRow {
+  id: string;
+  funcao: FuncaoCodigo;
+  nome: string;
+  codigo: string;
+  paValor: number;
+  ativo: boolean;
+  ordem: number;
+}
+
 interface Props {
   acoes: AcaoRow[];
   fechamentos: FechamentoRow[];
   resgates: ResgateRow[];
+  atividades: AtividadeRow[];
   mesAno: string;
-  tabInicial: "validacoes" | "acoes" | "loja" | "fechamentos";
+  tabInicial: "validacoes" | "acoes" | "loja" | "atividades" | "fechamentos";
 }
 
-type Tab = "validacoes" | "acoes" | "loja" | "fechamentos";
+type Tab = "validacoes" | "acoes" | "loja" | "atividades" | "fechamentos";
+
+const FUNCOES_OPCOES: FuncaoCodigo[] = [
+  "sdr",
+  "design",
+  "trafego",
+  "social_midia",
+  "video_maker",
+  "closer",
+];
 
 const RESGATE_COR: Record<ResgateRow["status"], string> = {
   PENDENTE: "#8A7850",
@@ -80,11 +100,134 @@ const RESGATE_LABEL: Record<ResgateRow["status"], string> = {
   REJEITADO: "Rejeitado",
 };
 
-export function AdminPaClient({ acoes, fechamentos, resgates, mesAno, tabInicial }: Props) {
+export function AdminPaClient({
+  acoes,
+  fechamentos,
+  resgates,
+  atividades,
+  mesAno,
+  tabInicial,
+}: Props) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>(tabInicial);
   const [busy, setBusy] = useState<string | null>(null);
   const [ajustando, setAjustando] = useState<{ id: string; qtd: number } | null>(null);
+
+  // Drafts pra edição inline das atividades
+  const [atvDrafts, setAtvDrafts] = useState<
+    Record<string, Partial<AtividadeRow>>
+  >({});
+  const [criandoAtv, setCriandoAtv] = useState<{
+    funcao: FuncaoCodigo;
+    nome: string;
+    codigo: string;
+    paValor: string;
+  } | null>(null);
+
+  const setAtvDraft = (id: string, patch: Partial<AtividadeRow>) =>
+    setAtvDrafts((d) => ({ ...d, [id]: { ...(d[id] ?? {}), ...patch } }));
+  const mergedAtv = (a: AtividadeRow): AtividadeRow => ({
+    ...a,
+    ...(atvDrafts[a.id] ?? {}),
+  });
+  const dirtyAtv = (a: AtividadeRow): boolean => {
+    const d = atvDrafts[a.id];
+    if (!d) return false;
+    return Object.keys(d).some((k) => {
+      const key = k as keyof AtividadeRow;
+      return d[key] !== undefined && d[key] !== a[key];
+    });
+  };
+
+  const salvarAtv = async (a: AtividadeRow) => {
+    const m = mergedAtv(a);
+    if (!dirtyAtv(a)) return;
+    if (!m.nome.trim() || !m.codigo.trim()) {
+      toast.error("Nome e código obrigatórios");
+      return;
+    }
+    setBusy(a.id);
+    try {
+      const res = await fetch(`/api/admin/pa/atividades/${a.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          funcao: m.funcao,
+          nome: m.nome.trim(),
+          codigo: m.codigo.trim(),
+          paValor: Number(m.paValor),
+          ativo: m.ativo,
+          ordem: m.ordem,
+        }),
+      });
+      const data: { error?: string } = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(data.error ?? "Falha");
+        return;
+      }
+      toast.success("Atividade atualizada.");
+      setAtvDrafts((d) => {
+        const { [a.id]: _omit, ...rest } = d;
+        void _omit;
+        return rest;
+      });
+      router.refresh();
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const removerAtv = async (a: AtividadeRow) => {
+    if (!confirm(`Remover "${a.nome}"? (código: ${a.codigo})`)) return;
+    setBusy(a.id);
+    try {
+      const res = await fetch(`/api/admin/pa/atividades/${a.id}`, { method: "DELETE" });
+      const data: { error?: string } = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(data.error ?? "Falha");
+        return;
+      }
+      toast.success("Atividade removida.");
+      router.refresh();
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const criarAtv = async () => {
+    if (!criandoAtv) return;
+    if (
+      !criandoAtv.nome.trim() ||
+      !criandoAtv.codigo.trim() ||
+      !Number.isFinite(Number(criandoAtv.paValor))
+    ) {
+      toast.error("Função, nome, código e PA são obrigatórios");
+      return;
+    }
+    setBusy("__new_atv__");
+    try {
+      const res = await fetch("/api/admin/pa/atividades", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          funcao: criandoAtv.funcao,
+          nome: criandoAtv.nome.trim(),
+          codigo: criandoAtv.codigo.trim(),
+          paValor: Number(criandoAtv.paValor),
+        }),
+      });
+      const data: { error?: string } = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(data.error ?? "Falha");
+        return;
+      }
+      toast.success("Atividade criada.");
+      setCriandoAtv(null);
+      router.refresh();
+    } finally {
+      setBusy(null);
+    }
+  };
 
   const pendentes = useMemo(() => acoes.filter((a) => a.status === "PENDENTE"), [acoes]);
   const resgatesPendentes = useMemo(
@@ -244,6 +387,7 @@ export function AdminPaClient({ acoes, fechamentos, resgates, mesAno, tabInicial
         <TabButton id="validacoes" label="Validações" icon={<ShieldCheck size={12} />} badge={pendentes.length} />
         <TabButton id="acoes" label="Ações" icon={<Check size={12} />} />
         <TabButton id="loja" label="Loja" icon={<Gift size={12} />} badge={resgatesPendentes} />
+        <TabButton id="atividades" label="Atividades" icon={<ListChecks size={12} />} />
         <TabButton id="fechamentos" label="Fechamentos" icon={<Lock size={12} />} />
 
         {tab === "fechamentos" && (
@@ -525,6 +669,246 @@ export function AdminPaClient({ acoes, fechamentos, resgates, mesAno, tabInicial
               </tbody>
             </table>
           )}
+        </div>
+      )}
+
+      {/* TAB · Atividades (CRUD do catálogo) */}
+      {tab === "atividades" && (
+        <div>
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <span className="text-mid text-xs">
+              {atividades.length} atividades no catálogo · ajuste PA, ative/desative,
+              adicione ou remova.
+            </span>
+            {!criandoAtv && (
+              <button
+                onClick={() =>
+                  setCriandoAtv({
+                    funcao: "sdr",
+                    nome: "",
+                    codigo: "",
+                    paValor: "1.0",
+                  })
+                }
+                className="btn-pill btn-gold"
+                style={{ height: 36, padding: "0 16px", fontSize: 11 }}
+              >
+                <Plus size={12} />
+                Nova atividade
+              </button>
+            )}
+          </div>
+
+          <div className="ano-card-flat overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+                  <th className="text-left px-4 py-3 label-caps label-caps-muted">Função</th>
+                  <th className="text-left px-4 py-3 label-caps label-caps-muted">Nome</th>
+                  <th className="text-left px-4 py-3 label-caps label-caps-muted">Código</th>
+                  <th className="text-right px-4 py-3 label-caps label-caps-muted">PA</th>
+                  <th className="text-center px-4 py-3 label-caps label-caps-muted">Ativa</th>
+                  <th className="px-2 w-24" />
+                </tr>
+              </thead>
+              <tbody>
+                {criandoAtv && (
+                  <tr style={{ background: "rgba(201,149,58,0.05)" }}>
+                    <td className="px-4 py-3">
+                      <select
+                        value={criandoAtv.funcao}
+                        onChange={(e) =>
+                          setCriandoAtv({ ...criandoAtv, funcao: e.target.value as FuncaoCodigo })
+                        }
+                        className="input-square"
+                        style={{ fontSize: 12 }}
+                      >
+                        {FUNCOES_OPCOES.map((f) => (
+                          <option key={f} value={f}>
+                            {FUNCAO_LABEL[f]}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-4 py-3">
+                      <input
+                        type="text"
+                        autoFocus
+                        placeholder="Nome da atividade"
+                        value={criandoAtv.nome}
+                        onChange={(e) =>
+                          setCriandoAtv({ ...criandoAtv, nome: e.target.value })
+                        }
+                        className="input-square w-full"
+                      />
+                    </td>
+                    <td className="px-4 py-3">
+                      <input
+                        type="text"
+                        placeholder="codigo_unico"
+                        value={criandoAtv.codigo}
+                        onChange={(e) =>
+                          setCriandoAtv({
+                            ...criandoAtv,
+                            codigo: e.target.value
+                              .toLowerCase()
+                              .replace(/\s+/g, "_")
+                              .replace(/[^a-z0-9_]/g, ""),
+                          })
+                        }
+                        className="input-square w-full text-mono"
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <input
+                        type="number"
+                        step="0.5"
+                        value={criandoAtv.paValor}
+                        onChange={(e) =>
+                          setCriandoAtv({ ...criandoAtv, paValor: e.target.value })
+                        }
+                        className="input-square w-20 text-right"
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-center label-caps label-caps-muted text-[10px]">
+                      Sim
+                    </td>
+                    <td className="px-2 py-3">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={criarAtv}
+                          disabled={busy === "__new_atv__"}
+                          aria-label="Salvar"
+                          className="w-8 h-8 flex items-center justify-center rounded-full text-[#C9953A] hover:bg-white/[0.04] disabled:opacity-40"
+                        >
+                          <Check size={14} />
+                        </button>
+                        <button
+                          onClick={() => setCriandoAtv(null)}
+                          aria-label="Cancelar"
+                          className="w-8 h-8 flex items-center justify-center rounded-full text-mid hover:bg-white/[0.04]"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+                {atividades.map((a, i) => {
+                  const m = mergedAtv(a);
+                  const isDirty = dirtyAtv(a);
+                  const isBusy = busy === a.id;
+                  return (
+                    <tr
+                      key={a.id}
+                      style={{
+                        borderBottom:
+                          i < atividades.length - 1
+                            ? "1px solid rgba(255,255,255,0.05)"
+                            : "none",
+                        opacity: m.ativo ? 1 : 0.5,
+                      }}
+                    >
+                      <td className="px-4 py-3">
+                        <select
+                          value={m.funcao}
+                          onChange={(e) =>
+                            setAtvDraft(a.id, { funcao: e.target.value as FuncaoCodigo })
+                          }
+                          className="input-square"
+                          style={{ fontSize: 12, background: "transparent" }}
+                        >
+                          {FUNCOES_OPCOES.map((f) => (
+                            <option key={f} value={f}>
+                              {FUNCAO_LABEL[f]}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="px-4 py-3">
+                        <input
+                          type="text"
+                          value={m.nome}
+                          onChange={(e) => setAtvDraft(a.id, { nome: e.target.value })}
+                          className="input-square w-full"
+                          style={{ background: "transparent" }}
+                        />
+                      </td>
+                      <td className="px-4 py-3">
+                        <input
+                          type="text"
+                          value={m.codigo}
+                          onChange={(e) =>
+                            setAtvDraft(a.id, {
+                              codigo: e.target.value
+                                .toLowerCase()
+                                .replace(/\s+/g, "_")
+                                .replace(/[^a-z0-9_]/g, ""),
+                            })
+                          }
+                          className="input-square w-full text-mono text-xs"
+                          style={{ background: "transparent" }}
+                        />
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <input
+                          type="number"
+                          step="0.5"
+                          value={m.paValor}
+                          onChange={(e) =>
+                            setAtvDraft(a.id, { paValor: Number(e.target.value) })
+                          }
+                          className="input-square w-20 text-right"
+                          style={{
+                            background: "transparent",
+                            color: m.paValor < 0 ? "#fb2c36" : undefined,
+                          }}
+                        />
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <label className="inline-flex items-center justify-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={m.ativo}
+                            onChange={(e) => setAtvDraft(a.id, { ativo: e.target.checked })}
+                            className="accent-[#C9953A]"
+                          />
+                        </label>
+                      </td>
+                      <td className="px-2 py-3">
+                        <div className="flex items-center justify-end gap-1">
+                          {isDirty && (
+                            <button
+                              onClick={() => salvarAtv(a)}
+                              disabled={isBusy}
+                              aria-label="Salvar"
+                              className="w-8 h-8 flex items-center justify-center rounded-full text-[#C9953A] hover:bg-white/[0.04] disabled:opacity-40"
+                            >
+                              <Check size={14} />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => removerAtv(a)}
+                            disabled={isBusy}
+                            aria-label="Remover"
+                            className="w-8 h-8 flex items-center justify-center rounded-full text-[#fb2c36] hover:bg-white/[0.04] disabled:opacity-40"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <p className="mt-3 text-faint text-xs">
+            <strong className="text-mid">Negativos</strong> são penalidades. Atividades com
+            ações já registradas só podem ser <strong className="text-mid">desativadas</strong>
+            (não removidas) pra preservar histórico.
+          </p>
         </div>
       )}
 
