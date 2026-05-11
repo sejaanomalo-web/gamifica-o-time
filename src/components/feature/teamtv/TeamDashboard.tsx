@@ -220,7 +220,9 @@ export function TeamDashboard({
       `}</style>
 
       {/* Fundo animado constante */}
-      <ConstellationBg density="high" opacity={0.18} />
+      {/* density=medium em vez de high — mobile tava engasgando com 40 spans
+          animados em loop infinito + blur dos gradient blobs */}
+      <ConstellationBg density="medium" opacity={0.16} />
       <motion.div
         aria-hidden
         className="absolute pointer-events-none"
@@ -232,7 +234,7 @@ export function TeamDashboard({
           borderRadius: "50%",
           background:
             "radial-gradient(circle, rgba(201,149,58,0.20) 0%, rgba(201,149,58,0.05) 45%, rgba(201,149,58,0) 75%)",
-          filter: "blur(20px)",
+          filter: "blur(14px)",
         }}
         animate={{ x: [0, -40, 0], y: [0, 20, 0], scale: [1, 1.08, 1] }}
         transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
@@ -248,7 +250,7 @@ export function TeamDashboard({
           borderRadius: "50%",
           background:
             "radial-gradient(circle, rgba(224,178,90,0.16) 0%, rgba(224,178,90,0.04) 45%, rgba(224,178,90,0) 75%)",
-          filter: "blur(28px)",
+          filter: "blur(18px)",
         }}
         animate={{ x: [0, 40, 0], y: [0, -20, 0], scale: [1, 1.05, 1] }}
         transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
@@ -637,73 +639,85 @@ function SpotlightCard({
     return <p className="text-faint text-sm py-8 text-center">Aguardando dados.</p>;
   }
   const isLeader = leader && member.userId === leader.userId;
-  const avatarSize = compact ? 48 : 80;
+
+  // Em compact (fullscreen), o spotlight agora ocupa a coluna inteira,
+  // então pode crescer generoso. Sizing baseado em viewport pra adaptar
+  // entre TV grande, laptop e celular landscape.
   return (
     <AnimatePresence mode="wait">
       <motion.div
         key={member.userId}
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -16 }}
+        initial={{ opacity: 0, y: 24, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: -24, scale: 0.96 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="relative"
+        className="relative flex flex-col items-center text-center w-full"
+        style={{ gap: compact ? "clamp(16px, 2.5vh, 36px)" : 24 }}
       >
-        <div className={compact ? "flex items-center gap-3" : "flex items-center gap-5"}>
-          <div
-            className="rounded-full overflow-hidden flex items-center justify-center font-bold flex-shrink-0"
+        {/* Avatar gigante e centralizado */}
+        <div
+          className="rounded-full overflow-hidden flex items-center justify-center font-bold flex-shrink-0"
+          style={{
+            width: compact ? "clamp(120px, 18vh, 240px)" : 80,
+            height: compact ? "clamp(120px, 18vh, 240px)" : 80,
+            fontSize: compact ? "clamp(40px, 7vh, 80px)" : 24,
+            background: "rgba(201,149,58,0.12)",
+            boxShadow:
+              "inset 0 0 0 2.5px #C9953A, 0 0 48px rgba(201,149,58,0.45), 0 12px 48px rgba(0,0,0,0.6)",
+            color: "#C9953A",
+          }}
+        >
+          {member.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={member.avatarUrl}
+              alt={member.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            member.name
+              .split(" ")
+              .map((w) => w[0])
+              .slice(0, 2)
+              .join("")
+              .toUpperCase()
+          )}
+        </div>
+
+        {/* Label + Nome */}
+        <div className="flex flex-col items-center">
+          <span
+            className="label-caps label-caps-muted block"
             style={{
-              width: avatarSize,
-              height: avatarSize,
-              fontSize: compact ? 14 : 24,
-              background: "rgba(201,149,58,0.12)",
-              boxShadow: compact
-                ? "inset 0 0 0 1.5px #C9953A, 0 0 16px rgba(201,149,58,0.30)"
-                : "inset 0 0 0 2px #C9953A, 0 0 32px rgba(201,149,58,0.45), 0 8px 32px rgba(0,0,0,0.6)",
-              color: "#C9953A",
+              marginBottom: compact ? "clamp(6px, 0.8vh, 12px)" : 6,
+              fontSize: compact ? "clamp(10px, 1.2vh, 14px)" : undefined,
+              letterSpacing: "0.16em",
             }}
           >
-            {member.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={member.avatarUrl} alt={member.name} className="w-full h-full object-cover" />
-            ) : (
-              member.name
-                .split(" ")
-                .map((w) => w[0])
-                .slice(0, 2)
-                .join("")
-                .toUpperCase()
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <span
-              className="label-caps label-caps-muted block"
-              style={{
-                marginBottom: compact ? 2 : 6,
-                fontSize: compact ? 9 : undefined,
-              }}
-            >
-              {isLeader ? "Liderando" : "Em destaque"}
-              {member.area ? ` · ${member.area}` : ""}
-            </span>
-            <h3
-              className="text-white"
-              style={{
-                fontSize: compact ? 14 : 24,
-                fontWeight: 800,
-                letterSpacing: "-0.01em",
-                lineHeight: 1.1,
-              }}
-            >
-              {member.name}
-            </h3>
-          </div>
+            {isLeader ? "Liderando" : "Em destaque"}
+            {member.area ? ` · ${member.area}` : ""}
+          </span>
+          <h3
+            className="text-white"
+            style={{
+              fontSize: compact ? "clamp(28px, 4.5vh, 56px)" : 24,
+              fontWeight: 900,
+              letterSpacing: "-0.02em",
+              lineHeight: 1.05,
+              textTransform: "uppercase",
+            }}
+          >
+            {member.name}
+          </h3>
         </div>
+
+        {/* Stats grandes */}
         <div
-          className="grid grid-cols-3 gap-2"
-          style={{ marginTop: compact ? 10 : 24 }}
+          className="grid grid-cols-3 w-full"
+          style={{ gap: compact ? "clamp(8px, 1.2vw, 18px)" : 8 }}
         >
           <SpotlightStat
-            label="XP"
+            label="PA"
             value={member.xp.toLocaleString("pt-BR")}
             primary
             compact={compact}
@@ -711,13 +725,20 @@ function SpotlightCard({
           <SpotlightStat label="Nível" value={String(member.level)} compact={compact} />
           <SpotlightStat label="Hoje" value={`${member.todayCount}`} compact={compact} />
         </div>
-        {!compact && (
-          <p className="mt-5 text-sm text-mid">
-            {isLeader
-              ? "Cabeça do ranking esta temporada."
-              : `Nível médio do time: ${avgLevel}.`}
-          </p>
-        )}
+
+        {/* Frase contextual aparece em fullscreen tambem (tem espaço) */}
+        <p
+          className="text-mid"
+          style={{
+            fontSize: compact ? "clamp(11px, 1.4vh, 16px)" : 14,
+            maxWidth: "32ch",
+            lineHeight: 1.4,
+          }}
+        >
+          {isLeader
+            ? "Cabeça do ranking esta temporada."
+            : `Nível médio do time: ${avgLevel}.`}
+        </p>
       </motion.div>
     </AnimatePresence>
   );
@@ -738,16 +759,18 @@ function SpotlightStat({
     <div
       className="rounded-xl text-center"
       style={{
-        padding: compact ? "6px 8px" : "12px 12px",
+        padding: compact ? "clamp(10px, 1.4vh, 18px) clamp(8px, 1vw, 14px)" : "12px 12px",
         background: primary ? "rgba(201,149,58,0.10)" : "rgba(255,255,255,0.03)",
-        boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)",
+        boxShadow: primary
+          ? "inset 0 0 0 1px rgba(201,149,58,0.30)"
+          : "inset 0 0 0 1px rgba(255,255,255,0.06)",
       }}
     >
       <span
         className="label-caps label-caps-muted block"
         style={{
-          marginBottom: compact ? 1 : 4,
-          fontSize: compact ? 8 : undefined,
+          marginBottom: compact ? "clamp(2px, 0.4vh, 6px)" : 4,
+          fontSize: compact ? "clamp(9px, 1vh, 12px)" : undefined,
         }}
       >
         {label}
@@ -755,10 +778,11 @@ function SpotlightStat({
       <span
         className="text-mono tabular-nums"
         style={{
-          fontSize: compact ? 14 : 20,
+          fontSize: compact ? "clamp(20px, 3.2vh, 40px)" : 20,
           fontWeight: 700,
           letterSpacing: "-0.02em",
           color: primary ? "#E0B25A" : "#FFF",
+          lineHeight: 1,
         }}
       >
         {value}

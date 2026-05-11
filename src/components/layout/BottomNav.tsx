@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
 import { Home, Tv, Plus, Users, Gift, User, Settings } from "lucide-react";
 
 // Rotas oficiais do sistema PA.
@@ -60,12 +59,14 @@ export function BottomNav({ isAdmin = false }: { isAdmin?: boolean }) {
                   "color 0.3s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
               }}
             >
-              <motion.span
-                animate={{ scale: active ? 1.08 : 1 }}
-                transition={{ type: "spring", stiffness: 360, damping: 24 }}
-              >
-                <Icon size={20} strokeWidth={1.6} />
-              </motion.span>
+              <Icon
+                size={20}
+                strokeWidth={1.6}
+                style={{
+                  transform: active ? "scale(1.08)" : "scale(1)",
+                  transition: "transform 0.2s cubic-bezier(0.22, 1, 0.36, 1)",
+                }}
+              />
               <span
                 className="font-medium"
                 style={{ fontSize: 9.5, letterSpacing: "0.05em" }}

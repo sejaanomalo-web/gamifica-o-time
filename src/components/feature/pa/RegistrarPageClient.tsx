@@ -104,8 +104,14 @@ export function RegistrarPageClient({
 
   return (
     <div className="mt-6">
-      {/* Ações */}
-      <div className="flex items-center gap-3 flex-wrap mb-5">
+      {/* Bloco de ação + filtros — visível com background próprio */}
+      <div
+        className="mb-5 p-4 md:p-5 flex items-center gap-3 flex-wrap rounded-2xl"
+        style={{
+          background: "rgba(17,17,21,0.65)",
+          boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)",
+        }}
+      >
         <button
           onClick={() => setOpen(true)}
           className="btn-pill btn-gold"
@@ -116,37 +122,75 @@ export function RegistrarPageClient({
         </button>
 
         <div className="flex items-center gap-2 ml-auto flex-wrap">
-          <span className="label-caps label-caps-muted">Filtro</span>
+          <span className="label-caps label-caps-muted hidden md:inline">Filtrar por</span>
 
-          <select
-            value={mesParam}
-            onChange={(e) => setFilter("mes", e.target.value)}
-            className="input-square"
-            style={{ height: 36, fontSize: 12 }}
-            aria-label="Mês"
-          >
-            <option value="all">Todos os meses</option>
-            {meses.map((m) => (
-              <option key={m.v} value={m.v}>
-                {m.l}
-              </option>
-            ))}
-          </select>
+          {/* Mês */}
+          <div className="flex flex-col gap-1">
+            <span className="label-caps label-caps-muted text-[9px]">Mês</span>
+            <select
+              value={mesParam}
+              onChange={(e) => setFilter("mes", e.target.value)}
+              aria-label="Mês"
+              style={{
+                height: 36,
+                fontSize: 12,
+                padding: "0 32px 0 12px",
+                background: "rgba(255,255,255,0.06)",
+                color: "#FFFFFF",
+                borderRadius: 999,
+                boxShadow: "inset 0 0 0 1px rgba(201,149,58,0.30)",
+                appearance: "none",
+                WebkitAppearance: "none",
+                MozAppearance: "none",
+                backgroundImage:
+                  "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23C9953A' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>\")",
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "right 10px center",
+                cursor: "pointer",
+              }}
+            >
+              <option value="all">Todos</option>
+              {meses.map((m) => (
+                <option key={m.v} value={m.v}>
+                  {m.l}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <select
-            value={anoParam}
-            onChange={(e) => setFilter("ano", e.target.value)}
-            className="input-square"
-            style={{ height: 36, fontSize: 12 }}
-            aria-label="Ano"
-          >
-            <option value="all">Todos os anos</option>
-            {anos.map((a) => (
-              <option key={a} value={a}>
-                {a}
-              </option>
-            ))}
-          </select>
+          {/* Ano */}
+          <div className="flex flex-col gap-1">
+            <span className="label-caps label-caps-muted text-[9px]">Ano</span>
+            <select
+              value={anoParam}
+              onChange={(e) => setFilter("ano", e.target.value)}
+              aria-label="Ano"
+              style={{
+                height: 36,
+                fontSize: 12,
+                padding: "0 32px 0 12px",
+                background: "rgba(255,255,255,0.06)",
+                color: "#FFFFFF",
+                borderRadius: 999,
+                boxShadow: "inset 0 0 0 1px rgba(201,149,58,0.30)",
+                appearance: "none",
+                WebkitAppearance: "none",
+                MozAppearance: "none",
+                backgroundImage:
+                  "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23C9953A' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>\")",
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "right 10px center",
+                cursor: "pointer",
+              }}
+            >
+              <option value="all">Todos</option>
+              {anos.map((a) => (
+                <option key={a} value={a}>
+                  {a}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
