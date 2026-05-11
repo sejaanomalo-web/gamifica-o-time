@@ -250,6 +250,33 @@ export default async function PerfilPage() {
         </div>
       </section>
 
+      {/* PAINEL ADMIN — só pra admins. Acesso fica aqui em vez de na nav,
+          pra reforçar que admin é responsabilidade extra, não privilégio. */}
+      {colab.isAdmin && (
+        <Link href="/admin/pa" className="block mt-8 ano-card p-6 group">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <span className="label-caps mb-2 block">Acesso administrativo</span>
+              <p className="text-white text-base font-semibold mb-1">
+                Painel admin
+              </p>
+              <p className="text-mid text-sm">
+                Validar ações, gerenciar atividades, fechar mês, processar
+                resgates da loja.
+              </p>
+            </div>
+            <span
+              className="text-[#C9953A] text-2xl group-hover:translate-x-1"
+              style={{
+                transition: "transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
+              }}
+            >
+              →
+            </span>
+          </div>
+        </Link>
+      )}
+
       {/* SAIR */}
       <div className="mt-12 mb-4 flex justify-center">
         <SignOutButton />

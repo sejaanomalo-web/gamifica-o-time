@@ -2,10 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Tv, Plus, Users, Gift, User, Settings } from "lucide-react";
+import { Tv, Plus, Users, Gift, User } from "lucide-react";
 
 // Rotas oficiais do sistema PA. "Time" é a aba padrão (1º item)
 // — quando o user abre o app, cai em /pa/time com o círculo aceso aqui.
+//
+// Admin tem o mesmo set do colab + Equipe (TV dashboard). O acesso ao
+// painel admin (/admin/pa) saiu da nav e foi pra /perfil — admin é
+// gestor antes de tudo, então pontua/loga junto com o time.
 const collaboratorItems = [
   { href: "/pa/time",      label: "Time",      icon: Users },
   { href: "/pa/registrar", label: "Registrar", icon: Plus },
@@ -17,7 +21,7 @@ const adminItems = [
   { href: "/pa/time",      label: "Time",      icon: Users },
   { href: "/equipe",       label: "Equipe",    icon: Tv },
   { href: "/pa/registrar", label: "Registrar", icon: Plus },
-  { href: "/admin/pa",     label: "Admin",     icon: Settings },
+  { href: "/pa/loja",      label: "Loja",      icon: Gift },
   { href: "/perfil",       label: "Perfil",    icon: User },
 ];
 
