@@ -1,10 +1,10 @@
 // /pa/loja — colaborador troca PA por gift card (R$50 a R$500, de 50 em 50).
-// Custo: 1 PA = R$1. Saldo = PA do mês (não rejeitada) − PA já gasto em
-// resgates ativos.
+// Custo: 1 PA = R$1.
+// Saldo ACUMULÁVEL (lifetime): PA total (não rejeitada) − resgates não
+// rejeitados. Se o colab não trocar num mês, o saldo segue pro próximo.
 
 import { prisma } from "@/lib/prisma";
 import { requireColaboradorPA } from "@/lib/pa-auth";
-import { currentMesAno, mesAnoLabel } from "@/lib/pa";
 import { LojaClient } from "@/components/feature/pa/LojaClient";
 
 async function safe<T>(label: string, q: () => Promise<T>, fallback: T): Promise<T> {
@@ -21,21 +21,14 @@ export const revalidate = 0;
 
 export default async function PaLojaPage() {
   const colab = await requireColaboradorPA();
-  const mesAno = currentMesAno();
-  const [year, month] = mesAno.split("-").map(Number);
-  const inicio = new Date(year, month - 1, 1);
-  const fim = new Date(year, month, 1);
 
   const [paAgg, resgatesAgg] = await Promise.all([
     safe(
       "paAgg",
       async () => {
+        // Lifetime — sem filtro de data
         const r = await prisma.acaoPontuada.aggregate({
-          where: {
-            colaboradorId: colab.id,
-            data: { gte: inicio, lt: fim },
-            status: { not: "REJEITADA" },
-          },
+          where: { colaboradorId: colab.id, status: { not: "REJEITADA" } },
           _sum: { paGerado: true },
         });
         return Number(r._sum.paGerado ?? 0);
@@ -45,12 +38,9 @@ export default async function PaLojaPage() {
     safe(
       "resgatesAgg",
       async () => {
+        // Lifetime — sem filtro de data
         const r = await prisma.lojaResgate.aggregate({
-          where: {
-            colaboradorId: colab.id,
-            createdAt: { gte: inicio, lt: fim },
-            status: { not: "REJEITADO" },
-          },
+          where: { colaboradorId: colab.id, status: { not: "REJEITADO" } },
           _sum: { paGasto: true },
         });
         return Number(r._sum.paGasto ?? 0);
@@ -74,7 +64,7 @@ export default async function PaLojaPage() {
 
   return (
     <div className="px-5 md:px-8 py-8 md:py-12 max-w-3xl mx-auto w-full">
-      <span className="label-caps label-caps-muted block mb-3">{mesAnoLabel(mesAno)}</span>
+      <span className="label-caps label-caps-muted block mb-3">Saldo acumulado</span>
       <h1
         className="text-white mb-8"
         style={{
@@ -100,7 +90,7 @@ export default async function PaLojaPage() {
       </h1>
 
       <div className="ano-card-flat p-6 mb-6">
-        <span className="label-caps label-caps-muted block mb-2">Saldo disponível no mês</span>
+        <span className="label-caps label-caps-muted block mb-2">Saldo disponível</span>
         <div className="flex items-baseline gap-3">
           <span
             className="text-mono text-[#C9953A] tabular-nums"
@@ -114,8 +104,9 @@ export default async function PaLojaPage() {
           </span>
         </div>
         <p className="text-[11px] text-mid mt-2">
-          Cada R$1 do gift card custa 1 PA. PA acumulado no mês (não rejeitado) menos
-          resgates já solicitados.
+          Saldo <strong className="text-mid">acumulável</strong> — PA total ganho (não rejeitado) menos
+          resgates já solicitados. Cada R$1 do gift card custa 1 PA. Se não trocar
+          esse mês, o saldo segue pro próximo.
         </p>
       </div>
 

@@ -1,13 +1,13 @@
 // POST /api/pa/loja — colaborador resgata gift card.
 // Body: { valorReais } — 50, 100, 150, ..., 500
-// Custo: 1 PA = R$1 (simples). Desconta do "saldo PA do mês" do colaborador.
-// Saldo = sum(paGerado em ações APROVADAS ou PENDENTES no mês) - sum(paGasto em resgates ativos no mês)
+// Custo: 1 PA = R$1 (simples).
+// Saldo ACUMULÁVEL (lifetime): PA total (não REJEITADA) − resgates lifetime
+// (não REJEITADO). Não reseta entre meses.
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireColaboradorPA } from "@/lib/pa-auth";
 import { prisma } from "@/lib/prisma";
-import { currentMesAno } from "@/lib/pa";
 
 const Body = z.object({
   valorReais: z
@@ -35,27 +35,14 @@ export async function POST(req: Request) {
   const valorReais = parsed.data.valorReais;
   const paGasto = valorReais; // 1 PA = R$1
 
-  // Saldo do mês: PA acumulado (não REJEITADA) − resgates não rejeitados do mês
-  const mesAno = currentMesAno();
-  const [year, month] = mesAno.split("-").map(Number);
-  const inicio = new Date(year, month - 1, 1);
-  const fim = new Date(year, month, 1);
-
+  // Saldo lifetime: PA total acumulado (não REJEITADA) − resgates não rejeitados
   const [paAgg, resgatesAgg] = await Promise.all([
     prisma.acaoPontuada.aggregate({
-      where: {
-        colaboradorId: colab.id,
-        data: { gte: inicio, lt: fim },
-        status: { not: "REJEITADA" },
-      },
+      where: { colaboradorId: colab.id, status: { not: "REJEITADA" } },
       _sum: { paGerado: true },
     }),
     prisma.lojaResgate.aggregate({
-      where: {
-        colaboradorId: colab.id,
-        createdAt: { gte: inicio, lt: fim },
-        status: { not: "REJEITADO" },
-      },
+      where: { colaboradorId: colab.id, status: { not: "REJEITADO" } },
       _sum: { paGasto: true },
     }),
   ]);
