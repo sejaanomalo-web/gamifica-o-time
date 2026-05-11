@@ -123,13 +123,13 @@ SET pa_minimo = EXCLUDED.pa_minimo,
     pa_maximo = EXCLUDED.pa_maximo,
     bonus_milestone = EXCLUDED.bonus_milestone;
 
--- colaboradores (5 do time)
+-- colaboradores (5 do time) — emails reais do Supabase Auth
 INSERT INTO public."colaboradores" (email, nome, funcoes, is_admin) VALUES
-  ('emanuel@anomalo.com.br',  'Emanuel',  ARRAY['sdr']::"FuncaoEquipe"[],                          false),
-  ('vinicius@anomalo.com.br', 'Vinicius', ARRAY['design']::"FuncaoEquipe"[],                       false),
-  ('felipe@anomalo.com.br',   'Felipe',   ARRAY['trafego']::"FuncaoEquipe"[],                      false),
-  ('sejaanomalo@gmail.com',   'Bruno',    ARRAY['social_midia','video_maker']::"FuncaoEquipe"[],   true),
-  ('alisson@anomalo.com.br',  'Alisson',  ARRAY['closer','video_maker']::"FuncaoEquipe"[],         true)
+  ('emanuelkreis6@gmail.com',   'Emanuel',  ARRAY['sdr']::"FuncaoEquipe"[],                          false),
+  ('viniciusfern16@gmail.com',  'Vinicius', ARRAY['design']::"FuncaoEquipe"[],                       false),
+  ('anomalofelipe@gmail.com',   'Felipe',   ARRAY['trafego']::"FuncaoEquipe"[],                      false),
+  ('cttbrunofreitas@gmail.com', 'Bruno',    ARRAY['social_midia','video_maker']::"FuncaoEquipe"[],   true),
+  ('alisson.ajp17@gmail.com',   'Alisson',  ARRAY['closer','video_maker']::"FuncaoEquipe"[],         true)
 ON CONFLICT (email) DO UPDATE
 SET nome = EXCLUDED.nome,
     funcoes = EXCLUDED.funcoes,
