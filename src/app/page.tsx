@@ -6,5 +6,5 @@ export default async function Index() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  redirect(user ? "/pa/time" : "/login");
+  redirect(user ? "/pa" : "/login");
 }

@@ -30,7 +30,7 @@ export default function LoginPage() {
       return;
     }
     startTransition(() => {
-      router.push("/pa/time");
+      router.push("/pa");
       router.refresh();
     });
     toast.success("Entrando.");
