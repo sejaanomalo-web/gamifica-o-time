@@ -9,8 +9,8 @@ import { Home, Plus, Users, Gift, User } from "lucide-react";
 // acessíveis via /perfil.
 const items = [
   { href: "/pa/time",      label: "Time",      icon: Users },
-  { href: "/pa",           label: "Início",    icon: Home },
   { href: "/pa/registrar", label: "Registrar", icon: Plus },
+  { href: "/pa",           label: "Início",    icon: Home },
   { href: "/pa/loja",      label: "Loja",      icon: Gift },
   { href: "/perfil",       label: "Perfil",    icon: User },
 ];
