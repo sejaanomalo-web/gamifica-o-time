@@ -78,7 +78,6 @@ function unlockOrientation() {
 
 export function TeamDashboard({
   members,
-  activity,
   totalSeasonXp,
   totalDeliveriesToday,
   totalDeliveriesWeek,
@@ -87,6 +86,8 @@ export function TeamDashboard({
   seasonNumber,
   daysLeftInSeason,
 }: Props) {
+  // `activity` foi removida do dashboard (Atividade ao vivo só em /pa/time
+  // pros colaboradores). A prop continua na interface pra retrocompat.
   const router = useRouter();
   const [now, setNow] = useState(() => new Date());
   const [fullscreen, setFullscreen] = useState(false);
@@ -538,51 +539,31 @@ export function TeamDashboard({
             )}
           </section>
 
-          {/* RIGHT: spotlight + ticker activity */}
-          <div
-            className={fullscreen ? "flex flex-col gap-2 md:gap-3" : "flex flex-col gap-4 md:gap-6"}
+          {/* RIGHT: spotlight ocupando a coluna inteira (atividade ao vivo
+              removida do TV dashboard a pedido — fica em /pa/time pros colabs) */}
+          <section
+            className={
+              fullscreen
+                ? "ano-card p-4 md:p-6 relative overflow-hidden flex flex-col"
+                : "ano-card p-5 md:p-7 relative overflow-hidden flex flex-col"
+            }
             style={{ minHeight: 0 }}
           >
-            <section
-              className={
-                fullscreen
-                  ? "ano-card p-3 md:p-4 relative overflow-hidden flex-shrink-0"
-                  : "ano-card p-5 md:p-6 relative overflow-hidden flex-shrink-0"
-              }
+            <h2
+              className="label-caps flex-shrink-0"
+              style={{ marginBottom: fullscreen ? 12 : 20 }}
             >
-              <h2
-                className="label-caps"
-                style={{ marginBottom: fullscreen ? 8 : 12 }}
-              >
-                Em destaque
-              </h2>
+              Em destaque
+            </h2>
+            <div className="flex-1 flex items-center justify-center" style={{ minHeight: 0 }}>
               <SpotlightCard
                 member={top5[highlightIdx] ?? null}
                 avgLevel={avgLevel}
                 leader={leader}
                 compact={fullscreen}
               />
-            </section>
-
-            <section
-              className={
-                fullscreen
-                  ? "ano-card-flat p-3 md:p-4 relative flex-1 flex flex-col"
-                  : "ano-card-flat p-5 md:p-6 relative flex-1 flex flex-col"
-              }
-              style={{ minHeight: 0 }}
-            >
-              <h2
-                className="label-caps flex-shrink-0"
-                style={{ marginBottom: fullscreen ? 8 : 12 }}
-              >
-                Atividade ao vivo
-              </h2>
-              <div className="flex-1" style={{ minHeight: 0 }}>
-                <ActivityTicker events={activity} />
-              </div>
-            </section>
-          </div>
+            </div>
+          </section>
         </div>
 
       </div>
@@ -786,99 +767,9 @@ function SpotlightStat({
   );
 }
 
-function ActivityTicker({ events }: { events: ActivityEvent[] }) {
-  if (events.length === 0) {
-    return (
-      <p className="text-faint text-sm py-6 text-center">
-        Nenhuma atividade ainda.
-      </p>
-    );
-  }
-  // Duplica a lista pra fazer scroll loop infinito
-  const loop = [...events, ...events];
-  return (
-    <div className="relative overflow-hidden h-full" style={{ minHeight: 200 }}>
-      <motion.div
-        animate={{ y: [0, -50 * events.length] }}
-        transition={{
-          duration: events.length * 4,
-          repeat: Infinity,
-          ease: "linear",
-        }}
-        className="absolute inset-0"
-      >
-        {loop.map((ev, idx) => {
-          const initials = ev.userName
-            .split(" ")
-            .map((w) => w[0])
-            .slice(0, 2)
-            .join("")
-            .toUpperCase();
-          const tag = TAG_BY_TYPE[ev.type] ?? { label: "—", color: "#FFF" };
-          return (
-            <div
-              key={`${ev.id}-${idx}`}
-              className="px-1 py-2.5 flex items-start gap-3"
-              style={{
-                borderBottom: "1px solid rgba(255,255,255,0.05)",
-                minHeight: 50,
-              }}
-            >
-              <div
-                className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center font-bold text-[10px] flex-shrink-0"
-                style={{
-                  background: "rgba(201,149,58,0.06)",
-                  boxShadow: "inset 0 0 0 1px rgba(201,149,58,0.32)",
-                  color: "#C9953A",
-                }}
-              >
-                {ev.avatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={ev.avatarUrl}
-                    alt={ev.userName}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  initials
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <span
-                  className="label-caps text-[9px] mb-0.5 block"
-                  style={{ color: tag.color }}
-                >
-                  {tag.label}
-                </span>
-                <p className="text-xs text-white/80 leading-snug">
-                  <span className="font-bold text-white">{ev.userName}</span>{" "}
-                  {ev.text} {ev.emoji}
-                </p>
-              </div>
-            </div>
-          );
-        })}
-      </motion.div>
-      {/* Fade no topo e fundo */}
-      <div
-        className="absolute top-0 left-0 right-0 h-12 pointer-events-none"
-        style={{ background: "linear-gradient(180deg, #111115 0%, transparent 100%)" }}
-      />
-      <div
-        className="absolute bottom-0 left-0 right-0 h-12 pointer-events-none"
-        style={{ background: "linear-gradient(0deg, #111115 0%, transparent 100%)" }}
-      />
-    </div>
-  );
-}
-
-const TAG_BY_TYPE: Record<string, { label: string; color: string }> = {
-  goal_done: { label: "Meta", color: "#C9953A" },
-  badge_unlocked: { label: "Badge", color: "#FFFFFF" },
-  level_up: { label: "Nível", color: "#E0B25A" },
-  delivery: { label: "Entrega", color: "#C9953A" },
-  shop_redeem: { label: "Loja", color: "#8A7850" },
-};
+// ActivityTicker removido do /equipe — feed ao vivo agora vive em /pa/time
+// (pros colaboradores). Coluna direita do TeamDashboard mostra só o
+// "Em destaque" ocupando a altura inteira.
 
 function SouAnomaloManifesto({ compact }: { compact?: boolean }) {
   return (
