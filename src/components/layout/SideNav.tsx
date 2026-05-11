@@ -2,20 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Tv, Plus, Users, Gift, User, Settings } from "lucide-react";
+import { Tv, Plus, Users, Gift, User, Settings } from "lucide-react";
 
+// "Time" é a aba padrão — 1º item da nav, círculo aceso ao abrir.
 const collaboratorItems = [
-  { href: "/pa",           label: "Home",      icon: Home },
-  { href: "/pa/registrar", label: "Registrar", icon: Plus },
   { href: "/pa/time",      label: "Time",      icon: Users },
+  { href: "/pa/registrar", label: "Registrar", icon: Plus },
   { href: "/pa/loja",      label: "Loja",      icon: Gift },
   { href: "/perfil",       label: "Perfil",    icon: User },
 ];
 
 const adminItems = [
+  { href: "/pa/time",      label: "Time",      icon: Users },
   { href: "/equipe",       label: "Equipe",    icon: Tv },
   { href: "/pa/registrar", label: "Registrar", icon: Plus },
-  { href: "/pa/time",      label: "Time",      icon: Users },
   { href: "/admin/pa",     label: "Admin",     icon: Settings },
   { href: "/perfil",       label: "Perfil",    icon: User },
 ];
