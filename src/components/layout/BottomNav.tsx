@@ -2,32 +2,24 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Tv, Plus, Users, Gift, User } from "lucide-react";
+import { Home, Plus, Users, Gift, User } from "lucide-react";
 
-// Rotas oficiais do sistema PA. "Time" é a aba padrão (1º item)
-// — quando o user abre o app, cai em /pa/time com o círculo aceso aqui.
-//
-// Admin tem o mesmo set do colab + Equipe (TV dashboard). O acesso ao
-// painel admin (/admin/pa) saiu da nav e foi pra /perfil — admin é
-// gestor antes de tudo, então pontua/loga junto com o time.
-const collaboratorItems = [
+// Rotas oficiais do sistema PA. "Time" é a aba padrão (1º item).
+// Admin tem a mesma nav do colab — acesso ao painel admin e ao TV
+// dashboard "Equipe" ficam no /perfil (admin é gestor antes de tudo
+// e pontua junto com o time).
+const items = [
   { href: "/pa/time",      label: "Time",      icon: Users },
+  { href: "/pa",           label: "Início",    icon: Home },
   { href: "/pa/registrar", label: "Registrar", icon: Plus },
   { href: "/pa/loja",      label: "Loja",      icon: Gift },
   { href: "/perfil",       label: "Perfil",    icon: User },
 ];
 
-const adminItems = [
-  { href: "/pa/time",      label: "Time",      icon: Users },
-  { href: "/equipe",       label: "Equipe",    icon: Tv },
-  { href: "/pa/registrar", label: "Registrar", icon: Plus },
-  { href: "/pa/loja",      label: "Loja",      icon: Gift },
-  { href: "/perfil",       label: "Perfil",    icon: User },
-];
-
-export function BottomNav({ isAdmin = false }: { isAdmin?: boolean }) {
+// isAdmin mantido na assinatura por compat, mas a nav é a mesma pros dois.
+export function BottomNav({ isAdmin: _isAdmin = false }: { isAdmin?: boolean } = {}) {
+  void _isAdmin;
   const pathname = usePathname();
-  const items = isAdmin ? adminItems : collaboratorItems;
   return (
     <nav
       aria-label="Navegação principal"

@@ -404,13 +404,13 @@ export function AdminPaClient({
 
       {/* TAB · Validações */}
       {tab === "validacoes" && (
-        <div className="ano-card-flat overflow-hidden">
+        <div className="ano-card-flat overflow-x-auto">
           {pendentes.length === 0 ? (
             <p className="text-faint text-sm py-12 text-center">
               Nada pendente. Todas as ações do mês foram revisadas.
             </p>
           ) : (
-            <table className="w-full text-sm">
+            <table className="w-full text-sm" style={{ minWidth: 720 }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
                   <th className="text-left px-4 py-3 label-caps label-caps-muted">Quem</th>
@@ -522,13 +522,13 @@ export function AdminPaClient({
 
       {/* TAB · Ações (todas do mês) */}
       {tab === "acoes" && (
-        <div className="ano-card-flat overflow-hidden">
+        <div className="ano-card-flat overflow-x-auto">
           {acoes.length === 0 ? (
             <p className="text-faint text-sm py-12 text-center">
               Nenhuma ação registrada nesse mês.
             </p>
           ) : (
-            <table className="w-full text-sm">
+            <table className="w-full text-sm" style={{ minWidth: 720 }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
                   <th className="text-left px-4 py-3 label-caps label-caps-muted">Quem</th>
@@ -584,13 +584,13 @@ export function AdminPaClient({
 
       {/* TAB · Loja */}
       {tab === "loja" && (
-        <div className="ano-card-flat overflow-hidden">
+        <div className="ano-card-flat overflow-x-auto">
           {resgates.length === 0 ? (
             <p className="text-faint text-sm py-12 text-center">
               Nenhum resgate da loja ainda.
             </p>
           ) : (
-            <table className="w-full text-sm">
+            <table className="w-full text-sm" style={{ minWidth: 720 }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
                   <th className="text-left px-4 py-3 label-caps label-caps-muted">Quem</th>
@@ -699,8 +699,8 @@ export function AdminPaClient({
             )}
           </div>
 
-          <div className="ano-card-flat overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="ano-card-flat overflow-x-auto">
+            <table className="w-full text-sm" style={{ minWidth: 720 }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
                   <th className="text-left px-4 py-3 label-caps label-caps-muted">Função</th>
@@ -914,14 +914,14 @@ export function AdminPaClient({
 
       {/* TAB · Fechamentos */}
       {tab === "fechamentos" && (
-        <div className="ano-card-flat overflow-hidden">
+        <div className="ano-card-flat overflow-x-auto">
           {fechamentos.length === 0 ? (
             <p className="text-faint text-sm py-10 text-center">
               Nenhum fechamento gerado ainda. Use{" "}
               <span className="text-[#C9953A]">Fechar mês</span> pra criar.
             </p>
           ) : (
-            <table className="w-full text-sm">
+            <table className="w-full text-sm" style={{ minWidth: 720 }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
                   <th className="text-left px-5 py-3 label-caps label-caps-muted">Colaborador</th>

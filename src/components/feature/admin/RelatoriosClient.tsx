@@ -147,13 +147,13 @@ export function RelatoriosClient({
       </div>
 
       {/* Tabela desempenho */}
-      <div className="ano-card-flat overflow-hidden">
+      <div className="ano-card-flat overflow-x-auto">
         {rows.length === 0 ? (
           <p className="text-faint text-sm py-12 text-center">
             Nenhum colaborador ativo.
           </p>
         ) : (
-          <table className="w-full text-sm">
+          <table className="w-full text-sm" style={{ minWidth: 720 }}>
             <thead>
               <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
                 <th className="text-left px-5 py-3 label-caps label-caps-muted">#</th>

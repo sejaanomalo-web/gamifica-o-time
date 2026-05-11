@@ -2,28 +2,23 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Tv, Plus, Users, Gift, User } from "lucide-react";
+import { Home, Plus, Users, Gift, User } from "lucide-react";
 
 // "Time" é a aba padrão — 1º item da nav, círculo aceso ao abrir.
-// Acesso ao painel admin (/admin/pa) saiu da nav e foi pra /perfil.
-const collaboratorItems = [
+// Admin usa a mesma nav do colab — Equipe (TV) e Painel admin ficam
+// acessíveis via /perfil.
+const items = [
   { href: "/pa/time",      label: "Time",      icon: Users },
+  { href: "/pa",           label: "Início",    icon: Home },
   { href: "/pa/registrar", label: "Registrar", icon: Plus },
   { href: "/pa/loja",      label: "Loja",      icon: Gift },
   { href: "/perfil",       label: "Perfil",    icon: User },
 ];
 
-const adminItems = [
-  { href: "/pa/time",      label: "Time",      icon: Users },
-  { href: "/equipe",       label: "Equipe",    icon: Tv },
-  { href: "/pa/registrar", label: "Registrar", icon: Plus },
-  { href: "/pa/loja",      label: "Loja",      icon: Gift },
-  { href: "/perfil",       label: "Perfil",    icon: User },
-];
-
-export function SideNav({ isAdmin = false }: { isAdmin?: boolean }) {
+// isAdmin mantido na assinatura por compat; nav é a mesma pros dois.
+export function SideNav({ isAdmin: _isAdmin = false }: { isAdmin?: boolean } = {}) {
+  void _isAdmin;
   const pathname = usePathname();
-  const items = isAdmin ? adminItems : collaboratorItems;
 
   return (
     <nav

@@ -250,31 +250,53 @@ export default async function PerfilPage() {
         </div>
       </section>
 
-      {/* PAINEL ADMIN — só pra admins. Acesso fica aqui em vez de na nav,
-          pra reforçar que admin é responsabilidade extra, não privilégio. */}
+      {/* ACESSOS ADMIN — só pra admins. Painel admin + Equipe (TV dashboard)
+          ficam aqui em vez de na nav, reforçando que admin é responsabilidade
+          extra, não privilégio de navegação. */}
       {colab.isAdmin && (
-        <Link href="/admin/pa" className="block mt-8 ano-card p-6 group">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <span className="label-caps mb-2 block">Acesso administrativo</span>
-              <p className="text-white text-base font-semibold mb-1">
-                Painel admin
-              </p>
-              <p className="text-mid text-sm">
-                Validar ações, gerenciar atividades, fechar mês, processar
-                resgates da loja.
-              </p>
+        <section className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-3">
+          <Link href="/admin/pa" className="ano-card p-6 group block">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <span className="label-caps mb-2 block">Acesso administrativo</span>
+                <p className="text-white text-base font-semibold mb-1">Painel admin</p>
+                <p className="text-mid text-sm">
+                  Validar ações, gerenciar atividades, fechar mês, processar
+                  resgates da loja.
+                </p>
+              </div>
+              <span
+                className="text-[#C9953A] text-2xl flex-shrink-0 group-hover:translate-x-1"
+                style={{
+                  transition: "transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
+                }}
+              >
+                →
+              </span>
             </div>
-            <span
-              className="text-[#C9953A] text-2xl group-hover:translate-x-1"
-              style={{
-                transition: "transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
-              }}
-            >
-              →
-            </span>
-          </div>
-        </Link>
+          </Link>
+
+          <Link href="/equipe" className="ano-card p-6 group block">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <span className="label-caps mb-2 block">Modo TV</span>
+                <p className="text-white text-base font-semibold mb-1">Equipe</p>
+                <p className="text-mid text-sm">
+                  Dashboard kiosk pra rodar 24h na TV do escritório com ranking,
+                  spotlight e auto-refresh.
+                </p>
+              </div>
+              <span
+                className="text-[#C9953A] text-2xl flex-shrink-0 group-hover:translate-x-1"
+                style={{
+                  transition: "transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
+                }}
+              >
+                →
+              </span>
+            </div>
+          </Link>
+        </section>
       )}
 
       {/* SAIR */}
