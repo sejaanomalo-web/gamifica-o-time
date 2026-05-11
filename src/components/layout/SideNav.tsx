@@ -2,20 +2,22 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Tv, Users, User, Settings } from "lucide-react";
+import { Home, Tv, Plus, Users, Gift, User, Settings } from "lucide-react";
 
-// Sistema PA — rotas oficiais.
 const collaboratorItems = [
-  { href: "/pa",       label: "Hoje",   icon: Home },
-  { href: "/pa/time",  label: "Time",   icon: Users },
-  { href: "/perfil",   label: "Perfil", icon: User },
+  { href: "/pa",           label: "Home",      icon: Home },
+  { href: "/pa/registrar", label: "Registrar", icon: Plus },
+  { href: "/pa/time",      label: "Time",      icon: Users },
+  { href: "/pa/loja",      label: "Loja",      icon: Gift },
+  { href: "/perfil",       label: "Perfil",    icon: User },
 ];
 
 const adminItems = [
-  { href: "/equipe",   label: "Equipe", icon: Tv },
-  { href: "/pa/time",  label: "Time",   icon: Users },
-  { href: "/admin/pa", label: "Admin",  icon: Settings },
-  { href: "/perfil",   label: "Perfil", icon: User },
+  { href: "/equipe",       label: "Equipe",    icon: Tv },
+  { href: "/pa/registrar", label: "Registrar", icon: Plus },
+  { href: "/pa/time",      label: "Time",      icon: Users },
+  { href: "/admin/pa",     label: "Admin",     icon: Settings },
+  { href: "/perfil",       label: "Perfil",    icon: User },
 ];
 
 export function SideNav({ isAdmin = false }: { isAdmin?: boolean }) {
@@ -50,17 +52,21 @@ export function SideNav({ isAdmin = false }: { isAdmin?: boolean }) {
       </div>
       <ul className="flex-1 flex flex-col gap-1 px-3">
         {items.map((it) => {
-          const active = pathname === it.href || pathname.startsWith(it.href + "/");
+          const active =
+            pathname === it.href ||
+            (it.href !== "/pa" && pathname.startsWith(it.href + "/"));
           const Icon = it.icon;
           return (
             <li key={it.href}>
               <Link
                 href={it.href}
-                className="group flex items-center gap-3 px-4 py-2.5 transition-all relative rounded-full"
+                className="group flex items-center gap-3 px-4 py-2.5 relative rounded-full"
                 style={{
                   color: active ? "#C9953A" : "rgba(237,235,230,0.65)",
                   background: active ? "rgba(201,149,58,0.08)" : "transparent",
                   boxShadow: active ? "inset 0 0 0 1px rgba(201,149,58,0.20)" : "none",
+                  transition:
+                    "color 0.3s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
                 }}
               >
                 <Icon size={17} strokeWidth={1.6} />
@@ -71,9 +77,7 @@ export function SideNav({ isAdmin = false }: { isAdmin?: boolean }) {
         })}
       </ul>
       <div className="px-6 py-5">
-        <p className="text-faint text-[10px] tracking-wide uppercase">
-          Anômalo Hub
-        </p>
+        <p className="text-faint text-[10px] tracking-wide uppercase">Anômalo Hub</p>
       </div>
     </nav>
   );

@@ -1,4 +1,4 @@
-// /admin/pa — admin lista todas as ações do mês, edita/exclui, fecha mês.
+// /admin/pa — admin gerencia ações (validar/editar/remover), resgates da loja e fechamento.
 
 import { prisma } from "@/lib/prisma";
 import { requireAdminPA } from "@/lib/pa-auth";
@@ -18,23 +18,25 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 interface PageProps {
-  searchParams: Promise<{ mes?: string }>;
+  searchParams: Promise<{ mes?: string; tab?: string }>;
 }
 
 export default async function AdminPaPage({ searchParams }: PageProps) {
   await requireAdminPA();
   const params = await searchParams;
   const mesAno = /^\d{4}-\d{2}$/.test(params.mes ?? "") ? params.mes! : currentMesAno();
+  const tab = (params.tab as "validacoes" | "acoes" | "loja" | "fechamentos") ?? "validacoes";
   const [year, month] = mesAno.split("-").map(Number);
   const inicio = new Date(year, month - 1, 1);
   const fim = new Date(year, month, 1);
 
+  // Ações do mês (todas) — filtradas por status no client
   type AcaoComRelations = Awaited<
     ReturnType<
       typeof prisma.acaoPontuada.findMany<{
         include: {
           colaborador: { select: { id: true; nome: true } };
-          atividade: { select: { nome: true; funcao: true; codigo: true } };
+          atividade: { select: { nome: true; funcao: true; codigo: true; paValor: true } };
         };
       }>
     >
@@ -47,7 +49,7 @@ export default async function AdminPaPage({ searchParams }: PageProps) {
         orderBy: { createdAt: "desc" },
         include: {
           colaborador: { select: { id: true, nome: true } },
-          atividade: { select: { nome: true, funcao: true, codigo: true } },
+          atividade: { select: { nome: true, funcao: true, codigo: true, paValor: true } },
         },
       }),
     [],
@@ -70,20 +72,43 @@ export default async function AdminPaPage({ searchParams }: PageProps) {
     [],
   );
 
+  // Resgates da loja (todos status, ordenados por status pendente primeiro)
+  type ResgateComColab = Awaited<
+    ReturnType<
+      typeof prisma.lojaResgate.findMany<{
+        include: { colaborador: { select: { nome: true } } };
+      }>
+    >
+  >;
+  const resgates = await safe<ResgateComColab>(
+    "resgates.findMany",
+    () =>
+      prisma.lojaResgate.findMany({
+        orderBy: [{ status: "asc" }, { createdAt: "desc" }],
+        take: 100,
+        include: { colaborador: { select: { nome: true } } },
+      }),
+    [],
+  );
+
   const rows = acoes.map((a) => ({
     id: a.id,
     colaboradorId: a.colaboradorId,
     colaboradorNome: a.colaborador.nome,
     atividadeNome: a.atividade.nome,
     atividadeFuncao: a.atividade.funcao as FuncaoCodigo,
+    atividadePaValor: Number(a.atividade.paValor),
     data: a.data.toISOString().slice(0, 10),
     quantidade: a.quantidade,
     paGerado: Number(a.paGerado),
     cliente: a.cliente,
     observacao: a.observacao,
     ehPenalidade: a.ehPenalidade,
+    status: a.status,
     createdAt: a.createdAt.toISOString(),
   }));
+
+  const pendentes = rows.filter((r) => r.status === "PENDENTE").length;
 
   return (
     <div className="px-5 md:px-8 py-8 md:py-12 max-w-6xl mx-auto w-full">
@@ -98,7 +123,7 @@ export default async function AdminPaPage({ searchParams }: PageProps) {
           textTransform: "uppercase",
         }}
       >
-        Ações<br />
+        Gestão<br />
         <span
           className="text-[#C9953A]"
           style={{
@@ -111,7 +136,9 @@ export default async function AdminPaPage({ searchParams }: PageProps) {
           do mês.
         </span>
       </h1>
-      <p className="text-mid text-sm mb-8">{mesAnoLabel(mesAno)} — {rows.length} ações registradas.</p>
+      <p className="text-mid text-sm mb-8">
+        {mesAnoLabel(mesAno)} — {rows.length} ações · {pendentes} pendentes · {resgates.length} resgates
+      </p>
 
       <AdminPaClient
         acoes={rows}
@@ -123,7 +150,18 @@ export default async function AdminPaPage({ searchParams }: PageProps) {
           totalComissao: Number(f.totalComissao),
           fechadoEm: f.fechadoEm.toISOString(),
         }))}
+        resgates={resgates.map((r) => ({
+          id: r.id,
+          colaboradorNome: r.colaborador.nome,
+          valorReais: r.valorReais,
+          paGasto: Number(r.paGasto),
+          status: r.status,
+          observacao: r.observacao,
+          createdAt: r.createdAt.toISOString(),
+          resolvidoEm: r.resolvidoEm?.toISOString() ?? null,
+        }))}
         mesAno={mesAno}
+        tabInicial={tab}
       />
 
       <p className="mt-8 text-faint text-xs">

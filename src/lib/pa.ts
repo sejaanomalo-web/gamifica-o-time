@@ -78,6 +78,31 @@ export function paAteProximoNivel(paTotal: number): {
   return { proximo: null, faltam: null };
 }
 
+// Progresso DENTRO do nível atual (0-100%). Em Excelência fica em 100.
+// Útil pra barrinha "quanto falta pro próximo nível" — não a barra geral.
+export function progressoDoNivelAtual(paTotal: number): {
+  pct: number;
+  base: number;
+  topo: number;
+} {
+  if (paTotal >= 240) return { pct: 100, base: 240, topo: 240 };
+  if (paTotal >= 160) {
+    return { pct: Math.round(((paTotal - 160) / 80) * 100), base: 160, topo: 240 };
+  }
+  if (paTotal >= 80) {
+    return { pct: Math.round(((paTotal - 80) / 80) * 100), base: 80, topo: 160 };
+  }
+  return { pct: Math.round((paTotal / 80) * 100), base: 0, topo: 80 };
+}
+
+// Saudação baseada na hora local
+export function saudacao(now: Date = new Date()): string {
+  const h = now.getHours();
+  if (h < 12) return "Bom dia";
+  if (h < 18) return "Boa tarde";
+  return "Boa noite";
+}
+
 export function formatBRL(n: number): string {
   return n.toLocaleString("pt-BR", {
     style: "currency",

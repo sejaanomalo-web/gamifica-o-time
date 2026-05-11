@@ -426,6 +426,19 @@ enum NivelMeta {
   excelencia
 }
 
+enum StatusAcao {
+  PENDENTE
+  APROVADA
+  REJEITADA
+}
+
+enum StatusResgate {
+  PENDENTE
+  APROVADO
+  ENTREGUE
+  REJEITADO
+}
+
 model Colaborador {
   id          String         @id @default(uuid()) @db.Uuid
   email       String         @unique
@@ -439,8 +452,11 @@ model Colaborador {
 
   acoes              AcaoPontuada[]      @relation("ColaboradorAcoes")
   acoesCriadas       AcaoPontuada[]      @relation("CriadorAcoes")
+  acoesValidadas     AcaoPontuada[]      @relation("ValidadorAcoes")
   fechamentos        FechamentoMensal[]  @relation("ColaboradorFechamentos")
   fechamentosFeitos  FechamentoMensal[]  @relation("AdminFechou")
+  resgates           LojaResgate[]       @relation("ColaboradorResgates")
+  resgatesResolvidos LojaResgate[]       @relation("AdminResolveuResgate")
 
   @@index([ativo])
   @@index([isAdmin])
@@ -465,25 +481,30 @@ model AtividadeCatalogo {
 }
 
 model AcaoPontuada {
-  id             String   @id @default(uuid()) @db.Uuid
-  colaboradorId  String   @map("colaborador_id") @db.Uuid
-  atividadeId    String   @map("atividade_id") @db.Uuid
-  data           DateTime @db.Date
-  quantidade     Int      @default(1)
-  paGerado       Decimal  @map("pa_gerado") @db.Decimal(10, 2)
+  id             String     @id @default(uuid()) @db.Uuid
+  colaboradorId  String     @map("colaborador_id") @db.Uuid
+  atividadeId    String     @map("atividade_id") @db.Uuid
+  data           DateTime   @db.Date
+  quantidade     Int        @default(1)
+  paGerado       Decimal    @map("pa_gerado") @db.Decimal(10, 2)
   cliente        String?
   observacao     String?
-  ehPenalidade   Boolean  @default(false) @map("eh_penalidade")
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  createdBy      String?  @map("created_by") @db.Uuid
+  ehPenalidade   Boolean    @default(false) @map("eh_penalidade")
+  status         StatusAcao @default(PENDENTE)
+  validadoEm     DateTime?  @map("validado_em") @db.Timestamptz(6)
+  validadoPor    String?    @map("validado_por") @db.Uuid
+  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy      String?    @map("created_by") @db.Uuid
 
   colaborador Colaborador        @relation("ColaboradorAcoes", fields: [colaboradorId], references: [id], onDelete: Cascade)
   atividade   AtividadeCatalogo  @relation(fields: [atividadeId], references: [id])
   criador     Colaborador?       @relation("CriadorAcoes", fields: [createdBy], references: [id], onDelete: SetNull)
+  validador   Colaborador?       @relation("ValidadorAcoes", fields: [validadoPor], references: [id], onDelete: SetNull)
 
   @@index([colaboradorId, data(sort: Desc)])
   @@index([data(sort: Desc)])
   @@index([createdAt(sort: Desc)])
+  @@index([status, createdAt(sort: Desc)])
   @@map("acoes_pontuadas")
 }
 
@@ -514,4 +535,23 @@ model FechamentoMensal {
   @@unique([colaboradorId, mesAno])
   @@index([mesAno(sort: Desc)])
   @@map("fechamentos_mensais")
+}
+
+model LojaResgate {
+  id             String        @id @default(uuid()) @db.Uuid
+  colaboradorId  String        @map("colaborador_id") @db.Uuid
+  valorReais     Int           @map("valor_reais")
+  paGasto        Decimal       @map("pa_gasto") @db.Decimal(10, 2)
+  status         StatusResgate @default(PENDENTE)
+  observacao     String?
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  resolvidoEm    DateTime?     @map("resolvido_em") @db.Timestamptz(6)
+  resolvidoPor   String?       @map("resolvido_por") @db.Uuid
+
+  colaborador Colaborador  @relation("ColaboradorResgates", fields: [colaboradorId], references: [id], onDelete: Cascade)
+  adminResolveu Colaborador? @relation("AdminResolveuResgate", fields: [resolvidoPor], references: [id], onDelete: SetNull)
+
+  @@index([colaboradorId, createdAt(sort: Desc)])
+  @@index([status, createdAt(sort: Desc)])
+  @@map("loja_resgates")
 }

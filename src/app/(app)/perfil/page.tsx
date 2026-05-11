@@ -1,11 +1,22 @@
+// /perfil — perfil do colaborador. Sem comissionamento detalhado.
+// Mostra: avatar, nome, função, nível atual com barra de progresso
+// até o próximo nível, e botão pra editar/sair.
+
 import Link from "next/link";
-import { Reveal } from "@/components/motion/Reveal";
-import { CountUp } from "@/components/motion/CountUp";
-import { XpBar } from "@/components/feature/profile/XpBar";
-import { SignOutButton } from "@/components/feature/profile/SignOutButton";
 import { prisma } from "@/lib/prisma";
-import { requireAppUser } from "@/lib/auth";
-import { xpProgress } from "@/lib/xp";
+import { requireColaboradorPA } from "@/lib/pa-auth";
+import { SignOutButton } from "@/components/feature/profile/SignOutButton";
+import {
+  calcularNivel,
+  currentMesAno,
+  mesAnoLabel,
+  NIVEL_LABEL,
+  NIVEL_COR,
+  paAteProximoNivel,
+  progressoDoNivelAtual,
+  FUNCAO_LABEL,
+  type FuncaoCodigo,
+} from "@/lib/pa";
 
 async function safe<T>(label: string, q: () => Promise<T>, fallback: T): Promise<T> {
   try {
@@ -16,247 +27,246 @@ async function safe<T>(label: string, q: () => Promise<T>, fallback: T): Promise
   }
 }
 
-export default async function PerfilPage() {
-  const user = await requireAppUser();
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-  const xpTotalAgg = await safe(
-    "xpEvent.aggregate",
-    () => prisma.xpEvent.aggregate({ where: { userId: user.id }, _sum: { amount: true } }),
-    { _sum: { amount: 0 } },
-  );
-  const goalsBeaten = await safe(
-    "goal.count",
-    () => prisma.goal.count({ where: { ownerId: user.id, status: "CONCLUIDA" } }),
+export default async function PerfilPage() {
+  const colab = await requireColaboradorPA();
+  const mesAno = currentMesAno();
+  const [year, month] = mesAno.split("-").map(Number);
+  const inicio = new Date(year, month - 1, 1);
+  const fim = new Date(year, month, 1);
+
+  const paMes = await safe(
+    "acao.aggregate mes",
+    async () => {
+      const r = await prisma.acaoPontuada.aggregate({
+        where: {
+          colaboradorId: colab.id,
+          data: { gte: inicio, lt: fim },
+          status: { not: "REJEITADA" },
+        },
+        _sum: { paGerado: true },
+      });
+      return Number(r._sum.paGerado ?? 0);
+    },
     0,
   );
-  const seasonsCount = await safe(
-    "xpEvent.distinct",
+
+  // Total de ações já registradas (lifetime)
+  const totalAcoes = await safe(
+    "acao.count",
     () =>
-      prisma.xpEvent.findMany({
-        where: { userId: user.id },
-        distinct: ["seasonId"],
-        select: { seasonId: true },
+      prisma.acaoPontuada.count({
+        where: { colaboradorId: colab.id, status: { not: "REJEITADA" } },
       }),
-    [] as { seasonId: string }[],
-  );
-  type SnapshotWithSeason = Awaited<
-    ReturnType<typeof prisma.wrappedSnapshot.findMany<{ include: { season: true } }>>
-  >;
-  const snapshots = await safe<SnapshotWithSeason>(
-    "wrappedSnapshot.findMany",
-    () =>
-      prisma.wrappedSnapshot.findMany({
-        where: { userId: user.id },
-        include: { season: true },
-        orderBy: { createdAt: "desc" },
-      }),
-    [],
+    0,
   );
 
-  const totalXp = xpTotalAgg._sum.amount ?? 0;
-  const prog = xpProgress(totalXp);
+  // Meses ativos (lifetime — quantos meses já registrou alguma coisa)
+  const mesesAtivos = await safe(
+    "acao.distinct months",
+    async () => {
+      const rows = await prisma.acaoPontuada.findMany({
+        where: { colaboradorId: colab.id, status: { not: "REJEITADA" } },
+        select: { data: true },
+      });
+      const set = new Set(rows.map((r) => r.data.toISOString().slice(0, 7)));
+      return set.size;
+    },
+    0,
+  );
 
-  const initials = user.name
+  const nivel = calcularNivel(paMes);
+  const proximo = paAteProximoNivel(paMes);
+  const dentroNivel = progressoDoNivelAtual(paMes);
+
+  const initials = colab.nome
     .split(" ")
     .map((w) => w[0])
     .slice(0, 2)
     .join("")
     .toUpperCase();
 
-  return (
-    <div className="px-5 md:px-8 py-8 md:py-12 max-w-3xl mx-auto w-full">
-      {/* HEADER */}
-      <Reveal>
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-5">
-            <div
-              className="w-20 h-20 flex items-center justify-center text-2xl font-black rounded-full overflow-hidden"
-              style={{
-                background: "rgba(201, 149, 58, 0.10)",
-                color: "#C9953A",
-                boxShadow:
-                  "inset 0 0 0 1.5px #C9953A, 0 0 24px rgba(201,149,58,0.30), 0 8px 32px -16px rgba(0,0,0,0.6)",
-              }}
-            >
-              {user.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={user.avatarUrl}
-                  alt={user.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                initials
-              )}
-            </div>
-            <div>
-              <h1
-                className="text-white"
-                style={{
-                  fontWeight: 900,
-                  fontSize: "1.75rem",
-                  lineHeight: 1.05,
-                  letterSpacing: "-0.02em",
-                }}
-              >
-                {user.name}
-              </h1>
-              <span className="label-caps label-caps-muted mt-1.5 block">
-                {user.area ?? "Anômalo"} · Nível {prog.level}
-              </span>
-            </div>
-          </div>
-          <Link
-            href="/perfil/editar"
-            className="btn-pill btn-ghost"
-            style={{ height: 40, padding: "0 18px", fontSize: 12 }}
-          >
-            Editar
-          </Link>
-        </div>
-      </Reveal>
+  const funcoesLabel = colab.funcoes
+    .map((f) => FUNCAO_LABEL[f as FuncaoCodigo] ?? f)
+    .join(" · ");
 
-      {/* HERO copy */}
-      <Reveal delay={150}>
-        <div className="mt-10">
-          <h2
-            className="text-white"
+  return (
+    <div className="relative px-5 md:px-8 py-8 md:py-12 max-w-3xl mx-auto w-full">
+      {/* HEADER */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-5">
+          <div
+            className="w-20 h-20 flex items-center justify-center text-2xl font-black rounded-full overflow-hidden flex-shrink-0"
             style={{
-              fontWeight: 900,
-              fontSize: "clamp(2.5rem, 8vw, 4rem)",
-              lineHeight: 0.95,
-              letterSpacing: "-0.03em",
-              textTransform: "uppercase",
+              background: "rgba(201, 149, 58, 0.10)",
+              color: "#C9953A",
+              boxShadow:
+                "inset 0 0 0 1.5px #C9953A, 0 0 24px rgba(201,149,58,0.30), 0 8px 32px -16px rgba(0,0,0,0.6)",
             }}
           >
-            Sua<br />
-            <span
-              className="text-[#C9953A]"
+            {colab.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={colab.avatarUrl}
+                alt={colab.nome}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              initials
+            )}
+          </div>
+          <div>
+            <h1
+              className="text-white"
               style={{
-                fontWeight: 300,
-                fontStyle: "italic",
-                textTransform: "lowercase",
+                fontWeight: 900,
+                fontSize: "1.75rem",
+                lineHeight: 1.05,
                 letterSpacing: "-0.02em",
               }}
             >
-              jornada.
+              {colab.nome}
+            </h1>
+            <span className="label-caps label-caps-muted mt-1.5 block">
+              {funcoesLabel}
             </span>
-          </h2>
-        </div>
-      </Reveal>
-
-      {/* XP BAR */}
-      <Reveal delay={300}>
-        <div className="mt-8 ano-card-flat p-6">
-          <XpBar
-            currentXp={totalXp}
-            nextLevelXp={prog.next}
-            level={prog.level}
-            levelFloor={prog.next - prog.levelSize}
-          />
-          <div className="mt-3 flex items-baseline justify-between">
-            <span className="label-caps label-caps-muted">XP até nível {prog.level + 1}</span>
-            <span className="text-mono text-[#C9953A]" style={{ fontSize: 13 }}>
-              {prog.toNext.toLocaleString("pt-BR")} faltando
-            </span>
+            {colab.isAdmin && (
+              <span
+                className="label-caps text-[10px] mt-1.5 inline-block px-2 py-0.5 rounded-full"
+                style={{
+                  background: "rgba(201,149,58,0.10)",
+                  color: "#C9953A",
+                  boxShadow: "inset 0 0 0 1px rgba(201,149,58,0.40)",
+                }}
+              >
+                Admin
+              </span>
+            )}
           </div>
         </div>
-      </Reveal>
-
-      {/* STATS GRID */}
-      <Reveal delay={450}>
-        <div className="mt-6 grid grid-cols-3 gap-3">
-          <StatCard label="XP total" value={<CountUp value={totalXp} />} />
-          <StatCard label="Metas batidas" value={<CountUp value={goalsBeaten} />} />
-          <StatCard label="Temporadas" value={<CountUp value={seasonsCount.length} />} />
-        </div>
-      </Reveal>
-
-      {/* COMISSIONAMENTO CARD (CTA destaque com glow) */}
-      <Reveal delay={600}>
-        <Link href="/perfil/comissionamento" className="block mt-8 ano-card p-6 group">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <span className="label-caps mb-2 block">Comissionamento</span>
-              <p className="text-white text-base font-semibold mb-1">
-                Pontos do mês · Tier · Bônus em R$
-              </p>
-              <p className="text-mid text-sm">
-                Veja o que tá no caminho do próximo marco.
-              </p>
-            </div>
-            <span
-              className="text-[#C9953A] text-2xl transition-transform group-hover:translate-x-1"
-              style={{ transitionTimingFunction: "var(--ease-academia)" }}
-            >
-              →
-            </span>
-          </div>
+        <Link
+          href="/perfil/editar"
+          className="btn-pill btn-ghost flex-shrink-0"
+          style={{ height: 40, padding: "0 18px", fontSize: 12 }}
+        >
+          Editar
         </Link>
-      </Reveal>
+      </div>
 
-      {/* WRAPPED HISTORY */}
-      <Reveal delay={750}>
-        <section className="mt-10">
-          <h2 className="label-caps label-caps-muted mb-3">Suas retrospectivas</h2>
-          {snapshots.length === 0 ? (
-            <p className="text-faint text-sm py-10 text-center ano-card-flat">
-              Nenhuma temporada fechada ainda. A primeira chega no fim do ciclo atual.
-            </p>
-          ) : (
-            <ul className="ano-card-flat overflow-hidden">
-              {snapshots.map((s, i) => (
-                <li
-                  key={s.id}
-                  className={
-                    "px-5 py-4 flex items-center justify-between" +
-                    (i < snapshots.length - 1 ? " border-b" : "")
-                  }
-                  style={{ borderColor: "rgba(255,255,255,0.06)" }}
-                >
-                  <div>
-                    <span className="text-white text-sm font-semibold">
-                      Temporada {String(s.season.number).padStart(2, "0")}
-                    </span>
-                    <span className="block text-mid text-xs mt-0.5">
-                      {s.season.startsAt.toLocaleDateString("pt-BR", {
-                        month: "long",
-                        year: "numeric",
-                      })}
-                    </span>
-                  </div>
-                  <Link
-                    href={`/perfil/wrapped/${s.seasonId}`}
-                    className="label-caps text-[#C9953A] hover:text-[#E0B25A] transition-colors"
-                  >
-                    Ver Wrapped →
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </Reveal>
-
-      {/* SAIR (logout) */}
-      <Reveal delay={900}>
-        <div className="mt-12 mb-4 flex justify-center">
-          <SignOutButton />
+      {/* NÍVEL ATUAL + BARRA */}
+      <section className="ano-card-flat p-6 mt-10">
+        <span className="label-caps label-caps-muted block mb-2">
+          Nível · {mesAnoLabel(mesAno)}
+        </span>
+        <div className="flex items-baseline gap-4 mb-1">
+          <span
+            style={{
+              fontSize: 36,
+              fontWeight: 900,
+              letterSpacing: "-0.02em",
+              lineHeight: 1,
+              color: NIVEL_COR[nivel],
+              textTransform: "uppercase",
+            }}
+          >
+            {NIVEL_LABEL[nivel]}
+          </span>
+          <span
+            className="text-mono text-[#C9953A] tabular-nums"
+            style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.02em" }}
+          >
+            {paMes.toFixed(1)} PA
+          </span>
         </div>
-      </Reveal>
-    </div>
-  );
-}
 
-function StatCard({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="ano-card-flat p-5 text-center" style={{ boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.08)" }}>
-      <span className="label-caps label-caps-muted block mb-2">{label}</span>
+        <div className="mt-5">
+          <div className="flex items-baseline justify-between mb-2">
+            <span className="label-caps label-caps-muted">
+              Progresso dentro do {NIVEL_LABEL[nivel]}
+            </span>
+            <span className="text-mono text-[#C9953A] text-xs font-bold">
+              {dentroNivel.pct}%
+            </span>
+          </div>
+          <div className="relative h-3 rounded-full overflow-hidden bg-white/[0.06]">
+            <div
+              className="h-full rounded-full"
+              style={{
+                width: `${dentroNivel.pct}%`,
+                background: "linear-gradient(90deg, #C9953A 0%, #E0B25A 100%)",
+                boxShadow: "0 0 10px rgba(201,149,58,0.45)",
+                transition: "width 0.8s cubic-bezier(0.22, 1, 0.36, 1)",
+              }}
+            />
+          </div>
+          <div className="flex justify-between mt-2 text-[10px] text-mid text-mono">
+            <span>{dentroNivel.base} PA</span>
+            <span className="text-[#C9953A]">{paMes.toFixed(1)} PA</span>
+            <span>{dentroNivel.topo} PA</span>
+          </div>
+        </div>
+
+        {proximo.proximo && (
+          <p className="mt-5 text-sm text-mid">
+            Faltam{" "}
+            <span className="text-mono text-[#C9953A] font-bold">
+              {proximo.faltam?.toFixed(1)}
+            </span>{" "}
+            PA pra{" "}
+            <span className="text-[#C9953A] font-semibold">
+              {NIVEL_LABEL[proximo.proximo]}
+            </span>
+            .
+          </p>
+        )}
+        {!proximo.proximo && (
+          <p className="mt-5 text-sm text-[#E0B25A]">
+            Você já tá em Excelência neste mês. Topo do ranking.
+          </p>
+        )}
+      </section>
+
+      {/* STATS HISTÓRICO */}
+      <section className="grid grid-cols-2 gap-3 mt-6">
+        <div className="ano-card-flat p-5 text-center">
+          <span className="label-caps label-caps-muted block mb-2">Total de ações</span>
+          <span
+            className="text-mono text-white"
+            style={{ fontSize: 26, fontWeight: 700, letterSpacing: "-0.02em" }}
+          >
+            {totalAcoes}
+          </span>
+        </div>
+        <div className="ano-card-flat p-5 text-center">
+          <span className="label-caps label-caps-muted block mb-2">Meses no time</span>
+          <span
+            className="text-mono text-white"
+            style={{ fontSize: 26, fontWeight: 700, letterSpacing: "-0.02em" }}
+          >
+            {mesesAtivos}
+          </span>
+        </div>
+      </section>
+
+      {/* SAIR */}
+      <div className="mt-12 mb-4 flex justify-center">
+        <SignOutButton />
+      </div>
+
       <span
-        className="text-mono text-white"
-        style={{ fontSize: 26, fontWeight: 700, letterSpacing: "-0.02em" }}
+        aria-hidden
+        className="fixed pointer-events-none"
+        style={{
+          bottom: 110,
+          right: 16,
+          color: "rgba(201,149,58,0.60)",
+          fontSize: 14,
+          fontWeight: 300,
+        }}
       >
-        {value}
+        Λ
       </span>
     </div>
   );

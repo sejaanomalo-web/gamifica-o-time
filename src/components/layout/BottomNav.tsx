@@ -3,21 +3,23 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Home, Tv, Users, Settings, User } from "lucide-react";
+import { Home, Tv, Plus, Users, Gift, User, Settings } from "lucide-react";
 
-// Sistema PA — rotas oficiais. As antigas (/dashboard, /metas, /ranking,
-// /loja) redirecionam pra cá ou serão removidas.
+// Rotas oficiais do sistema PA.
 const collaboratorItems = [
-  { href: "/pa",       label: "Hoje",   icon: Home },
-  { href: "/pa/time",  label: "Time",   icon: Users },
-  { href: "/perfil",   label: "Perfil", icon: User },
+  { href: "/pa",           label: "Home",      icon: Home },
+  { href: "/pa/registrar", label: "Registrar", icon: Plus },
+  { href: "/pa/time",      label: "Time",      icon: Users },
+  { href: "/pa/loja",      label: "Loja",      icon: Gift },
+  { href: "/perfil",       label: "Perfil",    icon: User },
 ];
 
 const adminItems = [
-  { href: "/equipe",   label: "Equipe", icon: Tv },
-  { href: "/pa/time",  label: "Time",   icon: Users },
-  { href: "/admin/pa", label: "Admin",  icon: Settings },
-  { href: "/perfil",   label: "Perfil", icon: User },
+  { href: "/equipe",       label: "Equipe",    icon: Tv },
+  { href: "/pa/registrar", label: "Registrar", icon: Plus },
+  { href: "/pa/time",      label: "Time",      icon: Users },
+  { href: "/admin/pa",     label: "Admin",     icon: Settings },
+  { href: "/perfil",       label: "Perfil",    icon: User },
 ];
 
 export function BottomNav({ isAdmin = false }: { isAdmin?: boolean }) {
@@ -40,16 +42,22 @@ export function BottomNav({ isAdmin = false }: { isAdmin?: boolean }) {
         }}
       >
         {items.map((it) => {
-          const active = pathname === it.href || pathname.startsWith(it.href + "/");
+          // Match exato ou prefixo, mas evita /pa marcar /pa/registrar como ativo.
+          const active =
+            pathname === it.href ||
+            (it.href !== "/pa" && pathname.startsWith(it.href + "/"));
           const Icon = it.icon;
           return (
             <Link
               key={it.href}
               href={it.href}
-              className="flex-1 flex flex-col items-center gap-1 py-2 px-1 rounded-full transition-colors relative"
+              className="flex-1 flex flex-col items-center gap-1 py-2 px-1 rounded-full relative"
               style={{
                 color: active ? "#C9953A" : "rgba(237,235,230,0.55)",
                 background: active ? "rgba(201,149,58,0.10)" : "transparent",
+                // Transição suave entre cor ativa/inativa
+                transition:
+                  "color 0.3s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
               }}
             >
               <motion.span

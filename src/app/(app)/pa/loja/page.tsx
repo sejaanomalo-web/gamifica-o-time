@@ -1,0 +1,148 @@
+// /pa/loja — colaborador troca PA por gift card (R$50 a R$500, de 50 em 50).
+// Custo: 1 PA = R$1. Saldo = PA do mês (não rejeitada) − PA já gasto em
+// resgates ativos.
+
+import { prisma } from "@/lib/prisma";
+import { requireColaboradorPA } from "@/lib/pa-auth";
+import { currentMesAno, mesAnoLabel } from "@/lib/pa";
+import { LojaClient } from "@/components/feature/pa/LojaClient";
+
+async function safe<T>(label: string, q: () => Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await q();
+  } catch (err) {
+    console.error(`[pa/loja] ${label} failed:`, err);
+    return fallback;
+  }
+}
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+export default async function PaLojaPage() {
+  const colab = await requireColaboradorPA();
+  const mesAno = currentMesAno();
+  const [year, month] = mesAno.split("-").map(Number);
+  const inicio = new Date(year, month - 1, 1);
+  const fim = new Date(year, month, 1);
+
+  const [paAgg, resgatesAgg] = await Promise.all([
+    safe(
+      "paAgg",
+      async () => {
+        const r = await prisma.acaoPontuada.aggregate({
+          where: {
+            colaboradorId: colab.id,
+            data: { gte: inicio, lt: fim },
+            status: { not: "REJEITADA" },
+          },
+          _sum: { paGerado: true },
+        });
+        return Number(r._sum.paGerado ?? 0);
+      },
+      0,
+    ),
+    safe(
+      "resgatesAgg",
+      async () => {
+        const r = await prisma.lojaResgate.aggregate({
+          where: {
+            colaboradorId: colab.id,
+            createdAt: { gte: inicio, lt: fim },
+            status: { not: "REJEITADO" },
+          },
+          _sum: { paGasto: true },
+        });
+        return Number(r._sum.paGasto ?? 0);
+      },
+      0,
+    ),
+  ]);
+
+  const saldo = paAgg - resgatesAgg;
+
+  const historico = await safe(
+    "lojaResgate.findMany",
+    () =>
+      prisma.lojaResgate.findMany({
+        where: { colaboradorId: colab.id },
+        orderBy: { createdAt: "desc" },
+        take: 30,
+      }),
+    [] as Awaited<ReturnType<typeof prisma.lojaResgate.findMany>>,
+  );
+
+  return (
+    <div className="px-5 md:px-8 py-8 md:py-12 max-w-3xl mx-auto w-full">
+      <span className="label-caps label-caps-muted block mb-3">{mesAnoLabel(mesAno)}</span>
+      <h1
+        className="text-white mb-8"
+        style={{
+          fontWeight: 900,
+          fontSize: "clamp(2rem, 6vw, 2.75rem)",
+          lineHeight: 1,
+          letterSpacing: "-0.03em",
+          textTransform: "uppercase",
+        }}
+      >
+        Trocar PA por<br />
+        <span
+          className="text-[#C9953A]"
+          style={{
+            fontWeight: 300,
+            fontStyle: "italic",
+            textTransform: "lowercase",
+            letterSpacing: "-0.02em",
+          }}
+        >
+          gift card.
+        </span>
+      </h1>
+
+      <div className="ano-card-flat p-6 mb-6">
+        <span className="label-caps label-caps-muted block mb-2">Saldo disponível no mês</span>
+        <div className="flex items-baseline gap-3">
+          <span
+            className="text-mono text-[#C9953A] tabular-nums"
+            style={{ fontSize: 42, fontWeight: 700, letterSpacing: "-0.03em", lineHeight: 1 }}
+          >
+            {saldo.toFixed(1)}
+          </span>
+          <span className="label-caps label-caps-muted">PA</span>
+          <span className="text-mid text-xs ml-auto">
+            ≈ R$ {saldo.toFixed(2).replace(".", ",")}
+          </span>
+        </div>
+        <p className="text-[11px] text-mid mt-2">
+          Cada R$1 do gift card custa 1 PA. PA acumulado no mês (não rejeitado) menos
+          resgates já solicitados.
+        </p>
+      </div>
+
+      <LojaClient
+        saldo={saldo}
+        historico={historico.map((h) => ({
+          id: h.id,
+          valorReais: h.valorReais,
+          paGasto: Number(h.paGasto),
+          status: h.status,
+          createdAt: h.createdAt.toISOString(),
+        }))}
+      />
+
+      <span
+        aria-hidden
+        className="fixed pointer-events-none"
+        style={{
+          bottom: 110,
+          right: 16,
+          color: "rgba(201,149,58,0.60)",
+          fontSize: 14,
+          fontWeight: 300,
+        }}
+      >
+        Λ
+      </span>
+    </div>
+  );
+}
