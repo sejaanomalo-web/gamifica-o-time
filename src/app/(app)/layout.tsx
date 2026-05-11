@@ -5,7 +5,6 @@ import { TopBar } from "@/components/layout/TopBar";
 import { SideNav } from "@/components/layout/SideNav";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { PageTransition } from "@/components/layout/PageTransition";
-import { currentMesAno } from "@/lib/pa";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -21,7 +20,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     isAdmin: boolean;
     avatarUrl: string | null;
   } | null = null;
-  let paMes = 0;
+  // Saldo PA disponível na carteira (acumulável lifetime) =
+  //   PA total ganho (não rejeitada) − resgates lifetime (não rejeitado)
+  // É o mesmo cálculo de /pa/loja e /api/pa/loja → carteira sempre bate
+  // com a tela de resgate.
+  let paSaldo = 0;
 
   try {
     const found = await prisma.colaborador.findUnique({
@@ -30,15 +33,19 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     });
     colab = found;
     if (found) {
-      const mesAno = currentMesAno();
-      const [year, month] = mesAno.split("-").map(Number);
-      const inicio = new Date(year, month - 1, 1);
-      const fim = new Date(year, month, 1);
-      const agg = await prisma.acaoPontuada.aggregate({
-        where: { colaboradorId: found.id, data: { gte: inicio, lt: fim } },
-        _sum: { paGerado: true },
-      });
-      paMes = Number(agg._sum.paGerado ?? 0);
+      const [paAgg, resgatesAgg] = await Promise.all([
+        prisma.acaoPontuada.aggregate({
+          where: { colaboradorId: found.id, status: { not: "REJEITADA" } },
+          _sum: { paGerado: true },
+        }),
+        prisma.lojaResgate.aggregate({
+          where: { colaboradorId: found.id, status: { not: "REJEITADO" } },
+          _sum: { paGasto: true },
+        }),
+      ]);
+      const acumulado = Number(paAgg._sum.paGerado ?? 0);
+      const gasto = Number(resgatesAgg._sum.paGasto ?? 0);
+      paSaldo = Math.max(0, acumulado - gasto);
     }
   } catch (err) {
     console.error("[layout] colab lookup failed:", err);
@@ -61,8 +68,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           userName={name}
           userInitials={initials}
           avatarUrl={colab?.avatarUrl ?? null}
-          unreadCount={0}
-          walletXp={Math.round(paMes)}
+          walletXp={Math.round(paSaldo)}
         />
         <main className="flex-1 pb-24 md:pb-8 overflow-y-auto">
           <PageTransition>{children}</PageTransition>
