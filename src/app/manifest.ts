@@ -2,23 +2,18 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Game Anômalo",
-    short_name: "Anômalo",
-    description: "Sistema interno de gamificação por metas da Anômalo Hub.",
-    start_url: "/dashboard",
+    name: "Game Anômalo Hub",
+    short_name: "Anômalo Hub",
+    description: "Sistema interno de gamificação e comissionamento da Anômalo Hub.",
+    start_url: "/pa",
     display: "standalone",
-    background_color: "#000000",
-    theme_color: "#000000",
+    background_color: "#070709",
+    theme_color: "#070709",
     lang: "pt-BR",
     icons: [
-      { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
-      { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
-      {
-        src: "/icons/maskable-512.png",
-        sizes: "512x512",
-        type: "image/png",
-        purpose: "maskable",
-      },
+      // SVG vetorial — escala perfeitamente em qualquer tamanho.
+      { src: "/icon.svg", sizes: "any", type: "image/svg+xml" },
+      { src: "/apple-icon.svg", sizes: "180x180", type: "image/svg+xml" },
     ],
   };
 }
