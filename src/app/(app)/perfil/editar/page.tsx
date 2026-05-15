@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { Reveal } from "@/components/motion/Reveal";
-import { requireAppUser } from "@/lib/auth";
+import { requireColaboradorPA } from "@/lib/pa-auth";
 import { createClient } from "@/lib/supabase/server";
 import { EditProfileForm } from "@/components/feature/profile/EditProfileForm";
 
 export default async function EditarPerfilPage() {
-  const user = await requireAppUser();
+  const colab = await requireColaboradorPA();
   const supabase = await createClient();
-  const { data: { user: authUser } } = await supabase.auth.getUser();
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser();
 
   return (
     <div className="px-5 md:px-8 py-8 md:py-12 max-w-2xl mx-auto w-full">
@@ -44,9 +46,9 @@ export default async function EditarPerfilPage() {
       </Reveal>
 
       <EditProfileForm
-        initialName={user.name}
-        initialEmail={user.email}
-        initialAvatarUrl={user.avatarUrl}
+        initialName={colab.nome}
+        initialEmail={colab.email}
+        initialAvatarUrl={colab.avatarUrl}
         authUserId={authUser?.id ?? ""}
       />
     </div>

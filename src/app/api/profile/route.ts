@@ -1,19 +1,21 @@
-// PATCH /api/profile — collaborator updates own name/email.
-// RLS in Supabase enforces row-level isolation; here we double-check ownership via auth user.
+// PATCH /api/profile — colaborador atualiza próprio nome/email.
+// Refatorado pra sistema PA: salva em Colaborador (não User legado).
+// Se trocar email, atualiza no auth.users também — o link entre
+// auth.user e colaborador é via email.
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { requireAppUser } from "@/lib/auth";
+import { requireColaboradorPA } from "@/lib/pa-auth";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 
 const Body = z.object({
   name: z.string().min(2).max(80),
-  email: z.email(),
+  email: z.string().email(),
 });
 
 export async function PATCH(req: Request) {
-  const user = await requireAppUser();
+  const colab = await requireColaboradorPA();
   const json = await req.json();
   const parsed = Body.safeParse(json);
   if (!parsed.success) {
@@ -21,7 +23,8 @@ export async function PATCH(req: Request) {
   }
   const { name, email } = parsed.data;
 
-  if (email !== user.email) {
+  // Se trocou email, atualiza no auth.users também
+  if (email !== colab.email) {
     const supabase = await createClient();
     const { error } = await supabase.auth.updateUser({ email });
     if (error) {
@@ -29,9 +32,9 @@ export async function PATCH(req: Request) {
     }
   }
 
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { name, email },
+  await prisma.colaborador.update({
+    where: { id: colab.id },
+    data: { nome: name, email },
   });
 
   return NextResponse.json({ ok: true });
