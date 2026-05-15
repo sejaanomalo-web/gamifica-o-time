@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { UsuariosHeader } from "@/components/feature/admin/UsuariosHeader";
 import { UsuariosTable } from "@/components/feature/admin/UsuariosTable";
+import type { FuncaoCodigo } from "@/lib/pa";
 
 async function safe<T>(label: string, q: () => Promise<T>, fallback: T): Promise<T> {
   try {
@@ -11,26 +12,31 @@ async function safe<T>(label: string, q: () => Promise<T>, fallback: T): Promise
   }
 }
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function UsuariosPage() {
   const users = await safe(
-    "user.findMany",
+    "colaborador.findMany",
     () =>
-      prisma.user.findMany({
-        orderBy: { name: "asc" },
+      prisma.colaborador.findMany({
+        orderBy: { nome: "asc" },
         select: {
           id: true,
-          name: true,
+          nome: true,
           email: true,
-          area: true,
-          role: true,
+          funcoes: true,
+          isAdmin: true,
+          ativo: true,
         },
       }),
     [] as Array<{
       id: string;
-      name: string;
+      nome: string;
       email: string;
-      area: string | null;
-      role: "COLABORADOR" | "ADMIN";
+      funcoes: FuncaoCodigo[];
+      isAdmin: boolean;
+      ativo: boolean;
     }>,
   );
 

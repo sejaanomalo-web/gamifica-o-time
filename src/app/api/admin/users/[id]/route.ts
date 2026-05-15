@@ -1,21 +1,32 @@
-// PATCH /api/admin/users/[id] — admin edita campos do usuário.
-// DELETE /api/admin/users/[id] — admin remove usuário (auth + Prisma).
+// PATCH /api/admin/users/[id] — admin edita campos do colaborador.
+// DELETE /api/admin/users/[id] — admin remove colaborador (auth + Prisma).
 //
+// Refatorado pra sistema PA: tabela colaboradores + funcoes[] + isAdmin.
 // Senha NUNCA é retornada/exibida (hash no auth.users). Pra trocar,
 // admin manda nova senha → setamos no auth e devolvemos pro admin
-// compartilhar manualmente. Não há "ver senha atual".
+// compartilhar manualmente.
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdminPA } from "@/lib/pa-auth";
 import { prisma } from "@/lib/prisma";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+const FUNCOES_PERMITIDAS = [
+  "sdr",
+  "design",
+  "trafego",
+  "social_midia",
+  "video_maker",
+  "closer",
+] as const;
+
 const PatchBody = z.object({
   name: z.string().min(2).max(80).optional(),
-  email: z.email().optional(),
-  area: z.string().max(80).nullable().optional(),
-  role: z.enum(["COLABORADOR", "ADMIN"]).optional(),
+  email: z.string().email().optional(),
+  funcoes: z.array(z.enum(FUNCOES_PERMITIDAS)).min(1).optional(),
+  isAdmin: z.boolean().optional(),
+  ativo: z.boolean().optional(),
   // se ausente: não troca senha. Se presente: troca.
   password: z.string().min(8).max(128).optional(),
 });
@@ -42,7 +53,7 @@ export async function PATCH(
   req: Request,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  await requireAdmin();
+  await requireAdminPA();
   const { id } = await ctx.params;
 
   const json = await req.json();
@@ -50,26 +61,26 @@ export async function PATCH(
   if (!parsed.success) {
     return NextResponse.json(
       {
-        error: "Dados inválidos.",
+        error: parsed.error.issues[0]?.message ?? "Dados inválidos.",
         details: parsed.error.issues.map((i) => i.message),
       },
       { status: 400 },
     );
   }
 
-  const target = await prisma.user.findUnique({ where: { id } });
+  const target = await prisma.colaborador.findUnique({ where: { id } });
   if (!target) {
-    return NextResponse.json({ error: "Usuário não encontrado." }, { status: 404 });
+    return NextResponse.json({ error: "Colaborador não encontrado." }, { status: 404 });
   }
 
-  const { name, email, area, role, password } = parsed.data;
+  const { name, email, funcoes, isAdmin, ativo, password } = parsed.data;
 
   // Se troca de email, valida duplicata
   if (email && email !== target.email) {
-    const dupe = await prisma.user.findUnique({ where: { email } });
+    const dupe = await prisma.colaborador.findUnique({ where: { email } });
     if (dupe) {
       return NextResponse.json(
-        { error: "Já existe outro usuário com esse email." },
+        { error: "Já existe outro colaborador com esse email." },
         { status: 409 },
       );
     }
@@ -89,11 +100,11 @@ export async function PATCH(
     );
   }
 
-  // Atualiza auth.users (email + senha) se mudou
+  // Atualiza auth.users (email + senha + name no metadata) se mudou
   const authPatch: { email?: string; password?: string; user_metadata?: { name?: string } } = {};
   if (email && email !== target.email) authPatch.email = email;
   if (password) authPatch.password = password;
-  if (name && name !== target.name) authPatch.user_metadata = { name };
+  if (name && name !== target.nome) authPatch.user_metadata = { name };
 
   if (Object.keys(authPatch).length > 0) {
     const { error: authErr } = await admin.auth.admin.updateUserById(authUserId, authPatch);
@@ -105,14 +116,15 @@ export async function PATCH(
     }
   }
 
-  // Atualiza public.User
-  const updated = await prisma.user.update({
+  // Atualiza public.colaboradores
+  const updated = await prisma.colaborador.update({
     where: { id },
     data: {
-      ...(name !== undefined ? { name } : {}),
+      ...(name !== undefined ? { nome: name } : {}),
       ...(email !== undefined ? { email } : {}),
-      ...(area !== undefined ? { area } : {}),
-      ...(role !== undefined ? { role } : {}),
+      ...(funcoes !== undefined ? { funcoes } : {}),
+      ...(isAdmin !== undefined ? { isAdmin } : {}),
+      ...(ativo !== undefined ? { ativo } : {}),
     },
   });
 
@@ -121,12 +133,12 @@ export async function PATCH(
     user: {
       id: updated.id,
       email: updated.email,
-      name: updated.name,
-      role: updated.role,
-      area: updated.area,
+      nome: updated.nome,
+      funcoes: updated.funcoes,
+      isAdmin: updated.isAdmin,
+      ativo: updated.ativo,
     },
     // Devolve a senha em claro APENAS quando admin acabou de definir uma nova.
-    // Aparece uma vez na UI pra ele compartilhar com o colaborador.
     newPassword: password ?? null,
   });
 }
@@ -135,19 +147,19 @@ export async function DELETE(
   _req: Request,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const adminUser = await requireAdmin();
+  const adminColab = await requireAdminPA();
   const { id } = await ctx.params;
 
-  if (id === adminUser.id) {
+  if (id === adminColab.id) {
     return NextResponse.json(
       { error: "Você não pode remover sua própria conta." },
       { status: 400 },
     );
   }
 
-  const target = await prisma.user.findUnique({ where: { id } });
+  const target = await prisma.colaborador.findUnique({ where: { id } });
   if (!target) {
-    return NextResponse.json({ error: "Usuário não encontrado." }, { status: 404 });
+    return NextResponse.json({ error: "Colaborador não encontrado." }, { status: 404 });
   }
 
   const admin = createAdminClient();
@@ -158,6 +170,21 @@ export async function DELETE(
     });
   }
 
-  await prisma.user.delete({ where: { id } });
+  try {
+    await prisma.colaborador.delete({ where: { id } });
+  } catch (err) {
+    // FK constraint: tem ações registradas → desativa em vez de remover
+    console.error("delete colaborador failed, deactivating instead:", err);
+    await prisma.colaborador.update({
+      where: { id },
+      data: { ativo: false },
+    });
+    return NextResponse.json({
+      ok: true,
+      desativado: true,
+      message:
+        "Colaborador tem ações registradas. Conta foi desativada (não removida) pra preservar histórico.",
+    });
+  }
   return NextResponse.json({ ok: true });
 }

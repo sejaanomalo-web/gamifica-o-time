@@ -1,18 +1,30 @@
 "use client";
 
-// Dialog do admin pra criar um novo colaborador (login + registro).
+// Dialog do admin pra criar novo colaborador (login + Colaborador no PA).
 // Gera senha forte automática mas permite override. Mostra a senha em
 // claro depois de criado pra o admin compartilhar com o usuário.
+//
+// Refatorado pra PA: funcoes[] (multi-select) + isAdmin (toggle).
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Copy, RefreshCw, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import { FUNCAO_LABEL, type FuncaoCodigo } from "@/lib/pa";
 
 interface AddUserDialogProps {
   open: boolean;
   onClose: () => void;
 }
+
+const FUNCOES: FuncaoCodigo[] = [
+  "sdr",
+  "design",
+  "trafego",
+  "social_midia",
+  "video_maker",
+  "closer",
+];
 
 function genPassword(len = 14): string {
   const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
@@ -36,8 +48,8 @@ export function AddUserDialog({ open, onClose }: AddUserDialogProps) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [area, setArea] = useState("");
-  const [role, setRole] = useState<"COLABORADOR" | "ADMIN">("COLABORADOR");
+  const [funcoes, setFuncoes] = useState<FuncaoCodigo[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [password, setPassword] = useState(() => genPassword());
   const [showPw, setShowPw] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -48,15 +60,25 @@ export function AddUserDialog({ open, onClose }: AddUserDialogProps) {
   const reset = () => {
     setName("");
     setEmail("");
-    setArea("");
-    setRole("COLABORADOR");
+    setFuncoes([]);
+    setIsAdmin(false);
     setPassword(genPassword());
     setShowPw(false);
     setCreated(null);
   };
 
+  const toggleFuncao = (f: FuncaoCodigo) => {
+    setFuncoes((curr) =>
+      curr.includes(f) ? curr.filter((x) => x !== f) : [...curr, f],
+    );
+  };
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (funcoes.length === 0) {
+      toast.error("Selecione ao menos uma função");
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await fetch("/api/admin/users", {
@@ -66,14 +88,14 @@ export function AddUserDialog({ open, onClose }: AddUserDialogProps) {
           name,
           email,
           password,
-          area: area || null,
-          role,
+          funcoes,
+          isAdmin,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Falhou.");
       setCreated({ email, password });
-      toast.success("Usuário criado.");
+      toast.success("Colaborador criado.");
       router.refresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Falhou.");
@@ -99,12 +121,12 @@ export function AddUserDialog({ open, onClose }: AddUserDialogProps) {
   return (
     <div
       onClick={onClosed}
-      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      className="fixed inset-0 z-50 flex items-center justify-center px-4 overflow-y-auto"
       style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)" }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="ano-card-flat p-7 max-w-lg w-full"
+        className="ano-card-flat p-7 max-w-lg w-full my-8"
         style={{
           boxShadow:
             "inset 0 0 0 1px rgba(255,255,255,0.10), 0 24px 60px rgba(0,0,0,0.6), 0 0 40px rgba(201,149,58,0.10)",
@@ -137,7 +159,8 @@ export function AddUserDialog({ open, onClose }: AddUserDialogProps) {
               </span>
             </h3>
             <p className="text-mid text-sm mb-6">
-              Compartilha email e senha com o colaborador. Ele já consegue logar agora.
+              Compartilha email e senha com o colaborador. Ele já consegue logar agora
+              e aparece nas abas Time, Ranking e Equipe.
             </p>
             <CredentialRow label="Email" value={created.email} onCopy={() => copy(created.email, "Email")} />
             <CredentialRow
@@ -169,7 +192,7 @@ export function AddUserDialog({ open, onClose }: AddUserDialogProps) {
           </div>
         ) : (
           <form onSubmit={onSubmit}>
-            <span className="label-caps mb-3 block">Novo usuário</span>
+            <span className="label-caps mb-3 block">Novo colaborador</span>
             <h3
               className="text-white mb-6"
               style={{
@@ -217,30 +240,60 @@ export function AddUserDialog({ open, onClose }: AddUserDialogProps) {
                   placeholder="bruno@anomalo.com.br"
                   className="input-square"
                 />
+                <p className="text-faint text-xs mt-1.5">
+                  Email exato do login. É como o sistema PA associa o user ao colaborador.
+                </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="label-caps label-caps-muted block mb-2">Área</label>
-                  <input
-                    value={area}
-                    onChange={(e) => setArea(e.target.value)}
-                    placeholder="Design, Copy, Tráfego…"
-                    className="input-square"
-                  />
+              <div>
+                <label className="label-caps label-caps-muted block mb-2">
+                  Funções <span className="text-[#fb2c36]">*</span>
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {FUNCOES.map((f) => {
+                    const on = funcoes.includes(f);
+                    return (
+                      <button
+                        key={f}
+                        type="button"
+                        onClick={() => toggleFuncao(f)}
+                        className="label-caps px-3 py-2 rounded-full transition-all"
+                        style={{
+                          background: on ? "#C9953A" : "rgba(255,255,255,0.04)",
+                          color: on ? "#1a1410" : "rgba(255,255,255,0.65)",
+                          boxShadow: on
+                            ? "0 0 12px rgba(201,149,58,0.30)"
+                            : "inset 0 0 0 1px rgba(255,255,255,0.10)",
+                          fontSize: 11,
+                        }}
+                      >
+                        {FUNCAO_LABEL[f]}
+                      </button>
+                    );
+                  })}
                 </div>
-                <div>
-                  <label className="label-caps label-caps-muted block mb-2">Role</label>
-                  <select
-                    value={role}
-                    onChange={(e) => setRole(e.target.value as typeof role)}
-                    className="input-square"
-                  >
-                    <option value="COLABORADOR">Colaborador</option>
-                    <option value="ADMIN">Admin</option>
-                  </select>
-                </div>
+                <p className="text-faint text-xs mt-2">
+                  Selecione todas as funções que o colaborador exerce (multi).
+                </p>
               </div>
+
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isAdmin}
+                  onChange={(e) => setIsAdmin(e.target.checked)}
+                  className="accent-[#C9953A]"
+                />
+                <div>
+                  <span className="text-white text-sm font-semibold block">
+                    Conta admin
+                  </span>
+                  <span className="text-mid text-xs">
+                    Pode validar ações, gerenciar atividades, fechar mês e
+                    processar resgates. Pontua normalmente igual qualquer um.
+                  </span>
+                </div>
+              </label>
 
               <div>
                 <label className="label-caps label-caps-muted block mb-2">Senha inicial</label>
@@ -297,7 +350,7 @@ export function AddUserDialog({ open, onClose }: AddUserDialogProps) {
                 className="btn-pill btn-gold flex-1 disabled:opacity-50"
                 style={{ height: 44, fontSize: 13 }}
               >
-                {submitting ? "Criando…" : "Criar conta"}
+                {submitting ? "Criando…" : "Criar colaborador"}
               </button>
             </div>
           </form>
@@ -331,7 +384,7 @@ function CredentialRow({
         <span
           className="text-white block truncate"
           style={{
-            fontFamily: mono ? "var(--font-inter)" : "var(--font-inter)",
+            fontFamily: "var(--font-inter)",
             fontWeight: mono ? 600 : 500,
             fontSize: 14,
             letterSpacing: mono ? "0.02em" : 0,

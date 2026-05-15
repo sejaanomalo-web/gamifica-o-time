@@ -1,23 +1,23 @@
 "use client";
 
-// Dialog do admin pra editar dados de um usuário existente.
-// - Mostra email atual (editável) + role + area + nome
-// - Troca de senha: opt-in. Admin clica "Definir nova senha", gera ou
-//   digita, salva. A senha aparece UMA VEZ depois pra ele copiar.
-// - Senha antiga NUNCA é exibida (impossível: hash no Supabase Auth).
-// - Botão "Remover usuário" no rodapé do dialog (com confirmação inline).
+// Dialog do admin pra editar dados de um colaborador existente.
+// Refatorado pra PA: funcoes[] (multi-select) + isAdmin (toggle) + ativo.
+// Senha antiga NUNCA é exibida; admin pode definir nova senha que aparece
+// uma vez depois de salvar.
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Copy, RefreshCw, Eye, EyeOff, Trash2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { FUNCAO_LABEL, type FuncaoCodigo } from "@/lib/pa";
 
 interface UserShape {
   id: string;
-  name: string;
+  nome: string;
   email: string;
-  area: string | null;
-  role: "COLABORADOR" | "ADMIN";
+  funcoes: FuncaoCodigo[];
+  isAdmin: boolean;
+  ativo: boolean;
 }
 
 interface EditUserDialogProps {
@@ -25,6 +25,15 @@ interface EditUserDialogProps {
   user: UserShape | null;
   onClose: () => void;
 }
+
+const FUNCOES: FuncaoCodigo[] = [
+  "sdr",
+  "design",
+  "trafego",
+  "social_midia",
+  "video_maker",
+  "closer",
+];
 
 function genPassword(len = 14): string {
   const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
@@ -46,10 +55,11 @@ function genPassword(len = 14): string {
 
 export function EditUserDialog({ open, user, onClose }: EditUserDialogProps) {
   const router = useRouter();
-  const [name, setName] = useState(user?.name ?? "");
+  const [name, setName] = useState(user?.nome ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
-  const [area, setArea] = useState(user?.area ?? "");
-  const [role, setRole] = useState<"COLABORADOR" | "ADMIN">(user?.role ?? "COLABORADOR");
+  const [funcoes, setFuncoes] = useState<FuncaoCodigo[]>(user?.funcoes ?? []);
+  const [isAdmin, setIsAdmin] = useState(user?.isAdmin ?? false);
+  const [ativo, setAtivo] = useState(user?.ativo ?? true);
   const [pwMode, setPwMode] = useState(false);
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
@@ -57,13 +67,14 @@ export function EditUserDialog({ open, user, onClose }: EditUserDialogProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [savedPassword, setSavedPassword] = useState<string | null>(null);
 
-  // Sync state quando muda o user prop (evita setState in render)
+  // Sync state quando muda o user prop
   useEffect(() => {
     if (user) {
-      setName(user.name);
+      setName(user.nome);
       setEmail(user.email);
-      setArea(user.area ?? "");
-      setRole(user.role);
+      setFuncoes(user.funcoes);
+      setIsAdmin(user.isAdmin);
+      setAtivo(user.ativo);
       setPwMode(false);
       setPassword("");
       setShowPw(false);
@@ -77,14 +88,21 @@ export function EditUserDialog({ open, user, onClose }: EditUserDialogProps) {
   const close = () => {
     setName("");
     setEmail("");
-    setArea("");
-    setRole("COLABORADOR");
+    setFuncoes([]);
+    setIsAdmin(false);
+    setAtivo(true);
     setPwMode(false);
     setPassword("");
     setShowPw(false);
     setConfirmDelete(false);
     setSavedPassword(null);
     onClose();
+  };
+
+  const toggleFuncao = (f: FuncaoCodigo) => {
+    setFuncoes((curr) =>
+      curr.includes(f) ? curr.filter((x) => x !== f) : [...curr, f],
+    );
   };
 
   const startPwReset = () => {
@@ -94,13 +112,18 @@ export function EditUserDialog({ open, user, onClose }: EditUserDialogProps) {
 
   const onSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (funcoes.length === 0) {
+      toast.error("Selecione ao menos uma função");
+      return;
+    }
     setSubmitting(true);
     try {
       const body: Record<string, unknown> = {
         name,
         email,
-        area: area || null,
-        role,
+        funcoes,
+        isAdmin,
+        ativo,
       };
       if (pwMode && password) body.password = password;
       const res = await fetch(`/api/admin/users/${user.id}`, {
@@ -110,7 +133,7 @@ export function EditUserDialog({ open, user, onClose }: EditUserDialogProps) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Falhou.");
-      toast.success("Usuário atualizado.");
+      toast.success("Colaborador atualizado.");
       if (pwMode && password) {
         setSavedPassword(password);
       } else {
@@ -130,7 +153,11 @@ export function EditUserDialog({ open, user, onClose }: EditUserDialogProps) {
       const res = await fetch(`/api/admin/users/${user.id}`, { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Falhou.");
-      toast.success("Usuário removido.");
+      toast.success(
+        data.desativado
+          ? "Colaborador desativado (tinha ações registradas)."
+          : "Colaborador removido.",
+      );
       close();
       router.refresh();
     } catch (err) {
@@ -152,12 +179,12 @@ export function EditUserDialog({ open, user, onClose }: EditUserDialogProps) {
   return (
     <div
       onClick={close}
-      className="fixed inset-0 z-[60] flex items-center justify-center px-4"
+      className="fixed inset-0 z-[60] flex items-center justify-center px-4 overflow-y-auto"
       style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)" }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="ano-card-flat p-7 max-w-lg w-full max-h-[90vh] overflow-y-auto"
+        className="ano-card-flat p-7 max-w-lg w-full max-h-[90vh] overflow-y-auto my-8"
         style={{
           boxShadow:
             "inset 0 0 0 1px rgba(255,255,255,0.10), 0 24px 60px rgba(0,0,0,0.6), 0 0 40px rgba(201,149,58,0.10)",
@@ -190,10 +217,15 @@ export function EditUserDialog({ open, user, onClose }: EditUserDialogProps) {
               </span>
             </h3>
             <p className="text-mid text-sm mb-6">
-              Compartilha com {user.name}. Essa janela é a única vez que a senha aparece em claro.
+              Compartilha com {user.nome}. Essa janela é a única vez que a senha
+              aparece em claro.
             </p>
             <CredentialRow label="Email" value={email} onCopy={() => copy(email, "Email")} />
-            <CredentialRow label="Senha" value={savedPassword} onCopy={() => copy(savedPassword, "Senha")} />
+            <CredentialRow
+              label="Senha"
+              value={savedPassword}
+              onCopy={() => copy(savedPassword, "Senha")}
+            />
             <button
               type="button"
               onClick={close}
@@ -205,7 +237,7 @@ export function EditUserDialog({ open, user, onClose }: EditUserDialogProps) {
           </div>
         ) : (
           <form onSubmit={onSave}>
-            <span className="label-caps mb-3 block">Editar usuário</span>
+            <span className="label-caps mb-3 block">Editar colaborador</span>
             <h3
               className="text-white mb-1"
               style={{
@@ -215,14 +247,16 @@ export function EditUserDialog({ open, user, onClose }: EditUserDialogProps) {
                 letterSpacing: "-0.02em",
               }}
             >
-              {user.name}
+              {user.nome}
             </h3>
             <span
               className="label-caps text-mono mb-6 inline-block"
               style={{ color: "#C9953A", fontSize: 11, fontWeight: 700 }}
             >
-              {user.role}
-              {user.area ? ` · ${user.area}` : ""}
+              {user.isAdmin ? "ADMIN" : "COLABORADOR"}
+              {user.funcoes.length > 0
+                ? ` · ${user.funcoes.map((f) => FUNCAO_LABEL[f] ?? f).join(" · ")}`
+                : ""}
             </span>
 
             <div className="space-y-5">
@@ -248,32 +282,73 @@ export function EditUserDialog({ open, user, onClose }: EditUserDialogProps) {
                 />
                 {email !== user.email && (
                   <p className="text-[10px] text-[#C9953A] mt-1.5 label-caps">
-                    Será atualizado no auth.users e no public.User
+                    Será atualizado no auth.users e na tabela colaboradores
                   </p>
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="label-caps label-caps-muted block mb-2">Área</label>
-                  <input
-                    value={area}
-                    onChange={(e) => setArea(e.target.value)}
-                    className="input-square"
-                  />
-                </div>
-                <div>
-                  <label className="label-caps label-caps-muted block mb-2">Role</label>
-                  <select
-                    value={role}
-                    onChange={(e) => setRole(e.target.value as typeof role)}
-                    className="input-square"
-                  >
-                    <option value="COLABORADOR">Colaborador</option>
-                    <option value="ADMIN">Admin</option>
-                  </select>
+              <div>
+                <label className="label-caps label-caps-muted block mb-2">
+                  Funções <span className="text-[#fb2c36]">*</span>
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {FUNCOES.map((f) => {
+                    const on = funcoes.includes(f);
+                    return (
+                      <button
+                        key={f}
+                        type="button"
+                        onClick={() => toggleFuncao(f)}
+                        className="label-caps px-3 py-2 rounded-full transition-all"
+                        style={{
+                          background: on ? "#C9953A" : "rgba(255,255,255,0.04)",
+                          color: on ? "#1a1410" : "rgba(255,255,255,0.65)",
+                          boxShadow: on
+                            ? "0 0 12px rgba(201,149,58,0.30)"
+                            : "inset 0 0 0 1px rgba(255,255,255,0.10)",
+                          fontSize: 11,
+                        }}
+                      >
+                        {FUNCAO_LABEL[f]}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
+
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isAdmin}
+                  onChange={(e) => setIsAdmin(e.target.checked)}
+                  className="accent-[#C9953A]"
+                />
+                <div>
+                  <span className="text-white text-sm font-semibold block">
+                    Conta admin
+                  </span>
+                  <span className="text-mid text-xs">
+                    Acesso ao painel admin (validações, atividades, fechamento,
+                    loja). Pontua normalmente junto com o time.
+                  </span>
+                </div>
+              </label>
+
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={ativo}
+                  onChange={(e) => setAtivo(e.target.checked)}
+                  className="accent-[#C9953A]"
+                />
+                <div>
+                  <span className="text-white text-sm font-semibold block">Ativo</span>
+                  <span className="text-mid text-xs">
+                    Desmarcar oculta o colaborador das listas (Time, Equipe,
+                    Ranking) sem apagar o histórico.
+                  </span>
+                </div>
+              </label>
 
               {/* SENHA */}
               <div>
@@ -374,7 +449,7 @@ export function EditUserDialog({ open, user, onClose }: EditUserDialogProps) {
                   className="label-caps text-[#fb2c36] hover:underline transition-colors flex items-center gap-2"
                 >
                   <Trash2 size={12} />
-                  Remover usuário do sistema
+                  Remover colaborador do sistema
                 </button>
               ) : (
                 <div
@@ -390,8 +465,10 @@ export function EditUserDialog({ open, user, onClose }: EditUserDialogProps) {
                       className="text-[#fb2c36] flex-shrink-0 mt-0.5"
                     />
                     <p className="text-white text-sm leading-relaxed">
-                      Remove o login no Auth e o registro no banco. Histórico de
-                      entregas, XP e comissões fica órfão. Não dá pra desfazer.
+                      Remove o login no Auth e o registro de colaborador.
+                      Se o colaborador tiver ações registradas, é{" "}
+                      <strong>desativado</strong> em vez de removido (preserva
+                      histórico).
                     </p>
                   </div>
                   <div className="flex gap-2">
