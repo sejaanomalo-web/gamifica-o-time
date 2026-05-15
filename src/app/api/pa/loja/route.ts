@@ -8,14 +8,15 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireColaboradorPA } from "@/lib/pa-auth";
 import { prisma } from "@/lib/prisma";
+import { VALORES_GIFT_CARD, isValorGiftCard } from "@/lib/loja";
 
 const Body = z.object({
   valorReais: z
     .number()
     .int()
-    .min(50)
-    .max(500)
-    .refine((v) => v % 50 === 0, "valor deve ser múltiplo de 50"),
+    .refine(isValorGiftCard, {
+      message: `valor inválido. Permitidos: ${VALORES_GIFT_CARD.join(", ")}`,
+    }),
 });
 
 export async function POST(req: Request) {

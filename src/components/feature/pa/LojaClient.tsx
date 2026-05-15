@@ -1,12 +1,13 @@
 "use client";
 
-// Cards de gift cards R$50, R$100, ..., R$500. Clicar resgata.
+// Cards de gift cards (valores em src/lib/loja.ts). Clicar resgata.
 // Mostra histórico do colaborador.
 
 import { useState } from "react";
 import { Gift } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { VALORES_GIFT_CARD } from "@/lib/loja";
 
 interface Resgate {
   id: string;
@@ -29,8 +30,6 @@ const STATUS_COR: Record<Resgate["status"], string> = {
   ENTREGUE: "#E0B25A",
   REJEITADO: "#fb2c36",
 };
-
-const VALORES = [50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
 
 interface Props {
   saldo: number;
@@ -70,7 +69,7 @@ export function LojaClient({ saldo, historico }: Props) {
     <>
       <h2 className="label-caps label-caps-muted mb-3">Gift cards disponíveis</h2>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        {VALORES.map((v) => {
+        {VALORES_GIFT_CARD.map((v) => {
           const disabled = saldo < v || busy === v;
           return (
             <button
