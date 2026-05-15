@@ -106,11 +106,12 @@ export function TeamDashboard({
     return () => clearInterval(id);
   }, [router]);
 
-  // Rotaciona spotlight entre top 5 colaboradores
+  // Rotaciona spotlight entre TODOS os colaboradores ativos (não só o
+  // top 5 — todo mundo merece aparecer em destaque).
   useEffect(() => {
     if (members.length === 0) return;
     const id = setInterval(() => {
-      setHighlightIdx((i) => (i + 1) % Math.min(5, members.length));
+      setHighlightIdx((i) => (i + 1) % members.length);
     }, 4500);
     return () => clearInterval(id);
   }, [members.length]);
@@ -178,7 +179,8 @@ export function TeamDashboard({
     second: "2-digit",
   });
 
-  const top5 = members.slice(0, 5);
+  // Spotlight rotaciona entre TODOS os colaboradores (não só top 5).
+  const spotlightMembers = members;
   const maxXp = Math.max(1, ...members.map((m) => m.xp));
   const leader = members[0];
 
@@ -413,7 +415,7 @@ export function TeamDashboard({
                 {members.map((m, i) => {
                   const pct = (m.xp / maxXp) * 100;
                   const isLeader = i === 0;
-                  const isHighlighted = i === highlightIdx && i < 5;
+                  const isHighlighted = i === highlightIdx;
                   return (
                     <motion.li
                       key={m.userId}
@@ -559,7 +561,7 @@ export function TeamDashboard({
             </h2>
             <div className="flex-1 flex items-center justify-center" style={{ minHeight: 0 }}>
               <SpotlightCard
-                member={top5[highlightIdx] ?? null}
+                member={spotlightMembers[highlightIdx] ?? null}
                 avgLevel={avgLevel}
                 leader={leader}
                 compact={fullscreen}
