@@ -1,16 +1,16 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { prisma } from "@/lib/prisma";
+import {
+  getCachedAuthUser,
+  getCachedColaborador,
+  getCachedPaSaldo,
+} from "@/lib/pa-auth";
 import { TopBar } from "@/components/layout/TopBar";
 import { SideNav } from "@/components/layout/SideNav";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { PageTransition } from "@/components/layout/PageTransition";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCachedAuthUser();
   if (!user) redirect("/login");
 
   // Sistema PA — busca o colaborador pelo email do auth.
@@ -27,25 +27,19 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   let paSaldo = 0;
 
   try {
-    const found = await prisma.colaborador.findUnique({
-      where: { email: user.email! },
-      select: { id: true, nome: true, isAdmin: true, avatarUrl: true },
-    });
-    colab = found;
+    // Reaproveita o cache request-scoped — pages que chamarem
+    // requireColaboradorPA() depois não pagam nova query.
+    const found = await getCachedColaborador(user.email!);
     if (found) {
-      const [paAgg, resgatesAgg] = await Promise.all([
-        prisma.acaoPontuada.aggregate({
-          where: { colaboradorId: found.id, status: { not: "REJEITADA" } },
-          _sum: { paGerado: true },
-        }),
-        prisma.lojaResgate.aggregate({
-          where: { colaboradorId: found.id, status: { not: "REJEITADO" } },
-          _sum: { paGasto: true },
-        }),
-      ]);
-      const acumulado = Number(paAgg._sum.paGerado ?? 0);
-      const gasto = Number(resgatesAgg._sum.paGasto ?? 0);
-      paSaldo = Math.max(0, acumulado - gasto);
+      colab = {
+        id: found.id,
+        nome: found.nome,
+        isAdmin: found.isAdmin,
+        avatarUrl: found.avatarUrl,
+      };
+      // Dedup com /pa/loja — mesma request reaproveita o cálculo.
+      const { saldo } = await getCachedPaSaldo(found.id);
+      paSaldo = saldo;
     }
   } catch (err) {
     console.error("[layout] colab lookup failed:", err);

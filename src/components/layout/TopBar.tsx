@@ -19,11 +19,12 @@ export function TopBar({
 }: TopBarProps) {
   return (
     <header
-      className="sticky top-0 z-30 flex items-center justify-between px-4 md:px-5 py-3 gap-3"
+      // Backdrop-blur leve no mobile (caro em iOS Safari/Android mid-range
+      // quando combinado com sticky + scroll), pleno no desktop. Visual
+      // praticamente idêntico, transições muito mais suaves no celular.
+      className="sticky top-0 z-30 flex items-center justify-between px-4 md:px-5 py-3 gap-3 backdrop-blur-[8px] md:backdrop-blur-[16px]"
       style={{
-        background: "rgba(7,7,9,0.85)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
+        background: "rgba(7,7,9,0.9)",
         borderBottom: "1px solid rgba(255,255,255,0.08)",
         paddingTop: "calc(env(safe-area-inset-top, 0px) + 0.75rem)",
       }}

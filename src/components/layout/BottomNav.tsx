@@ -27,9 +27,11 @@ export function BottomNav({ isAdmin: _isAdmin = false }: { isAdmin?: boolean } =
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >
       <div
-        className="flex items-center w-full max-w-md backdrop-blur-md"
+        // backdrop-blur fica em [6px]: suficiente pra dar o glass look e
+        // barato o suficiente pra não custar repaint em scroll mobile.
+        className="flex items-center w-full max-w-md backdrop-blur-[6px]"
         style={{
-          background: "rgba(17, 17, 21, 0.85)",
+          background: "rgba(17, 17, 21, 0.92)",
           borderRadius: 9999,
           padding: "6px",
           boxShadow:

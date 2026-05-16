@@ -62,6 +62,11 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
+// Roda só nas rotas que realmente precisam do gate auth (páginas + redirect /).
+// /api/* já valida sessão dentro de cada handler, então pular o middleware lá
+// elimina um round-trip ao Supabase Auth em toda chamada de API.
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|api/cron|sw.js|manifest.webmanifest|icons|sounds).*)"],
+  matcher: [
+    "/((?!api/|_next/static|_next/image|favicon.ico|sw.js|manifest.webmanifest|icons|sounds|.*\\.(?:png|jpg|jpeg|gif|svg|ico|webp|avif|woff|woff2|ttf|otf)$).*)",
+  ],
 };

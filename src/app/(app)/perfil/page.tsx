@@ -63,16 +63,19 @@ export default async function PerfilPage() {
     0,
   );
 
-  // Meses ativos (lifetime — quantos meses já registrou alguma coisa)
+  // Meses ativos (lifetime — quantos meses já registrou alguma coisa).
+  // Antes carregava todas as linhas do colaborador só pra contar distinct
+  // em JS. Agora o Postgres já agrega — escala melhor e custa 1 round-trip.
   const mesesAtivos = await safe(
     "acao.distinct months",
     async () => {
-      const rows = await prisma.acaoPontuada.findMany({
-        where: { colaboradorId: colab.id, status: { not: "REJEITADA" } },
-        select: { data: true },
-      });
-      const set = new Set(rows.map((r) => r.data.toISOString().slice(0, 7)));
-      return set.size;
+      const rows = await prisma.$queryRaw<{ count: bigint }[]>`
+        SELECT COUNT(DISTINCT date_trunc('month', "data")) AS count
+        FROM "acoes_pontuadas"
+        WHERE "colaborador_id" = ${colab.id}::uuid
+          AND "status"::text <> 'REJEITADA'
+      `;
+      return Number(rows[0]?.count ?? 0);
     },
     0,
   );

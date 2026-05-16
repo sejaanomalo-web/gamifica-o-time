@@ -4,7 +4,7 @@
 // rejeitados. Se o colab não trocar num mês, o saldo segue pro próximo.
 
 import { prisma } from "@/lib/prisma";
-import { requireColaboradorPA } from "@/lib/pa-auth";
+import { requireColaboradorPA, getCachedPaSaldo } from "@/lib/pa-auth";
 import { LojaClient } from "@/components/feature/pa/LojaClient";
 
 async function safe<T>(label: string, q: () => Promise<T>, fallback: T): Promise<T> {
@@ -22,34 +22,13 @@ export const revalidate = 0;
 export default async function PaLojaPage() {
   const colab = await requireColaboradorPA();
 
-  const [paAgg, resgatesAgg] = await Promise.all([
-    safe(
-      "paAgg",
-      async () => {
-        // Lifetime — sem filtro de data
-        const r = await prisma.acaoPontuada.aggregate({
-          where: { colaboradorId: colab.id, status: { not: "REJEITADA" } },
-          _sum: { paGerado: true },
-        });
-        return Number(r._sum.paGerado ?? 0);
-      },
-      0,
-    ),
-    safe(
-      "resgatesAgg",
-      async () => {
-        // Lifetime — sem filtro de data
-        const r = await prisma.lojaResgate.aggregate({
-          where: { colaboradorId: colab.id, status: { not: "REJEITADO" } },
-          _sum: { paGasto: true },
-        });
-        return Number(r._sum.paGasto ?? 0);
-      },
-      0,
-    ),
-  ]);
-
-  const saldo = paAgg - resgatesAgg;
+  // Dedup com o layout — o saldo já foi computado lá na TopBar e
+  // reaproveitamos o mesmo resultado dentro deste request.
+  const { saldo } = await safe(
+    "saldo",
+    () => getCachedPaSaldo(colab.id),
+    { acumulado: 0, gasto: 0, saldo: 0 },
+  );
 
   const historico = await safe(
     "lojaResgate.findMany",
