@@ -27,7 +27,7 @@ export default async function AdminLayout({
         <div className="px-5 md:px-8 py-3 md:py-4 flex items-center justify-between">
           <Link href="/admin/pa" className="flex items-center gap-3">
             <span className="text-[#C9953A] text-2xl font-light leading-none">Λ</span>
-            <span className="label-caps">Game Anômalo · Admin</span>
+            <span className="label-caps">GΛME Anômalo · Admin</span>
           </Link>
           <Link
             href="/pa/time"

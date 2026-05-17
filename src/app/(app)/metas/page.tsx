@@ -40,7 +40,7 @@ export default function MetasPage() {
       <Reveal>
         <div className="flex items-end justify-between gap-6 flex-wrap">
           <div>
-            <span className="label-caps mb-3 block">Game Anômalo · Metas</span>
+            <span className="label-caps mb-3 block">GΛME Anômalo · Metas</span>
             <h1
               className="display-bold text-white"
               style={{ fontSize: "clamp(2.75rem, 9vw, 4.5rem)", lineHeight: 0.96 }}

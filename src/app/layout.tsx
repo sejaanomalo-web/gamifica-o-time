@@ -14,14 +14,14 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Game Anômalo Hub",
+  title: "GΛME Anômalo Hub",
   description: "Sistema interno de gamificação e comissionamento da Anômalo Hub.",
   manifest: "/manifest.webmanifest",
-  applicationName: "Game Anômalo Hub",
+  applicationName: "GΛME Anômalo Hub",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Game Anômalo Hub",
+    title: "GΛME Anômalo Hub",
   },
 };
 

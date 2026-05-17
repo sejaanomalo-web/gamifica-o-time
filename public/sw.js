@@ -1,4 +1,4 @@
-// Game Anômalo service worker.
+// GΛME Anômalo service worker.
 // Minimal: handles push events + click-to-open. No offline cache yet (add when needed).
 
 self.addEventListener("install", (event) => {
@@ -17,7 +17,7 @@ self.addEventListener("push", (event) => {
   } catch {
     payload = { title: "Anômalo", body: event.data.text() };
   }
-  const title = payload.title || "Game Anômalo";
+  const title = payload.title || "GΛME Anômalo";
   event.waitUntil(
     self.registration.showNotification(title, {
       body: payload.body || "",

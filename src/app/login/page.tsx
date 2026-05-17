@@ -49,7 +49,7 @@ export default function LoginPage() {
 
         <Reveal delay={220} y={28}>
           <h1 className="text-center mb-3 display-bold text-white" style={{ fontSize: "3.25rem" }}>
-            Game<br />
+            GΛME<br />
             <span className="display-italic text-[#C9953A]">anômalo.</span>
           </h1>
         </Reveal>

@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Game Anômalo Hub",
+    name: "GΛME Anômalo Hub",
     short_name: "Anômalo Hub",
     description: "Sistema interno de gamificação e comissionamento da Anômalo Hub.",
     start_url: "/pa",

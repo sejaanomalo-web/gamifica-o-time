@@ -37,7 +37,7 @@ export function SideNav({ isAdmin: _isAdmin = false }: { isAdmin?: boolean } = {
             textTransform: "uppercase",
           }}
         >
-          Game{" "}
+          GΛME{" "}
           <span
             className="text-[#C9953A]"
             style={{ fontWeight: 300, fontStyle: "italic", textTransform: "lowercase" }}

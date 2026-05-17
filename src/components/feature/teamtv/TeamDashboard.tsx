@@ -272,7 +272,7 @@ export function TeamDashboard({
         {/* HEADER: brand + clock + fullscreen */}
         <div className="flex items-end justify-between gap-3 md:gap-6 flex-wrap flex-shrink-0">
           <div>
-            <span className="label-caps mb-1 block">Game Anômalo · Time</span>
+            <span className="label-caps mb-1 block">GΛME Anômalo · Time</span>
             <h1
               className="display-bold text-white"
               style={{
@@ -282,7 +282,7 @@ export function TeamDashboard({
                 lineHeight: 0.92,
               }}
             >
-              Game<br />
+              GΛME<br />
               <span className="display-italic text-[#C9953A]">anômalo.</span>
             </h1>
           </div>

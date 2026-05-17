@@ -27,7 +27,7 @@ export default function ConfiguracoesPage() {
   return (
     <div className="px-5 md:px-8 py-8 md:py-12 max-w-2xl mx-auto w-full">
       <Reveal>
-        <span className="label-caps mb-3 block">Game Anômalo · Conta</span>
+        <span className="label-caps mb-3 block">GΛME Anômalo · Conta</span>
         <h1
           className="text-white"
           style={{
