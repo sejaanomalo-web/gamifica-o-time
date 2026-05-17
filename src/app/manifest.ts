@@ -11,9 +11,14 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#070709",
     lang: "pt-BR",
     icons: [
-      // SVG vetorial — escala perfeitamente em qualquer tamanho.
-      { src: "/icon.svg", sizes: "any", type: "image/svg+xml" },
-      { src: "/apple-icon.svg", sizes: "180x180", type: "image/svg+xml" },
+      // PNG raster — wordmark GΛME dourado sobre preto.
+      // "any" = ícone normal, "maskable" = variante com área de respiro
+      // de 12.5% pra Android adaptive icons (recorte circular/squircle).
+      { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/icons/icon-1024.png", sizes: "1024x1024", type: "image/png", purpose: "any" },
+      { src: "/icons/icon-maskable-192.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
+      { src: "/icons/icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
   };
 }
