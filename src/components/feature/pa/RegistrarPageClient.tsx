@@ -202,67 +202,72 @@ export function RegistrarPageClient({
             <span className="text-[#C9953A]">Nova atividade</span> pra começar.
           </p>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-                <th className="text-left px-4 py-3 label-caps label-caps-muted">Data</th>
-                <th className="text-left px-4 py-3 label-caps label-caps-muted">Atividade</th>
-                <th className="text-left px-4 py-3 label-caps label-caps-muted">Função</th>
-                <th className="text-right px-4 py-3 label-caps label-caps-muted">Qtd</th>
-                <th className="text-right px-4 py-3 label-caps label-caps-muted">PA</th>
-                <th className="text-left px-4 py-3 label-caps label-caps-muted">Status</th>
-                <th className="px-2 w-12" />
-              </tr>
-            </thead>
-            <tbody>
-              {acoes.map((a, i) => (
-                <tr
-                  key={a.id}
-                  style={{
-                    borderBottom:
-                      i < acoes.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
-                    opacity: a.status === "REJEITADA" ? 0.5 : 1,
-                  }}
-                >
-                  <td className="px-4 py-3 text-mid text-mono text-xs">{a.data}</td>
-                  <td className="px-4 py-3 text-white">{a.nome}</td>
-                  <td className="px-4 py-3 label-caps text-[10px]">
-                    {FUNCAO_LABEL[a.funcao] ?? a.funcao}
-                  </td>
-                  <td className="px-4 py-3 text-right text-mono">{a.quantidade}</td>
-                  <td
-                    className="px-4 py-3 text-right text-mono font-bold"
-                    style={{ color: a.paGerado < 0 ? "#fb2c36" : "#C9953A" }}
-                  >
-                    {a.paGerado < 0 ? "" : "+"}
-                    {a.paGerado.toFixed(1)}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className="label-caps text-[9px] px-2 py-0.5 rounded-full"
-                      style={{
-                        background: "rgba(255,255,255,0.04)",
-                        color: STATUS_COR[a.status],
-                        boxShadow: `inset 0 0 0 1px ${STATUS_COR[a.status]}40`,
-                      }}
-                    >
-                      {STATUS_LABEL[a.status]}
-                    </span>
-                  </td>
-                  <td className="px-2 py-3">
-                    <button
-                      onClick={() => remover(a)}
-                      disabled={busy === a.id}
-                      aria-label="Remover"
-                      className="w-7 h-7 flex items-center justify-center rounded-full text-[#fb2c36] hover:bg-white/[0.04] disabled:opacity-40"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </td>
+          <div
+            className="overflow-x-auto"
+            style={{ WebkitOverflowScrolling: "touch" }}
+          >
+            <table className="w-full text-sm min-w-[680px]">
+              <thead>
+                <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+                  <th className="text-left px-4 py-3 label-caps label-caps-muted">Data</th>
+                  <th className="text-left px-4 py-3 label-caps label-caps-muted">Atividade</th>
+                  <th className="text-left px-4 py-3 label-caps label-caps-muted">Função</th>
+                  <th className="text-right px-4 py-3 label-caps label-caps-muted">Qtd</th>
+                  <th className="text-right px-4 py-3 label-caps label-caps-muted">PA</th>
+                  <th className="text-left px-4 py-3 label-caps label-caps-muted">Status</th>
+                  <th className="px-2 w-12" />
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {acoes.map((a, i) => (
+                  <tr
+                    key={a.id}
+                    style={{
+                      borderBottom:
+                        i < acoes.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
+                      opacity: a.status === "REJEITADA" ? 0.5 : 1,
+                    }}
+                  >
+                    <td className="px-4 py-3 text-mid text-mono text-xs">{a.data}</td>
+                    <td className="px-4 py-3 text-white">{a.nome}</td>
+                    <td className="px-4 py-3 label-caps text-[10px]">
+                      {FUNCAO_LABEL[a.funcao] ?? a.funcao}
+                    </td>
+                    <td className="px-4 py-3 text-right text-mono">{a.quantidade}</td>
+                    <td
+                      className="px-4 py-3 text-right text-mono font-bold"
+                      style={{ color: a.paGerado < 0 ? "#fb2c36" : "#C9953A" }}
+                    >
+                      {a.paGerado < 0 ? "" : "+"}
+                      {a.paGerado.toFixed(1)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className="label-caps text-[9px] px-2 py-0.5 rounded-full"
+                        style={{
+                          background: "rgba(255,255,255,0.04)",
+                          color: STATUS_COR[a.status],
+                          boxShadow: `inset 0 0 0 1px ${STATUS_COR[a.status]}40`,
+                        }}
+                      >
+                        {STATUS_LABEL[a.status]}
+                      </span>
+                    </td>
+                    <td className="px-2 py-3">
+                      <button
+                        onClick={() => remover(a)}
+                        disabled={busy === a.id}
+                        aria-label="Remover"
+                        className="w-7 h-7 flex items-center justify-center rounded-full text-[#fb2c36] hover:bg-white/[0.04] disabled:opacity-40"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
