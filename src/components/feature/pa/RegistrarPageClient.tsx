@@ -3,8 +3,8 @@
 // Client island da /pa/registrar: botão "Nova atividade" abre sheet,
 // tabela do histórico com filtro mês/ano (sincroniza com URL).
 
-import { useState, useMemo } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Fragment, useState, useMemo } from "react";
+import { Plus, Trash2, ChevronDown } from "lucide-react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { RegistrarAcaoSheet, type Atividade } from "./RegistrarAcaoSheet";
@@ -57,6 +57,10 @@ export function RegistrarPageClient({
   const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const toggleExpand = (id: string) =>
+    setExpandedId((cur) => (cur === id ? null : id));
 
   // Anos disponíveis (atual + 2 anteriores)
   const anos = useMemo(() => {
@@ -219,52 +223,133 @@ export function RegistrarPageClient({
                 </tr>
               </thead>
               <tbody>
-                {acoes.map((a, i) => (
-                  <tr
-                    key={a.id}
-                    style={{
-                      borderBottom:
-                        i < acoes.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
-                      opacity: a.status === "REJEITADA" ? 0.5 : 1,
-                    }}
-                  >
-                    <td className="px-4 py-3 text-mid text-mono text-xs">{a.data}</td>
-                    <td className="px-4 py-3 text-white">{a.nome}</td>
-                    <td className="px-4 py-3 label-caps text-[10px]">
-                      {FUNCAO_LABEL[a.funcao] ?? a.funcao}
-                    </td>
-                    <td className="px-4 py-3 text-right text-mono">{a.quantidade}</td>
-                    <td
-                      className="px-4 py-3 text-right text-mono font-bold"
-                      style={{ color: a.paGerado < 0 ? "#fb2c36" : "#C9953A" }}
-                    >
-                      {a.paGerado < 0 ? "" : "+"}
-                      {a.paGerado.toFixed(1)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className="label-caps text-[9px] px-2 py-0.5 rounded-full"
+                {acoes.map((a, i) => {
+                  const isOpen = expandedId === a.id;
+                  const isLast = i === acoes.length - 1;
+                  const cliente = a.cliente?.trim() ?? "";
+                  const observacao = a.observacao?.trim() ?? "";
+                  return (
+                    <Fragment key={a.id}>
+                      <tr
+                        role="button"
+                        tabIndex={0}
+                        aria-expanded={isOpen}
+                        aria-controls={`acao-detalhe-${a.id}`}
+                        onClick={() => toggleExpand(a.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            toggleExpand(a.id);
+                          }
+                        }}
+                        className="cursor-pointer transition-colors hover:bg-white/[0.02] focus:bg-white/[0.03] focus:outline-none"
                         style={{
-                          background: "rgba(255,255,255,0.04)",
-                          color: STATUS_COR[a.status],
-                          boxShadow: `inset 0 0 0 1px ${STATUS_COR[a.status]}40`,
+                          borderBottom:
+                            !isOpen && !isLast
+                              ? "1px solid rgba(255,255,255,0.05)"
+                              : "none",
+                          opacity: a.status === "REJEITADA" ? 0.5 : 1,
                         }}
                       >
-                        {STATUS_LABEL[a.status]}
-                      </span>
-                    </td>
-                    <td className="px-2 py-3">
-                      <button
-                        onClick={() => remover(a)}
-                        disabled={busy === a.id}
-                        aria-label="Remover"
-                        className="w-7 h-7 flex items-center justify-center rounded-full text-[#fb2c36] hover:bg-white/[0.04] disabled:opacity-40"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                        <td className="px-4 py-3 text-mid text-mono text-xs">{a.data}</td>
+                        <td className="px-4 py-3 text-white">
+                          <span className="inline-flex items-center gap-2">
+                            {a.nome}
+                            <ChevronDown
+                              size={11}
+                              aria-hidden
+                              className="text-faint shrink-0 transition-transform"
+                              style={{
+                                transform: isOpen ? "rotate(180deg)" : "none",
+                              }}
+                            />
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 label-caps text-[10px]">
+                          {FUNCAO_LABEL[a.funcao] ?? a.funcao}
+                        </td>
+                        <td className="px-4 py-3 text-right text-mono">{a.quantidade}</td>
+                        <td
+                          className="px-4 py-3 text-right text-mono font-bold"
+                          style={{ color: a.paGerado < 0 ? "#fb2c36" : "#C9953A" }}
+                        >
+                          {a.paGerado < 0 ? "" : "+"}
+                          {a.paGerado.toFixed(1)}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className="label-caps text-[9px] px-2 py-0.5 rounded-full"
+                            style={{
+                              background: "rgba(255,255,255,0.04)",
+                              color: STATUS_COR[a.status],
+                              boxShadow: `inset 0 0 0 1px ${STATUS_COR[a.status]}40`,
+                            }}
+                          >
+                            {STATUS_LABEL[a.status]}
+                          </span>
+                        </td>
+                        <td className="px-2 py-3">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              remover(a);
+                            }}
+                            disabled={busy === a.id}
+                            aria-label="Remover"
+                            className="w-7 h-7 flex items-center justify-center rounded-full text-[#fb2c36] hover:bg-white/[0.04] disabled:opacity-40"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </td>
+                      </tr>
+                      {isOpen && (
+                        <tr
+                          id={`acao-detalhe-${a.id}`}
+                          style={{
+                            background: "rgba(0,0,0,0.25)",
+                            borderBottom: !isLast
+                              ? "1px solid rgba(255,255,255,0.05)"
+                              : "none",
+                          }}
+                        >
+                          <td colSpan={7} className="p-0">
+                            <div
+                              className="px-4 pt-1 pb-4"
+                              style={{
+                                position: "sticky",
+                                left: 0,
+                                maxWidth: "100vw",
+                              }}
+                            >
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                                <div>
+                                  <span className="label-caps label-caps-muted block mb-1">
+                                    Cliente
+                                  </span>
+                                  <span className="text-mid break-words">
+                                    {cliente || (
+                                      <span className="text-faint">—</span>
+                                    )}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="label-caps label-caps-muted block mb-1">
+                                    Observação
+                                  </span>
+                                  <span className="text-mid whitespace-pre-wrap break-words">
+                                    {observacao || (
+                                      <span className="text-faint">—</span>
+                                    )}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  );
+                })}
               </tbody>
             </table>
           </div>
